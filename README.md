@@ -1,2 +1,2 @@
 # ServiceHub
-collage project
+collage
