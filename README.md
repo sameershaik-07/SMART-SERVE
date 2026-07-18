@@ -1,2 +1,1 @@
-# ServiceHub
-collage
+This project is developed by Team service hub
