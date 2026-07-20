@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 This project is developed by Team service hub.
 =======
 # ServeSure — Product Requirements Document (PRD)
@@ -287,3 +288,6 @@ New Provider Registers → Appears in Verification Queue → Admin Reviews Docum
 - Cancellation/rescheduling policy window (e.g., how many hours before a slot) — needs to be defined.
 - Whether payment is collected at booking time or after service completion (affects Payment entity status flow).
 >>>>>>> 6f76f2a9c9eacf04cff4fa158344e00dfabf8154
+=======
+This project is developed by Team service hub.change
+>>>>>>> 6d81fef0221afec8765c3ef60866f008a0c2d545
