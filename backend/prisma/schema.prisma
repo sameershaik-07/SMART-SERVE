@@ -1,23 +1,148 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      String
-  createdAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  password   String
+  phone      String?
+  role       Role
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  customer   Customer?
+  provider   ServiceProvider?
+  admin      Admin?
+}
+
+model Customer {
+  id              Int      @id @default(autoincrement())
+
+  userId          Int      @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  address         String?
+  walletBalance   Float    @default(0)
+
+  bookings        Booking[]
+  reviews         Review[]
+}
+
+model Admin {
+  id        Int @id @default(autoincrement())
+
+  userId    Int @unique
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ServiceCategory {
+  id            Int      @id @default(autoincrement())
+  categoryName  String   @unique
+  description   String?
+
+  providers     ServiceProvider[]
+}
+
+model ServiceProvider {
+  id            Int @id @default(autoincrement())
+
+  userId        Int @unique
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId    Int
+  category      ServiceCategory @relation(fields: [categoryId], references: [id])
+
+  verified      Boolean @default(false)
+  rating        Float @default(0)
+  availability  Boolean @default(true)
+
+  bookings      Booking[]
+}
+
+model Booking {
+  id            Int @id @default(autoincrement())
+
+  customerId    Int
+  customer      Customer @relation(fields: [customerId], references: [id])
+
+  providerId    Int
+  provider      ServiceProvider @relation(fields: [providerId], references: [id])
+
+  serviceDate   DateTime
+  location      String
+
+  status        BookingStatus @default(PENDING)
+
+  payment       Payment?
+  review        Review?
+  notification  Notification?
+
+  createdAt     DateTime @default(now())
+}
+
+model Payment {
+  id            Int @id @default(autoincrement())
+
+  bookingId     Int @unique
+  booking       Booking @relation(fields: [bookingId], references: [id])
+
+  amount        Float
+  paymentMode   String
+
+  status        PaymentStatus @default(PENDING)
+
+  createdAt     DateTime @default(now())
+}
+
+model Review {
+  id            Int @id @default(autoincrement())
+
+  customerId    Int
+  customer      Customer @relation(fields: [customerId], references: [id])
+
+  bookingId     Int @unique
+  booking       Booking @relation(fields: [bookingId], references: [id])
+
+  rating        Int
+  comment       String?
+
+  createdAt     DateTime @default(now())
+}
+
+model Notification {
+  id            Int @id @default(autoincrement())
+
+  bookingId     Int @unique
+  booking       Booking @relation(fields: [bookingId], references: [id])
+
+  message       String
+  type          String
+
+  timestamp     DateTime @default(now())
 }
