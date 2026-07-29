@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-This project is developed by Team service hub.
-=======
-# ServeSure — Product Requirements Document (PRD)
+# SMART-SERVE — Product Requirements Document (PRD)
 
 **Project Type:** Semester Academic Project (Web-based Service Booking Platform)
 **Inspired by:** Slash Services Booking App
@@ -17,7 +13,7 @@ This project is developed by Team service hub.
 Customers looking for local services (home repair, cleaning, tutoring, salon, etc.) rely on unverified word-of-mouth or unstructured listings, with no standard way to compare providers, check availability, or trust reviews. Service providers, meanwhile, lack a simple platform to manage bookings, showcase their work, and track earnings without paying commission to multiple fragmented apps.
 
 ### 1.2 Solution
-ServeSure is a multi-sided web marketplace connecting **customers**, **service providers**, and an **admin** who moderates the platform. Customers can browse, filter, book, pay, and review services. Providers manage their profile, service listings, pricing, availability, and view booking/earnings analytics. Admin verifies providers, moderates content, manages categories, and monitors platform health.
+Smart-Serve is a multi-sided web marketplace connecting **customers**, **service providers**, and an **admin** who moderates the platform. Customers can browse, filter, book, pay, and review services. Providers manage their profile, service listings, pricing, availability, and view booking/earnings analytics. Admin verifies providers, moderates content, manages categories, and monitors platform health.
 
 ### 1.3 Business Model
 Commission or subscription-based marketplace — the platform takes a cut per booking (commission model recommended for MVP simplicity; subscription model as future roadmap item).
@@ -287,7 +283,3 @@ New Provider Registers → Appears in Verification Queue → Admin Reviews Docum
 - Commission vs. subscription model for MVP — needs a final decision before the payments module is built.
 - Cancellation/rescheduling policy window (e.g., how many hours before a slot) — needs to be defined.
 - Whether payment is collected at booking time or after service completion (affects Payment entity status flow).
->>>>>>> 6f76f2a9c9eacf04cff4fa158344e00dfabf8154
-=======
-This project is developed by Team service hub.change
->>>>>>> 6d81fef0221afec8765c3ef60866f008a0c2d545
