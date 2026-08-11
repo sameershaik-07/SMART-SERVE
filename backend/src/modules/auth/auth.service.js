@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const prisma = require("../../config/prisma");
 
 const registerUser = async (userData) => {
@@ -50,7 +51,6 @@ const registerUser = async (userData) => {
                 userId: user.id
             }
         });
-
     }
 
     // Remove password before returning
@@ -59,6 +59,51 @@ const registerUser = async (userData) => {
     return userWithoutPassword;
 };
 
+
+const loginUser = async (userData) => {
+
+    const user = await prisma.user.findUnique({
+        where: {
+            email: userData.email
+        }
+    });
+
+    if (!user) {
+        throw new Error("Invalid email or password");
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+        userData.password,
+        user.password
+    );
+
+    if (!isPasswordValid) {
+        throw new Error("Invalid email or password");
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+        {
+            userId: user.id,
+            role: user.role
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "7d"
+        }
+    );
+
+    // Remove password before returning
+    const { password, ...userWithoutPassword } = user;
+
+    return {
+        user: userWithoutPassword,
+        token
+    };
+};
+
+
 module.exports = {
-    registerUser
+    registerUser,
+    loginUser
 };
