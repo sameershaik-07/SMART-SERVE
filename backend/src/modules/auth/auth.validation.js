@@ -6,7 +6,6 @@ const registerSchema = z.object({
         .trim()
         .min(3, "Name must be at least 3 characters")
         .max(20, "Name cannot exceed 20 characters"),
-
     email: z
         .string()
         .trim()
