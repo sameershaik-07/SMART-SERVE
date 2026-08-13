@@ -6,6 +6,162 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id              Int              @id @default(autoincrement())
+  name            String
+  email           String           @unique
+  password        String
+  phone           String?
+  role            Role
+  isEmailVerified Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  admin           Admin?
+  customer        Customer?
+  provider        ServiceProvider?
+}
+
+model Customer {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @unique
+  address       String?
+  walletBalance Float     @default(0)
+  bookings      Booking[]
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews       Review[]
+}
+
+model Admin {
+  id        Int        @id @default(autoincrement())
+  userId    Int        @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auditLogs AuditLog[]
+}
+
+model ServiceCategory {
+  id           Int               @id @default(autoincrement())
+  categoryName String            @unique
+  description  String?
+  providers    ServiceProvider[]
+}
+
+model ServiceProvider {
+  id                Int                @id @default(autoincrement())
+  userId            Int                @unique
+  categoryId        Int
+  bio               String?
+  documents         String[]           @default([])
+  verified          Boolean            @default(false)
+  rating            Float              @default(0)
+  availability      Boolean            @default(true)
+  bookings          Booking[]
+  services          Service[]
+  availabilitySlots AvailabilitySlot[]
+  category          ServiceCategory    @relation(fields: [categoryId], references: [id])
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Service {
+  id              Int             @id @default(autoincrement())
+  providerId      Int
+  title           String
+  description     String?
+  price           Float
+  durationMinutes Int             @default(60)
+  images          String[]        @default([])
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  provider        ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  bookings        Booking[]
+}
+
+model AvailabilitySlot {
+  id         Int             @id @default(autoincrement())
+  providerId Int
+  date       DateTime
+  startTime  String
+  endTime    String
+  isBooked   Boolean         @default(false)
+  createdAt  DateTime        @default(now())
+  provider   ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id           Int             @id @default(autoincrement())
+  customerId   Int
+  providerId   Int
+  serviceId    Int?
+  slotId       Int?
+  serviceDate  DateTime
+  location     String
+  totalPrice   Float?
+  status       BookingStatus   @default(PENDING)
+  createdAt    DateTime        @default(now())
+  customer     Customer        @relation(fields: [customerId], references: [id])
+  provider     ServiceProvider @relation(fields: [providerId], references: [id])
+  service      Service?        @relation(fields: [serviceId], references: [id])
+  notification Notification?
+  payment      Payment?
+  review       Review?
+}
+
+model Payment {
+  id          Int           @id @default(autoincrement())
+  bookingId   Int           @unique
+  amount      Float
+  paymentMode String
+  status      PaymentStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  booking     Booking       @relation(fields: [bookingId], references: [id])
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  bookingId  Int      @unique
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  bookingId Int      @unique
+  message   String
+  type      String
+  timestamp DateTime @default(now())
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  adminId      Int
+  actionType   String
+  targetEntity String
+  details      String?
+  timestamp    DateTime @default(now())
+  admin        Admin    @relation(fields: [adminId], references: [id])
+}
+
+model EmailOTP {
+  id        Int      @id @default(autoincrement())
+  email     String
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
 enum Role {
   CUSTOMER
   PROVIDER
@@ -24,125 +180,4 @@ enum PaymentStatus {
   PENDING
   SUCCESS
   FAILED
-}
-
-model User {
-  id         Int      @id @default(autoincrement())
-  name       String
-  email      String   @unique
-  password   String
-  phone      String?
-  role       Role
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  customer   Customer?
-  provider   ServiceProvider?
-  admin      Admin?
-}
-
-model Customer {
-  id              Int      @id @default(autoincrement())
-
-  userId          Int      @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  address         String?
-  walletBalance   Float    @default(0)
-
-  bookings        Booking[]
-  reviews         Review[]
-}
-
-model Admin {
-  id        Int @id @default(autoincrement())
-
-  userId    Int @unique
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model ServiceCategory {
-  id            Int      @id @default(autoincrement())
-  categoryName  String   @unique
-  description   String?
-
-  providers     ServiceProvider[]
-}
-
-model ServiceProvider {
-  id            Int @id @default(autoincrement())
-
-  userId        Int @unique
-  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  categoryId    Int
-  category      ServiceCategory @relation(fields: [categoryId], references: [id])
-
-  verified      Boolean @default(false)
-  rating        Float @default(0)
-  availability  Boolean @default(true)
-
-  bookings      Booking[]
-}
-
-model Booking {
-  id            Int @id @default(autoincrement())
-
-  customerId    Int
-  customer      Customer @relation(fields: [customerId], references: [id])
-
-  providerId    Int
-  provider      ServiceProvider @relation(fields: [providerId], references: [id])
-
-  serviceDate   DateTime
-  location      String
-
-  status        BookingStatus @default(PENDING)
-
-  payment       Payment?
-  review        Review?
-  notification  Notification?
-
-  createdAt     DateTime @default(now())
-}
-
-model Payment {
-  id            Int @id @default(autoincrement())
-
-  bookingId     Int @unique
-  booking       Booking @relation(fields: [bookingId], references: [id])
-
-  amount        Float
-  paymentMode   String
-
-  status        PaymentStatus @default(PENDING)
-
-  createdAt     DateTime @default(now())
-}
-
-model Review {
-  id            Int @id @default(autoincrement())
-
-  customerId    Int
-  customer      Customer @relation(fields: [customerId], references: [id])
-
-  bookingId     Int @unique
-  booking       Booking @relation(fields: [bookingId], references: [id])
-
-  rating        Int
-  comment       String?
-
-  createdAt     DateTime @default(now())
-}
-
-model Notification {
-  id            Int @id @default(autoincrement())
-
-  bookingId     Int @unique
-  booking       Booking @relation(fields: [bookingId], references: [id])
-
-  message       String
-  type          String
-
-  timestamp     DateTime @default(now())
 }

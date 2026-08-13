@@ -5,7 +5,7 @@ const registerSchema = z.object({
         .string()
         .trim()
         .min(3, "Name must be at least 3 characters")
-        .max(20, "Name cannot exceed 20 characters"),
+        .max(50, "Name cannot exceed 50 characters"),
 
     email: z
         .string()
@@ -18,26 +18,11 @@ const registerSchema = z.object({
 
     phone: z
         .string()
-        .regex(/^[6-9]\d{9}$/, "Invalid phone number")
         .optional(),
 
     role: z.enum(["CUSTOMER", "PROVIDER", "ADMIN"]),
 
     categoryId: z.number().int().positive().optional(),
-});
-
-const registerValidation = registerSchema.superRefine((data, ctx) => {
-
-    if (data.role === "PROVIDER" && !data.categoryId) {
-
-        ctx.addIssue({
-            code: "custom",
-            path: ["categoryId"],
-            message: "Category is required for providers"
-        });
-
-    }
-
 });
 
 const loginSchema = z.object({
@@ -51,7 +36,29 @@ const loginSchema = z.object({
         .min(8, "Password must be at least 8 characters")
 });
 
+const verifyEmailSchema = z.object({
+    email: z.string().trim().email("Invalid email address"),
+    otp: z.string().length(6, "OTP must be exactly 6 digits")
+});
+
+const forgotPasswordSchema = z.object({
+    email: z.string().trim().email("Invalid email address")
+});
+
+const resetPasswordSchema = z.object({
+    token: z.string().min(1, "Reset token is required"),
+    newPassword: z.string().min(8, "Password must be at least 8 characters")
+});
+
+const refreshTokenSchema = z.object({
+    refreshToken: z.string().min(1, "Refresh token is required")
+});
+
 module.exports = {
-    registerSchema: registerValidation,
-    loginSchema
+    registerSchema,
+    loginSchema,
+    verifyEmailSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema,
+    refreshTokenSchema
 };
