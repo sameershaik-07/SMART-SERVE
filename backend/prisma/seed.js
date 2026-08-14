@@ -1,7 +1,6 @@
-const { PrismaClient } = require("@prisma/client");
+require("dotenv").config();
 const bcrypt = require("bcryptjs");
-
-const prisma = new PrismaClient();
+const prisma = require("../src/config/prisma");
 
 async function main() {
     console.log("🌱 Starting SMART-SERVE Database Seed...");

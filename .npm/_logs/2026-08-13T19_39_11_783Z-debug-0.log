@@ -1,0 +1,43 @@
+0 verbose cli /usr/bin/node /usr/bin/npm
+1 info using npm@9.2.0
+2 info using node@v18.19.1
+3 timing npm:load:whichnode Completed in 1ms
+4 timing config:load:defaults Completed in 8ms
+5 timing config:load:file:/usr/share/nodejs/npm/npmrc Completed in 14ms
+6 timing config:load:builtin Completed in 15ms
+7 timing config:load:cli Completed in 12ms
+8 timing config:load:env Completed in 1ms
+9 timing config:load:file:/home/sameer/SMART-SERVE/backend/.npmrc Completed in 0ms
+10 timing config:load:project Completed in 8ms
+11 timing config:load:file:/home/sameer/.npmrc Completed in 2ms
+12 timing config:load:user Completed in 2ms
+13 timing config:load:file:/etc/npmrc Completed in 0ms
+14 timing config:load:global Completed in 1ms
+15 timing config:load:setEnvs Completed in 5ms
+16 timing config:load Completed in 54ms
+17 timing npm:load:configload Completed in 55ms
+18 timing npm:load:mkdirpcache Completed in 1ms
+19 timing npm:load:mkdirplogs Completed in 1ms
+20 verbose title npm install express cors jsonwebtoken dotenv bcryptjs pg razorpay resend zod @prisma/client prisma
+21 verbose argv "install" "express" "cors" "jsonwebtoken" "dotenv" "bcryptjs" "pg" "razorpay" "resend" "zod" "@prisma/client" "prisma" "--cache" "/home/sameer/SMART-SERVE/.npm" "--no-audit" "--no-fund"
+22 timing npm:load:setTitle Completed in 14ms
+23 timing config:load:flatten Completed in 21ms
+24 timing npm:load:display Completed in 31ms
+25 verbose logfile logs-max:10 dir:/home/sameer/SMART-SERVE/.npm/_logs/2026-08-13T19_39_11_783Z-
+26 verbose logfile /home/sameer/SMART-SERVE/.npm/_logs/2026-08-13T19_39_11_783Z-debug-0.log
+27 timing npm:load:logFile Completed in 105ms
+28 timing npm:load:timers Completed in 1ms
+29 timing npm:load:configScope Completed in 0ms
+30 timing npm:load Completed in 212ms
+31 silly logfile done cleaning log files
+32 timing config:load:flatten Completed in 2ms
+33 timing arborist:ctor Completed in 6ms
+34 timing arborist:ctor Completed in 1ms
+35 timing arborist:ctor Completed in 0ms
+36 timing arborist:ctor Completed in 0ms
+37 timing idealTree:init Completed in 1605ms
+38 timing idealTree:userRequests Completed in 17ms
+39 silly idealTree buildDeps
+40 silly fetch manifest @prisma/client@^5.22.0
+41 silly fetch manifest bcryptjs@^3.0.3
+42 silly fetch manifest cloudinary@^2.10.0
