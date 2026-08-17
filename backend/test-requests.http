@@ -1,0 +1,342 @@
+@baseUrl = http://localhost:3000
+@customerEmail = customer_test@example.com
+@customerPassword = Password123!
+@providerEmail = provider_test@example.com
+@providerPassword = Password123!
+@adminEmail = admin_test@example.com
+@adminPassword = Password123!
+
+### 1) Register Customer
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test Customer",
+  "email": "{{customerEmail}}",
+  "password": "{{customerPassword}}",
+  "phone": "+919988776655",
+  "role": "CUSTOMER"
+}
+
+### 2) Register Provider
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test Provider",
+  "email": "{{providerEmail}}",
+  "password": "{{providerPassword}}",
+  "phone": "+919900112233",
+  "role": "PROVIDER",
+  "categoryId": 1
+}
+
+### 3) Register Admin
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test Admin",
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}",
+  "phone": "+919977665544",
+  "role": "ADMIN"
+}
+
+### 4) Login Customer
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{customerEmail}}",
+  "password": "{{customerPassword}}"
+}
+
+### 5) Login Provider
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{providerEmail}}",
+  "password": "{{providerPassword}}"
+}
+
+### 6) Login Admin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### 7) Verify Email OTP
+POST {{baseUrl}}/api/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "{{customerEmail}}",
+  "otp": "123456"
+}
+
+### 8) Forgot Password
+POST {{baseUrl}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "{{customerEmail}}"
+}
+
+### 9) Reset Password
+POST {{baseUrl}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "PASTE_RESET_TOKEN_HERE",
+  "newPassword": "NewPassword123!"
+}
+
+### 10) Refresh Token
+POST {{baseUrl}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "PASTE_REFRESH_TOKEN_HERE"
+}
+
+### 11) Get User Profile
+GET {{baseUrl}}/api/users/profile
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+### 12) Update User Profile
+PUT {{baseUrl}}/api/users/profile
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Updated Customer Name",
+  "phone": "+919988776600",
+  "address": "12 Main Road, Bengaluru"
+}
+
+### 13) Change Password
+PUT {{baseUrl}}/api/users/change-password
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "currentPassword": "Password123!",
+  "newPassword": "NewPassword123!"
+}
+
+### 14) List Providers
+GET {{baseUrl}}/api/providers?search=clean&categoryId=1&page=1&limit=10
+
+### 15) Get Provider by ID
+GET {{baseUrl}}/api/providers/1
+
+### 16) Provider Dashboard
+GET {{baseUrl}}/api/providers/dashboard
+Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
+
+### 17) Update Provider Profile
+PUT {{baseUrl}}/api/providers/profile
+Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "bio": "Top-rated cleaning and maintenance service provider",
+  "categoryId": 1,
+  "documents": ["https://example.com/doc1.pdf"],
+  "availability": true
+}
+
+### 18) List All Services
+GET {{baseUrl}}/api/services
+
+### 19) Get Provider Services
+GET {{baseUrl}}/api/services/provider/1
+
+### 20) Create Service
+POST {{baseUrl}}/api/services
+Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Full House Deep Clean",
+  "description": "Kitchen, bathroom, living room, and bedroom cleaning",
+  "price": 1499,
+  "durationMinutes": 120,
+  "images": ["https://example.com/clean1.jpg"]
+}
+
+### 21) Update Service
+PUT {{baseUrl}}/api/services/1
+Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Premium Deep Cleaning",
+  "description": "Premium apartment cleaning service",
+  "price": 1899,
+  "durationMinutes": 150
+}
+
+### 22) Delete Service
+DELETE {{baseUrl}}/api/services/1
+Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
+
+### 23) Get Availability for Provider
+GET {{baseUrl}}/api/availability/provider/1
+
+### 24) Create Availability Slot
+POST {{baseUrl}}/api/availability
+Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "date": "2026-08-20",
+  "startTime": "09:00",
+  "endTime": "11:00"
+}
+
+### 25) Update Availability Slot
+PUT {{baseUrl}}/api/availability/1
+Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "startTime": "10:00",
+  "endTime": "12:00"
+}
+
+### 26) Delete Availability Slot
+DELETE {{baseUrl}}/api/availability/1
+Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
+
+### 27) Create Booking
+POST {{baseUrl}}/api/bookings
+Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "providerId": 1,
+  "serviceId": 1,
+  "slotId": 1,
+  "serviceDate": "2026-08-20",
+  "location": "12 Main Road, Bengaluru"
+}
+
+### 28) Get Customer Bookings
+GET {{baseUrl}}/api/bookings/customer
+Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+
+### 29) Get Provider Bookings
+GET {{baseUrl}}/api/bookings/provider
+Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
+
+### 30) Get Booking by ID
+GET {{baseUrl}}/api/bookings/1
+Authorization: Bearer PASTE_TOKEN_FOR_THAT_ROLE_HERE
+
+### 31) Update Booking Status
+PATCH {{baseUrl}}/api/bookings/1/status
+Authorization: Bearer PASTE_PROVIDER_OR_CUSTOMER_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "ACCEPTED"
+}
+
+### 32) Create Payment Order
+POST {{baseUrl}}/api/payments/create-order
+Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "bookingId": 1,
+  "razorpayOrderId": "order_mock_123456",
+  "razorpayPaymentId": "pay_mock_123456",
+  "razorpaySignature": "mock_signature",
+  "paymentMode": "RAZORPAY_SANDBOX"
+}
+
+### 33) Verify Payment
+POST {{baseUrl}}/api/payments/verify
+Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+
+### 34) Get Payment by Booking ID
+GET {{baseUrl}}/api/payments/booking/1
+Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+
+### 35) Refund Payment
+POST {{baseUrl}}/api/payments/1/refund
+Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "reason": "Customer requested cancellation"
+}
+
+### 36) Get Admin Categories
+GET {{baseUrl}}/api/admin/categories
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+
+### 37) Create Category
+POST {{baseUrl}}/api/admin/categories
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "categoryName": "Car Washing",
+  "description": "Exterior and interior car detailing"
+}
+
+### 38) Update CategoryrazorpayOrderId": "order_mock_123456",
+  "razorpayPaymentId": "pay_mock_123456",
+  "razorpaySignature": "mock_signature",
+  "paymentMode": "RAZORPAY
+PUT {{baseUrl}}/api/admin/categories/1
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "categoryName": "Premium Car Care",
+  "description": "Detailed cleaning and polish services"
+}
+
+### 39) Delete Category
+DELETE {{baseUrl}}/api/admin/categories/1
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+
+### 40) Pending Providers
+GET {{baseUrl}}/api/admin/providers/pending
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+
+### 41) Verify Provider
+PATCH {{baseUrl}}/api/admin/providers/1/verify
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "reason": "Documents verified successfully"
+}
+
+### 42) Reject Provider
+PATCH {{baseUrl}}/api/admin/providers/1/reject
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "reason": "Documents incomplete"
+}
+
+### 43) Analytics Overview
+GET {{baseUrl}}/api/admin/analytics/overview
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+
+### 44) Audit Logs
+GET {{baseUrl}}/api/admin/audit-log
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE

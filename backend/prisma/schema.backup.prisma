@@ -163,6 +163,100 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 }
 
+model User {
+  id        Int              @id @default(autoincrement())
+  name      String
+  email     String           @unique
+  password  String
+  phone     String?
+  role      Role
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  admin     Admin?
+  customer  Customer?
+  provider  ServiceProvider?
+}
+
+model Customer {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @unique
+  address       String?
+  walletBalance Float     @default(0)
+  bookings      Booking[]
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews       Review[]
+}
+
+model Admin {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ServiceCategory {
+  id           Int               @id @default(autoincrement())
+  categoryName String            @unique
+  description  String?
+  providers    ServiceProvider[]
+}
+
+model ServiceProvider {
+  id           Int             @id @default(autoincrement())
+  userId       Int             @unique
+  categoryId   Int
+  verified     Boolean         @default(false)
+  rating       Float           @default(0)
+  availability Boolean         @default(true)
+  bookings     Booking[]
+  category     ServiceCategory @relation(fields: [categoryId], references: [id])
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id           Int             @id @default(autoincrement())
+  customerId   Int
+  providerId   Int
+  serviceDate  DateTime
+  location     String
+  status       BookingStatus   @default(PENDING)
+  createdAt    DateTime        @default(now())
+  customer     Customer        @relation(fields: [customerId], references: [id])
+  provider     ServiceProvider @relation(fields: [providerId], references: [id])
+  notification Notification?
+  payment      Payment?
+  review       Review?
+}
+
+model Payment {
+  id          Int           @id @default(autoincrement())
+  bookingId   Int           @unique
+  amount      Float
+  paymentMode String
+  status      PaymentStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  booking     Booking       @relation(fields: [bookingId], references: [id])
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  bookingId  Int      @unique
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  bookingId Int      @unique
+  message   String
+  type      String
+  timestamp DateTime @default(now())
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+}
+
 enum Role {
   CUSTOMER
   PROVIDER
