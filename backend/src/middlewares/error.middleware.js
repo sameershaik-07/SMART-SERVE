@@ -7,23 +7,31 @@ const errorHandler = (err, req, res, next) => {
     console.error("❌ ERROR HANDLER:", err);
 
     // 1. Zod Input Validation Error
-    if (err instanceof ZodError) {
-        return res.status(400).json({
-            message: "Validation Error",
-            errors: err.errors.map(e => ({
-                field: e.path.join("."),
-                message: e.message
+    if (err instanceof ZodError || Array.isArray(err.issues)) {
+    return res.status(400).json({
+        message: "Validation Error",
+        errors: Array.isArray(err.issues)
+            ? err.issues.map(e => ({
+                field: Array.isArray(e.path) ? e.path.join(".") : "",
+                message: e.message || "Invalid value"
             }))
-        });
-    }
+            : []
+    });
+}
 
     // 2. Prisma Database Errors
     if (err.code === "P2002") {
-        const target = err.meta?.target ? err.meta.target.join(", ") : "field";
-        return res.status(409).json({
-            message: `A record with this ${target} already exists.`
-        });
-    }
+    console.log("P2002 TARGET:", err.meta?.target);
+    console.log("P2002 META:", err.meta);
+
+    const target = err.meta?.target
+        ? err.meta.target.join(", ")
+        : "field";
+
+    return res.status(409).json({
+        message: `A record with this ${target} already exists.`
+    });
+   }
 
     if (err.code === "P2025") {
         return res.status(404).json({

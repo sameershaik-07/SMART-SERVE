@@ -4,6 +4,8 @@ const express = require("express");
 const cors = require("cors");
 
 const authRoutes = require("./modules/auth/auth.routes");
+
+const reviewRoutes = require("./modules/review/review.routes");
 const userRoutes = require("./modules/users/users.routes");
 const providerRoutes = require("./modules/providers/providers.routes");
 const serviceRoutes = require("./modules/services/services.routes");
@@ -13,6 +15,7 @@ const paymentRoutes = require("./modules/payments/payments.routes");
 const adminRoutes = require("./modules/admin/admin.routes");
 
 const errorHandler = require("./middlewares/error.middleware");
+
 
 const app = express();
 
@@ -28,6 +31,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/providers", providerRoutes);
 app.use("/api/services", serviceRoutes);
@@ -38,5 +43,7 @@ app.use("/api/admin", adminRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
+
+
 
 module.exports = app;

@@ -7,6 +7,7 @@
 @adminPassword = Password123!
 
 ### 1) Register Customer
+# REST Client:
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
@@ -18,7 +19,12 @@ Content-Type: application/json
   "role": "CUSTOMER"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/auth/register -H "Content-Type: application/json" -d '{"name":"Test Customer","email":"customer_test@example.com","password":"Password123!","phone":"+919988776655","role":"CUSTOMER"}'
+
+
 ### 2) Register Provider
+# REST Client:
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
@@ -31,7 +37,12 @@ Content-Type: application/json
   "categoryId": 1
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/auth/register -H "Content-Type: application/json" -d '{"name":"Test Provider","email":"provider_test@example.com","password":"Password123!","phone":"+919900112233","role":"PROVIDER","categoryId":1}'
+
+
 ### 3) Register Admin
+# REST Client:
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
@@ -43,7 +54,12 @@ Content-Type: application/json
   "role": "ADMIN"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/auth/register -H "Content-Type: application/json" -d '{"name":"Test Admin","email":"admin_test@example.com","password":"Password123!","phone":"+919977665544","role":"ADMIN"}'
+
+
 ### 4) Login Customer
+# REST Client:
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
@@ -52,7 +68,12 @@ Content-Type: application/json
   "password": "{{customerPassword}}"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"email":"customer_test@example.com","password":"Password123!"}'
+
+
 ### 5) Login Provider
+# REST Client:
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
@@ -61,7 +82,12 @@ Content-Type: application/json
   "password": "{{providerPassword}}"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"email":"provider_test@example.com","password":"Password123!"}'
+
+
 ### 6) Login Admin
+# REST Client:
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
@@ -70,7 +96,12 @@ Content-Type: application/json
   "password": "{{adminPassword}}"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d '{"email":"admin_test@example.com","password":"Password123!"}'
+
+
 ### 7) Verify Email OTP
+# REST Client:
 POST {{baseUrl}}/api/auth/verify-email
 Content-Type: application/json
 
@@ -79,7 +110,12 @@ Content-Type: application/json
   "otp": "123456"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/auth/verify-email -H "Content-Type: application/json" -d '{"email":"customer_test@example.com","otp":"123456"}'
+
+
 ### 8) Forgot Password
+# REST Client:
 POST {{baseUrl}}/api/auth/forgot-password
 Content-Type: application/json
 
@@ -87,7 +123,12 @@ Content-Type: application/json
   "email": "{{customerEmail}}"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/auth/forgot-password -H "Content-Type: application/json" -d '{"email":"customer_test@example.com"}'
+
+
 ### 9) Reset Password
+# REST Client:
 POST {{baseUrl}}/api/auth/reset-password
 Content-Type: application/json
 
@@ -96,7 +137,12 @@ Content-Type: application/json
   "newPassword": "NewPassword123!"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/auth/reset-password -H "Content-Type: application/json" -d '{"token":"PASTE_RESET_TOKEN_HERE","newPassword":"NewPassword123!"}'
+
+
 ### 10) Refresh Token
+# REST Client:
 POST {{baseUrl}}/api/auth/refresh
 Content-Type: application/json
 
@@ -104,11 +150,21 @@ Content-Type: application/json
   "refreshToken": "PASTE_REFRESH_TOKEN_HERE"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/auth/refresh -H "Content-Type: application/json" -d '{"refreshToken":"PASTE_REFRESH_TOKEN_HERE"}'
+
+
 ### 11) Get User Profile
+# REST Client:
 GET {{baseUrl}}/api/users/profile
 Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
 
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/users/profile -H "Authorization: Bearer PASTE_ACCESS_TOKEN_HERE"
+
+
 ### 12) Update User Profile
+# REST Client:
 PUT {{baseUrl}}/api/users/profile
 Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -119,7 +175,12 @@ Content-Type: application/json
   "address": "12 Main Road, Bengaluru"
 }
 
+# Terminal curl:
+# curl -X PUT http://localhost:3000/api/users/profile -H "Authorization: Bearer PASTE_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"name":"Updated Customer Name","phone":"+919988776600","address":"12 Main Road, Bengaluru"}'
+
+
 ### 13) Change Password
+# REST Client:
 PUT {{baseUrl}}/api/users/change-password
 Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -129,17 +190,37 @@ Content-Type: application/json
   "newPassword": "NewPassword123!"
 }
 
+# Terminal curl:
+# curl -X PUT http://localhost:3000/api/users/change-password -H "Authorization: Bearer PASTE_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"currentPassword":"Password123!","newPassword":"NewPassword123!"}'
+
+
 ### 14) List Providers
+# REST Client:
 GET {{baseUrl}}/api/providers?search=clean&categoryId=1&page=1&limit=10
 
+# Terminal curl:
+# curl -X GET "http://localhost:3000/api/providers?search=clean&categoryId=1&page=1&limit=10"
+
+
 ### 15) Get Provider by ID
+# REST Client:
 GET {{baseUrl}}/api/providers/1
 
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/providers/1
+
+
 ### 16) Provider Dashboard
+# REST Client:
 GET {{baseUrl}}/api/providers/dashboard
 Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
 
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/providers/dashboard -H "Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE"
+
+
 ### 17) Update Provider Profile
+# REST Client:
 PUT {{baseUrl}}/api/providers/profile
 Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -151,13 +232,28 @@ Content-Type: application/json
   "availability": true
 }
 
+# Terminal curl:
+# curl -X PUT http://localhost:3000/api/providers/profile -H "Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"bio":"Top-rated cleaning and maintenance service provider","categoryId":1,"documents":["https://example.com/doc1.pdf"],"availability":true}'
+
+
 ### 18) List All Services
+# REST Client:
 GET {{baseUrl}}/api/services
 
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/services
+
+
 ### 19) Get Provider Services
+# REST Client:
 GET {{baseUrl}}/api/services/provider/1
 
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/services/provider/1
+
+
 ### 20) Create Service
+# REST Client:
 POST {{baseUrl}}/api/services
 Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -170,7 +266,12 @@ Content-Type: application/json
   "images": ["https://example.com/clean1.jpg"]
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/services -H "Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"title":"Full House Deep Clean","description":"Kitchen, bathroom, living room, and bedroom cleaning","price":1499,"durationMinutes":120,"images":["https://example.com/clean1.jpg"]}'
+
+
 ### 21) Update Service
+# REST Client:
 PUT {{baseUrl}}/api/services/1
 Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -182,14 +283,29 @@ Content-Type: application/json
   "durationMinutes": 150
 }
 
+# Terminal curl:
+# curl -X PUT http://localhost:3000/api/services/1 -H "Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"title":"Premium Deep Cleaning","description":"Premium apartment cleaning service","price":1899,"durationMinutes":150}'
+
+
 ### 22) Delete Service
+# REST Client:
 DELETE {{baseUrl}}/api/services/1
 Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
 
+# Terminal curl:
+# curl -X DELETE http://localhost:3000/api/services/1 -H "Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE"
+
+
 ### 23) Get Availability for Provider
+# REST Client:
 GET {{baseUrl}}/api/availability/provider/1
 
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/availability/provider/1
+
+
 ### 24) Create Availability Slot
+# REST Client:
 POST {{baseUrl}}/api/availability
 Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -200,7 +316,12 @@ Content-Type: application/json
   "endTime": "11:00"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/availability -H "Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"date":"2026-08-20","startTime":"09:00","endTime":"11:00"}'
+
+
 ### 25) Update Availability Slot
+# REST Client:
 PUT {{baseUrl}}/api/availability/1
 Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -210,11 +331,21 @@ Content-Type: application/json
   "endTime": "12:00"
 }
 
+# Terminal curl:
+# curl -X PUT http://localhost:3000/api/availability/1 -H "Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"startTime":"10:00","endTime":"12:00"}'
+
+
 ### 26) Delete Availability Slot
+# REST Client:
 DELETE {{baseUrl}}/api/availability/1
 Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
 
+# Terminal curl:
+# curl -X DELETE http://localhost:3000/api/availability/1 -H "Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE"
+
+
 ### 27) Create Booking
+# REST Client:
 POST {{baseUrl}}/api/bookings
 Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -227,19 +358,39 @@ Content-Type: application/json
   "location": "12 Main Road, Bengaluru"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/bookings -H "Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"providerId":1,"serviceId":1,"slotId":1,"serviceDate":"2026-08-20","location":"12 Main Road, Bengaluru"}'
+
+
 ### 28) Get Customer Bookings
+# REST Client:
 GET {{baseUrl}}/api/bookings/customer
 Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
 
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/bookings/customer -H "Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE"
+
+
 ### 29) Get Provider Bookings
+# REST Client:
 GET {{baseUrl}}/api/bookings/provider
 Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE
 
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/bookings/provider -H "Authorization: Bearer PASTE_PROVIDER_ACCESS_TOKEN_HERE"
+
+
 ### 30) Get Booking by ID
+# REST Client:
 GET {{baseUrl}}/api/bookings/1
 Authorization: Bearer PASTE_TOKEN_FOR_THAT_ROLE_HERE
 
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/bookings/1 -H "Authorization: Bearer PASTE_TOKEN_FOR_THAT_ROLE_HERE"
+
+
 ### 31) Update Booking Status
+# REST Client:
 PATCH {{baseUrl}}/api/bookings/1/status
 Authorization: Bearer PASTE_PROVIDER_OR_CUSTOMER_TOKEN_HERE
 Content-Type: application/json
@@ -248,7 +399,12 @@ Content-Type: application/json
   "status": "ACCEPTED"
 }
 
+# Terminal curl:
+# curl -X PATCH http://localhost:3000/api/bookings/1/status -H "Authorization: Bearer PASTE_PROVIDER_OR_CUSTOMER_TOKEN_HERE" -H "Content-Type: application/json" -d '{"status":"ACCEPTED"}'
+
+
 ### 32) Create Payment Order
+# REST Client:
 POST {{baseUrl}}/api/payments/create-order
 Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -257,7 +413,12 @@ Content-Type: application/json
   "bookingId": 1
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/payments/create-order -H "Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"bookingId":1}'
+
+
 ### 33) Verify Payment
+# REST Client:
 POST {{baseUrl}}/api/payments/verify
 Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -270,11 +431,21 @@ Content-Type: application/json
   "paymentMode": "RAZORPAY_SANDBOX"
 }
 
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/payments/verify -H "Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"bookingId":1,"razorpayOrderId":"order_mock_123456","razorpayPaymentId":"pay_mock_123456","razorpaySignature":"mock_signature","paymentMode":"RAZORPAY_SANDBOX"}'
+
+
 ### 34) Get Payment by Booking ID
+# REST Client:
 GET {{baseUrl}}/api/payments/booking/1
 Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
 
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/payments/booking/1 -H "Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE"
+
+
 ### 35) Refund Payment
+# REST Client:
 POST {{baseUrl}}/api/payments/1/refund
 Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -283,11 +454,37 @@ Content-Type: application/json
   "reason": "Customer requested cancellation"
 }
 
-### 36) Get Admin Categories
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/payments/1/refund -H "Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"reason":"Customer requested cancellation"}'
+
+
+### 36) Create Review
+# REST Client:
+POST {{baseUrl}}/api/reviews
+Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "bookingId": 1,
+  "rating": 5,
+  "comment": "Excellent service and punctual!"
+}
+
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/reviews -H "Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"bookingId":1,"rating":5,"comment":"Excellent service and punctual!"}'
+
+
+### 37) Get Admin Categories
+# REST Client:
 GET {{baseUrl}}/api/admin/categories
 Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
 
-### 37) Create Category
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/admin/categories -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE"
+
+
+### 38) Create Category
+# REST Client:
 POST {{baseUrl}}/api/admin/categories
 Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -297,7 +494,12 @@ Content-Type: application/json
   "description": "Exterior and interior car detailing"
 }
 
-### 38) Update Category
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/admin/categories -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"categoryName":"Car Washing","description":"Exterior and interior car detailing"}'
+
+
+### 39) Update Category
+# REST Client:
 PUT {{baseUrl}}/api/admin/categories/1
 Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -307,15 +509,30 @@ Content-Type: application/json
   "description": "Detailed cleaning and polish services"
 }
 
-### 39) Delete Category
+# Terminal curl:
+# curl -X PUT http://localhost:3000/api/admin/categories/1 -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"categoryName":"Premium Car Care","description":"Detailed cleaning and polish services"}'
+
+
+### 40) Delete Category
+# REST Client:
 DELETE {{baseUrl}}/api/admin/categories/1
 Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
 
-### 40) Pending Providers
+# Terminal curl:
+# curl -X DELETE http://localhost:3000/api/admin/categories/1 -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE"
+
+
+### 41) Pending Providers
+# REST Client:
 GET {{baseUrl}}/api/admin/providers/pending
 Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
 
-### 41) Verify Provider
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/admin/providers/pending -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE"
+
+
+### 42) Verify Provider
+# REST Client:
 PATCH {{baseUrl}}/api/admin/providers/1/verify
 Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -324,7 +541,12 @@ Content-Type: application/json
   "reason": "Documents verified successfully"
 }
 
-### 42) Reject Provider
+# Terminal curl:
+# curl -X PATCH http://localhost:3000/api/admin/providers/1/verify -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"reason":"Documents verified successfully"}'
+
+
+### 43) Reject Provider
+# REST Client:
 PATCH {{baseUrl}}/api/admin/providers/1/reject
 Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
 Content-Type: application/json
@@ -333,10 +555,23 @@ Content-Type: application/json
   "reason": "Documents incomplete"
 }
 
-### 43) Analytics Overview
+# Terminal curl:
+# curl -X PATCH http://localhost:3000/api/admin/providers/1/reject -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"reason":"Documents incomplete"}'
+
+
+### 44) Analytics Overview
+# REST Client:
 GET {{baseUrl}}/api/admin/analytics/overview
 Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
 
-### 44) Audit Logs
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/admin/analytics/overview -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE"
+
+
+### 45) Audit Logs
+# REST Client:
 GET {{baseUrl}}/api/admin/audit-log
 Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/admin/audit-log -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE"
