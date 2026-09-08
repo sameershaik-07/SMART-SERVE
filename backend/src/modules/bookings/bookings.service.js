@@ -9,7 +9,7 @@ const createBooking = async (userId, bookingData) => {
         throw new Error("Customer profile not found. Only registered customers can make bookings.");
     }
 
-    const { providerId, serviceId, slotId, serviceDate, location } = bookingData;
+    const { providerId, serviceId, slotId, serviceDate, location, latitude, longitude } = bookingData;
 
     // Verify provider exists and is verified
     const provider = await prisma.serviceProvider.findUnique({
@@ -56,6 +56,8 @@ const createBooking = async (userId, bookingData) => {
                 slotId: slotId || null,
                 serviceDate: dateObj,
                 location,
+                latitude: latitude !== undefined && latitude !== null ? parseFloat(latitude) : null,
+                longitude: longitude !== undefined && longitude !== null ? parseFloat(longitude) : null,
                 totalPrice,
                 status: "PENDING"
             },
@@ -149,7 +151,18 @@ const getBookingById = async (user, bookingId) => {
         throw new Error("Unauthorized to view this booking");
     }
 
-    return booking;
+    let tracking = null;
+    try {
+        const mapService = require("../../services/map.service");
+        tracking = await mapService.getBookingTracking(id, user);
+    } catch (e) {
+        // non-blocking fallback
+    }
+
+    return {
+        ...booking,
+        tracking
+    };
 };
 
 const updateBookingStatus = async (user, bookingId, status) => {
@@ -213,10 +226,43 @@ const updateBookingStatus = async (user, bookingId, status) => {
     });
 };
 
+const updateBookingLocation = async (user, bookingId, locationData) => {
+    const id = parseInt(bookingId);
+    const booking = await prisma.booking.findUnique({
+        where: { id },
+        include: { customer: true }
+    });
+
+    if (!booking) {
+        throw new Error("Booking not found");
+    }
+
+    if (user.role === "CUSTOMER" && booking.customer.userId !== user.userId) {
+        throw new Error("Unauthorized to modify this booking's location");
+    }
+
+    const { location, latitude, longitude } = locationData;
+
+    const updated = await prisma.booking.update({
+        where: { id },
+        data: {
+            ...(location && { location }),
+            ...(latitude !== undefined && latitude !== null && { latitude: parseFloat(latitude) }),
+            ...(longitude !== undefined && longitude !== null && { longitude: parseFloat(longitude) })
+        }
+    });
+
+    const mapService = require("../../services/map.service");
+    const tracking = await mapService.getBookingTracking(id, user);
+
+    return { booking: updated, tracking };
+};
+
 module.exports = {
     createBooking,
     getCustomerBookings,
     getProviderBookings,
     getBookingById,
-    updateBookingStatus
+    updateBookingStatus,
+    updateBookingLocation
 };

@@ -4,6 +4,7 @@ const availabilityController = require("./availability.controller");
 const authenticate = require("../../middlewares/auth.middleware");
 const authorize = require("../../middlewares/role.middleware");
 
+router.get("/my-slots", authenticate, authorize("PROVIDER"), availabilityController.getMySlots);
 router.get("/provider/:providerId", availabilityController.getProviderSlots);
 router.post("/", authenticate, authorize("PROVIDER"), availabilityController.create);
 router.put("/:id", authenticate, authorize("PROVIDER"), availabilityController.update);

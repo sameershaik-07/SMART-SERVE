@@ -118,10 +118,43 @@ const deleteService = async (userId, serviceId) => {
     });
 };
 
+const getMyServices = async (userId) => {
+    const provider = await prisma.serviceProvider.findUnique({
+        where: { userId }
+    });
+
+    if (!provider) {
+        throw new Error("Provider profile required");
+    }
+
+    return prisma.service.findMany({
+        where: { providerId: provider.id },
+        orderBy: { createdAt: "desc" }
+    });
+};
+
+const getServiceById = async (serviceId) => {
+    const id = parseInt(serviceId);
+    const service = await prisma.service.findFirst({
+        where: { id, isActive: true },
+        include: {
+            provider: {
+                include: {
+                    user: { select: { id: true, name: true, phone: true, email: true } },
+                    category: true
+                }
+            }
+        }
+    });
+    return service; // null if not found
+};
+
 module.exports = {
     createService,
     getProviderServices,
     getAllServices,
+    getServiceById,
     updateService,
-    deleteService
+    deleteService,
+    getMyServices
 };

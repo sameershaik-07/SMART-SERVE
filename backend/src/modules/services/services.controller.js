@@ -62,10 +62,34 @@ const remove = async (req, res, next) => {
     }
 };
 
+const getMyServices = async (req, res, next) => {
+    try {
+        const userId = req.user.userId;
+        const services = await servicesService.getMyServices(userId);
+        return res.status(200).json(services);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getById = async (req, res, next) => {
+    try {
+        const service = await servicesService.getServiceById(req.params.id);
+        if (!service) {
+            return res.status(404).json({ message: 'Service not found' });
+        }
+        return res.status(200).json(service);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     create,
     getProviderServices,
     getAllServices,
+    getById,
     update,
-    remove
+    remove,
+    getMyServices
 };

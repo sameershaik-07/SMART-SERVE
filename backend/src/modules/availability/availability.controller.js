@@ -53,9 +53,20 @@ const remove = async (req, res, next) => {
     }
 };
 
+const getMySlots = async (req, res, next) => {
+    try {
+        const userId = req.user.userId;
+        const slots = await availabilityService.getMySlots(userId);
+        return res.status(200).json(slots);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     create,
     getProviderSlots,
     update,
-    remove
+    remove,
+    getMySlots
 };
