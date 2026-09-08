@@ -45,6 +45,13 @@ const updateUserProfile = async (userId, data) => {
         });
     }
 
+    if (address && user.role === "PROVIDER" && user.provider) {
+        await prisma.serviceProvider.update({
+            where: { userId },
+            data: { address }
+        });
+    }
+
     return getUserProfile(userId);
 };
 

@@ -96,9 +96,25 @@ const deleteSlot = async (userId, slotId) => {
     });
 };
 
+const getMySlots = async (userId) => {
+    const provider = await prisma.serviceProvider.findUnique({
+        where: { userId }
+    });
+
+    if (!provider) {
+        throw new Error("Provider profile not found");
+    }
+
+    return prisma.availabilitySlot.findMany({
+        where: { providerId: provider.id },
+        orderBy: [{ date: "asc" }, { startTime: "asc" }]
+    });
+};
+
 module.exports = {
     createSlot,
     getProviderSlots,
     updateSlot,
-    deleteSlot
+    deleteSlot,
+    getMySlots
 };

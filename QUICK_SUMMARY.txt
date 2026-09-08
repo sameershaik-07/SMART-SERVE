@@ -246,3 +246,84 @@ Start with Phase 1 setup TODAY, then begin Phase 2 immediately after.
 Questions? The project_roadmap.md file has detailed breakdowns for each phase!
 
 ═══════════════════════════════════════════════════════════════════════════════════
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ServiceHub Frontend Architecture
+│
+├── 🌐 Public & Authentication (6 Pages)
+│   ├── LandingPage.jsx              → Gateway (Sign In & Sign Up options ONLY)
+│   ├── LoginPage.jsx                → Real PostgreSQL/JWT auth (demo buttons removed)
+│   ├── RegisterPage.jsx             → Customer & Provider registration
+│   ├── ForgotPasswordPage.jsx       → Password recovery
+│   ├── ResetPasswordPage.jsx        → Token-based password reset
+│   └── VerifyEmailPage.jsx          → Email validation
+│
+├── 👤 Customer Portal (15 Pages)
+│   ├── BrowseServicesPage.jsx       → Authenticated Home (/services)
+│   ├── ServiceDetailsPage.jsx       → Service showcase & booking launcher
+│   ├── CheckoutPage.jsx             → [NEW] GPS address, time slot & payment checkout
+│   ├── MyBookingsPage.jsx           → Appointments history & order statuses
+│   ├── BookingDetailsPage.jsx       → Real-time Leaflet GPS technician tracking
+│   ├── ProvidersPage.jsx            → Directory of verified specialists
+│   ├── ProviderDetailsPage.jsx      → Provider ratings, reviews & portfolio
+│   ├── MessagesPage.jsx             → Direct real-time chat with assigned provider
+│   ├── WalletPage.jsx               → Customer balance top-up & ledger
+│   ├── ReviewsPage.jsx              → 5-star customer ratings submission
+│   ├── FavoritesPage.jsx            → Bookmarked service providers
+│   ├── ProfilePage.jsx              → Customer contact & delivery address
+│   ├── SettingsPage.jsx             → Notification & security preferences
+│   ├── NotificationsPage.jsx        → Booking milestone notifications
+│   └── HelpSupportPage.jsx          → Customer support & FAQs
+│
+├── 🔧 Service Provider Portal (7 Pages)
+│   ├── ProviderLayout.jsx           → [NEW] Provider operations shell & online toggle
+│   ├── ProviderDashboardPage.jsx    → [NEW] Real-time metrics & urgent job request queue
+│   ├── ProviderBookingsPage.jsx     → [NEW] Accept/Decline, Start & Complete service jobs
+│   ├── ProviderServicesPage.jsx     → [NEW] Catalog & custom pricing management
+│   ├── ProviderAvailabilityPage.jsx → [NEW] Weekly shift generator & appointment slots
+│   ├── ProviderEarningsPage.jsx     → [NEW] 90% partner share, payouts & withdrawal modal
+│   └── ProviderProfilePage.jsx      → [NEW] Business profile & KYC document verification
+│
+├── 🛡️ Admin Management Portal (8 Pages)
+│   ├── AdminDashboardPage.jsx       → System overview & platform metrics
+│   ├── AdminBookingsPage.jsx        → Global booking records & status overrides
+│   ├── AdminUsersPage.jsx           → User management, roles & permissions
+│   ├── AdminProvidersPage.jsx       → Provider KYC verification & onboarding
+│   ├── AdminChatAuditPage.jsx       → [NEW] Chat moderation & dispute resolution
+│   ├── AdminAnalyticsPage.jsx       → Revenue charts & category distributions
+│   ├── AdminCategoriesPage.jsx      → Service category CRUD operations
+│   └── AdminSettingsPage.jsx        → Global platform fee & commission controls
+│
+└── 🚫 Common (1 Page)
+    └── NotFoundPage.jsx             → 404 error page

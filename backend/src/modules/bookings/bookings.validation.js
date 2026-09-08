@@ -5,7 +5,9 @@ const createBookingSchema = z.object({
     serviceId: z.number().int().positive().optional(),
     slotId: z.number().int().positive().optional(),
     serviceDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid service date" }),
-    location: z.string().trim().min(5, "Location address must be at least 5 characters")
+    location: z.string().trim().min(3, "Location address must be at least 3 characters"),
+    latitude: z.number().optional(),
+    longitude: z.number().optional()
 });
 
 const updateBookingStatusSchema = z.object({

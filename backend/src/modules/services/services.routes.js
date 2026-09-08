@@ -4,8 +4,10 @@ const servicesController = require("./services.controller");
 const authenticate = require("../../middlewares/auth.middleware");
 const authorize = require("../../middlewares/role.middleware");
 
+router.get("/my-services", authenticate, authorize("PROVIDER"), servicesController.getMyServices);
 router.get("/", servicesController.getAllServices);
 router.get("/provider/:providerId", servicesController.getProviderServices);
+router.get("/:id", servicesController.getById);
 router.post("/", authenticate, authorize("PROVIDER"), servicesController.create);
 router.put("/:id", authenticate, authorize("PROVIDER"), servicesController.update);
 router.delete("/:id", authenticate, authorize("PROVIDER"), servicesController.remove);

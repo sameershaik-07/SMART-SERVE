@@ -6,6 +6,11 @@
 @adminEmail = admin_test@example.com
 @adminPassword = Password123!
 
+provider_test@example.com
+customer@smartserve.com
+Password123!
+
+
 ### 1) Register Customer
 # REST Client:
 POST {{baseUrl}}/api/auth/register
@@ -575,3 +580,117 @@ Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
 
 # Terminal curl:
 # curl -X GET http://localhost:3000/api/admin/audit-log -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE"
+
+
+### 46) Start / Get Conversation (Customer with Provider)
+# REST Client:
+POST {{baseUrl}}/api/chat/conversations
+Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "providerId": 1
+}
+
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/chat/conversations -H "Authorization: Bearer PASTE_CUSTOMER_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"providerId":1}'
+
+
+### 47) List Current User Conversations
+# REST Client:
+GET {{baseUrl}}/api/chat/conversations
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/chat/conversations -H "Authorization: Bearer PASTE_ACCESS_TOKEN_HERE"
+
+
+### 48) Send Message (REST fallback)
+# REST Client:
+POST {{baseUrl}}/api/chat/conversations/1/messages
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "message": "Hello! Can you confirm if you bring your own cleaning supplies?"
+}
+
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/chat/conversations/1/messages -H "Authorization: Bearer PASTE_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"message":"Hello! Can you confirm if you bring your own cleaning supplies?"}'
+
+
+### 49) Get Conversation Messages History
+# REST Client:
+GET {{baseUrl}}/api/chat/conversations/1/messages?page=1&limit=50
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+# Terminal curl:
+# curl -X GET "http://localhost:3000/api/chat/conversations/1/messages?page=1&limit=50" -H "Authorization: Bearer PASTE_ACCESS_TOKEN_HERE"
+
+
+### 50) Mark Conversation Messages Read
+# REST Client:
+PATCH {{baseUrl}}/api/chat/conversations/1/read
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+# Terminal curl:
+# curl -X PATCH http://localhost:3000/api/chat/conversations/1/read -H "Authorization: Bearer PASTE_ACCESS_TOKEN_HERE"
+
+
+### 51) Admin: Inspect All Platform Conversations
+# REST Client:
+GET {{baseUrl}}/api/admin/chat/conversations
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+
+# Terminal curl:
+# curl -X GET "http://localhost:3000/api/admin/chat/conversations?search=&page=1&limit=20" -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE"
+
+
+### 52) Admin: Inspect Full Conversation Audit Transcript
+# REST Client:
+GET {{baseUrl}}/api/admin/chat/conversations/1/messages
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/admin/chat/conversations/1/messages -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE"
+
+
+### 53) Admin: Send Moderator / Warning Message
+# REST Client:
+POST {{baseUrl}}/api/admin/chat/conversations/1/messages
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "message": "Official Notice: Please keep all communications and payments within ServiceHub for guarantee protection."
+}
+
+# Terminal curl:
+# curl -X POST http://localhost:3000/api/admin/chat/conversations/1/messages -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"message":"Official Notice: Please keep all communications and payments within ServiceHub for guarantee protection."}'
+
+
+### 54) Admin: Chat Platform Analytics & Stats
+# REST Client:
+GET {{baseUrl}}/api/admin/chat/stats
+Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
+
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/admin/chat/stats -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE"
+
+
+### 55) Get Booking Tracking & Live Map Coordinates
+# REST Client:
+GET {{baseUrl}}/api/bookings/2/tracking
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/bookings/2/tracking -H "Authorization: Bearer PASTE_ACCESS_TOKEN_HERE"
+
+
+### 56) Get Single Booking with Attached Tracking Summary
+# REST Client:
+GET {{baseUrl}}/api/bookings/2
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+# Terminal curl:
+# curl -X GET http://localhost:3000/api/bookings/2 -H "Authorization: Bearer PASTE_ACCESS_TOKEN_HERE"

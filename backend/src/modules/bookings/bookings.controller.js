@@ -1,5 +1,6 @@
 const { createBookingSchema, updateBookingStatusSchema } = require("./bookings.validation");
 const bookingService = require("./bookings.service");
+const mapService = require("../../services/map.service");
 
 const create = async (req, res, next) => {
     try {
@@ -49,6 +50,17 @@ const getById = async (req, res, next) => {
     }
 };
 
+const getTracking = async (req, res, next) => {
+    try {
+        const user = req.user;
+        const tracking = await mapService.getBookingTracking(req.params.id, user);
+
+        return res.status(200).json(tracking);
+    } catch (error) {
+        next(error);
+    }
+};
+
 const updateStatus = async (req, res, next) => {
     try {
         const user = req.user;
@@ -64,10 +76,26 @@ const updateStatus = async (req, res, next) => {
     }
 };
 
+const updateLocation = async (req, res, next) => {
+    try {
+        const user = req.user;
+        const result = await bookingService.updateBookingLocation(user, req.params.id, req.body);
+
+        return res.status(200).json({
+            message: "Service destination location updated successfully",
+            ...result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     create,
     getCustomerBookings,
     getProviderBookings,
     getById,
-    updateStatus
+    getTracking,
+    updateStatus,
+    updateLocation
 };

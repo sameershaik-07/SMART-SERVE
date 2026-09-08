@@ -20,16 +20,18 @@ model User {
   admin           Admin?
   customer        Customer?
   provider        ServiceProvider?
+  chatMessages    ChatMessage[]
 }
 
 model Customer {
-  id            Int       @id @default(autoincrement())
-  userId        Int       @unique
+  id            Int            @id @default(autoincrement())
+  userId        Int            @unique
   address       String?
-  walletBalance Float     @default(0)
+  walletBalance Float          @default(0)
   bookings      Booking[]
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews       Review[]
+  conversations Conversation[]
 }
 
 model Admin {
@@ -55,11 +57,13 @@ model ServiceProvider {
   availability      Boolean            @default(true)
   bio               String?
   documents         String[]           @default([])
+  address           String?
   availabilitySlots AvailabilitySlot[]
   bookings          Booking[]
   services          Service[]
   category          ServiceCategory    @relation(fields: [categoryId], references: [id])
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversations     Conversation[]
 }
 
 model Service {
@@ -94,6 +98,8 @@ model Booking {
   providerId    Int
   serviceDate   DateTime
   location      String
+  latitude      Float?
+  longitude     Float?
   status        BookingStatus   @default(PENDING)
   createdAt     DateTime        @default(now())
   serviceId     Int?
@@ -102,9 +108,10 @@ model Booking {
   customer      Customer        @relation(fields: [customerId], references: [id])
   provider      ServiceProvider @relation(fields: [providerId], references: [id])
   service       Service?        @relation(fields: [serviceId], references: [id])
-  notifications Notification[]
+  notification  Notification[]
   payment       Payment?
   review        Review?
+  conversations Conversation[]
 }
 
 model Payment {
@@ -182,3 +189,42 @@ enum PaymentStatus {
   SUCCESS
   FAILED
 }
+
+model Conversation {
+  id            Int             @id @default(autoincrement())
+  customerId    Int
+  providerId    Int
+  bookingId     Int?
+  lastMessage   String?
+  lastMessageAt DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  customer      Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  provider      ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  booking       Booking?        @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  messages      ChatMessage[]
+
+  @@unique([customerId, providerId])
+  @@index([customerId])
+  @@index([providerId])
+}
+
+model ChatMessage {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  senderId       Int
+  senderRole     Role
+  message        String       @db.Text
+  messageType    String       @default("TEXT")
+  isRead         Boolean      @default(false)
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
