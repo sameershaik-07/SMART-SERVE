@@ -344,7 +344,7 @@ export const ServiceDetailsPage = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-16">
+    <div className="service-details space-y-6 animate-fade-in pb-16">
       {/* Top Breadcrumb Navigation matching Reference Image 4 */}
       <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
         <button onClick={() => navigate(-1)} className="hover:text-purple-600 flex items-center gap-1">
@@ -367,7 +367,7 @@ export const ServiceDetailsPage = () => {
         {/* Left Column (8 cols) */}
         <div className="lg:col-span-8 space-y-8">
           {/* Service Banner Image & Info Card */}
-          <div className="sh-card p-6 bg-white space-y-6">
+          <div className="sh-card p-6 space-y-6">
             {/* Hero Image Container */}
             <div className="relative h-72 md:h-80 w-full rounded-2xl overflow-hidden bg-slate-100">
               <img
@@ -385,16 +385,16 @@ export const ServiceDetailsPage = () => {
             {/* Title & Provider Row */}
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">
                   {service.title}
                 </h1>
                 <div className="flex items-center gap-3 mt-2">
-                  <div className="flex items-center gap-1 text-xs font-bold text-slate-800">
+                  <div className="flex items-center gap-1 text-xs font-bold text-foreground">
                     <Star size={14} className="fill-amber-400 text-amber-400" />
                     <span>{service.rating} ({service.reviewCount.toLocaleString()} reviews)</span>
                   </div>
                   <span className="text-slate-300">|</span>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground bg-muted px-2.5 py-0.5 rounded-full border border-border">
                     <ShieldCheck size={14} /> Highly rated service
                   </span>
                 </div>
@@ -402,22 +402,22 @@ export const ServiceDetailsPage = () => {
 
               <div className="text-right">
                 <span className="text-xs text-slate-400 block font-medium">Price</span>
-                <span className="text-2xl font-black text-purple-700">₹{service.price}</span>
+                <span className="text-2xl font-black text-foreground">₹{service.price}</span>
                 <span className="text-xs text-slate-400 block font-medium">onwards</span>
               </div>
             </div>
 
             {/* Provider Card Badge */}
-            <div className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
+            <div className="flex items-center justify-between p-3.5 bg-muted/60 border border-border rounded-2xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-600 text-white rounded-xl font-extrabold flex items-center justify-center text-sm shadow-sm">
+                <div className="w-10 h-10 bg-primary text-primary-foreground rounded-xl font-extrabold flex items-center justify-center text-sm shadow-sm">
                   C
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold text-slate-800">{service.providerName}</span>
-                    <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <CheckCircle2 size={10} className="fill-purple-700 stroke-white" /> Verified
+                    <span className="text-sm font-bold text-foreground">{service.providerName}</span>
+                    <span className="bg-card text-foreground text-[10px] font-bold px-2 py-0.5 rounded-full border border-border flex items-center gap-1">
+                      <CheckCircle2 size={10} className="fill-current stroke-card" /> Verified
                     </span>
                   </div>
                 </div>
@@ -428,18 +428,18 @@ export const ServiceDetailsPage = () => {
             </div>
 
             {/* Tabs: Overview, Reviews, Gallery */}
-            <div className="border-b border-slate-200 flex gap-8">
+            <div className="border-b border-border flex gap-8">
               {['Overview', 'Reviews', 'Gallery'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`pb-3 text-sm font-bold transition-all relative ${
-                    activeTab === tab ? 'text-purple-700' : 'text-slate-400 hover:text-slate-700'
+                    activeTab === tab ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {tab}
                   {activeTab === tab && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full"></span>
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-full"></span>
                   )}
                 </button>
               ))}
@@ -449,16 +449,16 @@ export const ServiceDetailsPage = () => {
             {activeTab === 'Overview' && (
               <div className="space-y-6 pt-2">
                 <div>
-                  <h3 className="text-base font-bold text-slate-800 mb-2">About This Service</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">{service.description}</p>
+                  <h3 className="text-base font-bold text-foreground mb-2">About This Service</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-slate-800 mb-3">What's Included</h3>
+                  <h3 className="text-base font-bold text-foreground mb-3">What's Included</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {service.whatsIncluded.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2.5 text-xs font-semibold text-slate-700">
-                        <CheckCircle2 size={16} className="text-purple-600 shrink-0" />
+                      <div key={idx} className="flex items-center gap-2.5 text-xs font-semibold text-foreground">
+                        <CheckCircle2 size={16} className="text-foreground shrink-0" />
                         <span>{item}</span>
                       </div>
                     ))}
@@ -466,20 +466,20 @@ export const ServiceDetailsPage = () => {
                 </div>
 
                 {/* Calendar Date Availability Widget matching Reference Image 4 */}
-                <div className="pt-4 border-t border-slate-100">
+                <div className="pt-4 border-t border-border">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-base font-bold text-slate-800">Select Date</h3>
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                      <ChevronLeft size={16} className="cursor-pointer hover:text-purple-600" />
+                    <h3 className="text-base font-bold text-foreground">Select Date</h3>
+                    <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                      <ChevronLeft size={16} className="cursor-pointer hover:text-foreground" />
                       <span>June 2025</span>
-                      <ChevronRight size={16} className="cursor-pointer hover:text-purple-600" />
+                      <ChevronRight size={16} className="cursor-pointer hover:text-foreground" />
                     </div>
                   </div>
 
                   {/* Mock Calendar Grid */}
                   <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold">
                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                      <div key={day} className="text-slate-400 text-[11px] py-1">{day}</div>
+                      <div key={day} className="text-muted-foreground text-[11px] py-1">{day}</div>
                     ))}
                     {[25, 26, 27, 28, 29, 30, 31, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 1, 2, 3, 4, 5].slice(0, 35).map((num, index) => {
                       const isSelected = num === 8;
@@ -491,10 +491,10 @@ export const ServiceDetailsPage = () => {
                           disabled={!isAvailable}
                           className={`py-2 rounded-xl text-xs font-bold transition-all ${
                             isSelected
-                              ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                              ? 'bg-primary text-primary-foreground shadow-sm'
                               : isAvailable
-                              ? 'bg-slate-50 hover:bg-purple-50 text-slate-800 hover:text-purple-700'
-                              : 'text-slate-300 cursor-not-allowed'
+                              ? 'bg-muted hover:bg-accent text-foreground'
+                              : 'text-muted-foreground/40 cursor-not-allowed'
                           }`}
                         >
                           {num}
@@ -504,12 +504,12 @@ export const ServiceDetailsPage = () => {
                   </div>
 
                   {/* Legend */}
-                  <div className="flex items-center justify-center gap-6 mt-4 text-xs font-semibold text-slate-500">
+                  <div className="flex items-center justify-center gap-6 mt-4 text-xs font-semibold text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-purple-600"></span> Available
+                      <span className="w-2.5 h-2.5 rounded-full bg-foreground"></span> Available
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span> Unavailable
+                      <span className="w-2.5 h-2.5 rounded-full bg-muted-foreground/40"></span> Unavailable
                     </div>
                   </div>
                 </div>
@@ -552,19 +552,19 @@ export const ServiceDetailsPage = () => {
         </div>
 
         {/* Right Sticky Booking Panel (4 cols) matching Reference Image 4 */}
-        <div className="lg:col-span-4 sticky top-24">
-          <div className="sh-card p-6 bg-white border border-purple-100 shadow-xl space-y-5">
-            <h3 className="text-lg font-extrabold text-slate-900 pb-3 border-b border-slate-100">
+        <div className="lg:col-span-4 self-start">
+          <div className="sh-card p-6 border border-border shadow-lg space-y-5">
+            <h3 className="text-lg font-extrabold text-foreground pb-3 border-b border-border">
               Book This Service
             </h3>
 
             {/* Select Date */}
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1.5 flex items-center justify-between">
+              <label className="text-xs font-bold text-foreground block mb-1.5 flex items-center justify-between">
                 <span>Select Date</span>
-                <CalendarIcon size={14} className="text-purple-600" />
+                <CalendarIcon size={14} className="text-foreground" />
               </label>
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 flex items-center justify-between">
+              <div className="p-3 bg-muted border border-border rounded-xl text-xs font-bold text-foreground flex items-center justify-between">
                 <span>{selectedDate}</span>
                 <ChevronRight size={14} className="text-slate-400 rotate-90" />
               </div>
@@ -572,9 +572,9 @@ export const ServiceDetailsPage = () => {
 
             {/* Select Time Slot */}
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-2 flex items-center justify-between">
+              <label className="text-xs font-bold text-foreground block mb-2 flex items-center justify-between">
                 <span>Select Time Slot</span>
-                <Clock size={14} className="text-purple-600" />
+                <Clock size={14} className="text-foreground" />
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {timeSlots.map((slot) => (
@@ -583,8 +583,8 @@ export const ServiceDetailsPage = () => {
                     onClick={() => setSelectedSlot(slot)}
                     className={`py-2 px-1 rounded-xl text-xs font-bold transition-all border ${
                       selectedSlot === slot
-                        ? 'bg-purple-50 border-purple-600 text-purple-700 shadow-2xs'
-                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        ? 'bg-primary border-primary text-primary-foreground shadow-sm'
+                        : 'bg-card border-border text-foreground hover:bg-muted'
                     }`}
                   >
                     {slot}
@@ -596,32 +596,32 @@ export const ServiceDetailsPage = () => {
             {/* Address Selector & GPS Auto-Detection */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-slate-700">Service Address</label>
+                <label className="text-xs font-bold text-foreground">Service Address</label>
                 <button
                   type="button"
                   onClick={detectExactLocation}
                   disabled={detectingLocation}
-                  className="text-[11px] font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1 bg-purple-50 hover:bg-purple-100 px-2 py-0.5 rounded-md transition-colors"
+                  className="text-[11px] font-bold text-foreground hover:text-muted-foreground flex items-center gap-1 bg-muted hover:bg-accent px-2 py-0.5 rounded-md transition-colors"
                   title="Ask browser permission to detect exact current GPS location"
                 >
                   {detectingLocation ? (
-                    <Loader2 size={12} className="animate-spin text-purple-600" />
+                    <Loader2 size={12} className="animate-spin text-foreground" />
                   ) : (
-                    <Crosshair size={12} className="text-purple-600" />
+                    <Crosshair size={12} className="text-foreground" />
                   )}
                   {detectingLocation ? "Detecting..." : "Auto-Detect GPS"}
                 </button>
               </div>
 
-              <div className="p-3 bg-purple-50/50 border border-purple-100 rounded-xl space-y-2">
+              <div className="p-3 bg-muted/60 border border-border rounded-xl space-y-2">
                 <div className="flex items-start gap-2">
-                  <MapPin size={16} className="text-purple-600 shrink-0 mt-1" />
+                  <MapPin size={16} className="text-foreground shrink-0 mt-1" />
                   <input
                     type="text"
                     value={locationAddress}
                     onChange={(e) => setLocationAddress(e.target.value)}
                     placeholder="Enter street address or apartment"
-                    className="w-full bg-white border border-purple-200 rounded-lg p-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                    className="w-full bg-card border border-border rounded-lg p-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20"
                   />
                 </div>
                 {locationStatus && (
@@ -633,19 +633,19 @@ export const ServiceDetailsPage = () => {
             </div>
 
             {/* Quantity Stepper */}
-            <div className="flex items-center justify-between py-2 border-y border-slate-100">
-              <span className="text-xs font-bold text-slate-700">Quantity</span>
-              <div className="flex items-center gap-3 bg-slate-100 p-1 rounded-xl">
+            <div className="flex items-center justify-between py-2 border-y border-border">
+              <span className="text-xs font-bold text-foreground">Quantity</span>
+              <div className="flex items-center gap-3 bg-muted p-1 rounded-xl">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-slate-700 font-bold shadow-2xs hover:bg-slate-50"
+                  className="w-7 h-7 bg-card rounded-lg flex items-center justify-center text-foreground font-bold shadow-sm hover:bg-accent"
                 >
                   <Minus size={14} />
                 </button>
-                <span className="text-xs font-bold text-slate-800 px-1">{quantity}</span>
+                <span className="text-xs font-bold text-foreground px-1">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-slate-700 font-bold shadow-2xs hover:bg-slate-50"
+                  className="w-7 h-7 bg-card rounded-lg flex items-center justify-center text-foreground font-bold shadow-sm hover:bg-accent"
                 >
                   <Plus size={14} />
                 </button>
@@ -655,8 +655,8 @@ export const ServiceDetailsPage = () => {
             {/* Total Price & Book Now Button */}
             <div className="space-y-4 pt-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-700">Total Price</span>
-                <span className="text-2xl font-black text-purple-700">
+                <span className="text-sm font-bold text-foreground">Total Price</span>
+                <span className="text-2xl font-black text-foreground">
                   ₹{(service.price * quantity).toLocaleString()}
                 </span>
               </div>

@@ -10,12 +10,17 @@ import {
   UserCheck,
   MessageSquare,
   LogOut,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { updateProviderProfileApi } from '../../api/providers';
+import { useAuth } from '@/context/AuthContext';
+import { updateProviderProfileApi } from '@/api/providers';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 
-export const ProviderSidebar = ({ availability, onAvailabilityToggle }) => {
+export const ProviderSidebar = ({ className, availability, onAvailabilityToggle, onItemClick }) => {
   const { user, logout } = useAuth();
   const [isOnline, setIsOnline] = useState(availability ?? true);
   const [toggling, setToggling] = useState(false);
@@ -29,7 +34,6 @@ export const ProviderSidebar = ({ availability, onAvailabilityToggle }) => {
       if (onAvailabilityToggle) onAvailabilityToggle(nextStatus);
     } catch (err) {
       console.error('Failed to update availability:', err);
-      // Revert on error
       setIsOnline(isOnline);
     } finally {
       setToggling(false);
@@ -47,57 +51,56 @@ export const ProviderSidebar = ({ availability, onAvailabilityToggle }) => {
   ];
 
   return (
-    <aside className="w-64 bg-[#141b2d] text-slate-200 flex flex-col min-h-screen sticky top-0 border-r border-slate-800/80 shadow-2xl z-30 transition-all duration-300 select-none">
+    <aside className={cn("w-[248px] bg-sidebar text-sidebar-foreground flex flex-col h-full border-r border-sidebar-border select-none transition-colors", className)}>
       {/* Brand Header */}
       <Link
         to="/provider/dashboard"
-        className="flex items-center gap-3 px-6 py-5 border-b border-slate-800/60 hover:bg-slate-800/20 transition-colors"
+        onClick={onItemClick}
+        className="h-[76px] flex items-center gap-3 px-5 border-b border-sidebar-border hover:bg-sidebar-accent/50 transition-colors"
       >
-        <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-          <Shield size={22} className="fill-white stroke-emerald-600" />
+        <div className="w-10 h-10 bg-sidebar-primary rounded-xl flex items-center justify-center text-sidebar-primary-foreground shadow-sm">
+          <Shield size={22} className="fill-current" />
         </div>
         <div className="flex flex-col">
-          <span className="text-lg font-black tracking-tight text-white leading-tight">ServiceHub</span>
-          <span className="text-[10px] uppercase font-extrabold text-emerald-400 tracking-wider">Partner Pro</span>
+          <span className="text-lg font-bold tracking-tight text-sidebar-foreground">ServiceHub</span>
+          <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+            <Sparkles size={10} /> Partner Portal
+          </span>
         </div>
       </Link>
 
       {/* Real-time Availability Switch */}
-      <div className="px-4 py-3 mx-4 my-3 rounded-2xl bg-slate-800/50 border border-slate-700/60 flex items-center justify-between">
+      <div className="px-4 py-3 mx-3 my-3 rounded-xl bg-sidebar-accent/40 border border-sidebar-border flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`}></span>
-          <span className="text-xs font-bold text-slate-300">
+          <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-muted-foreground/40'}`}></span>
+          <span className="text-xs font-semibold text-sidebar-foreground">
             {isOnline ? 'Accepting Jobs' : 'Offline'}
           </span>
         </div>
-        <button
-          onClick={handleToggleOnline}
+        <Switch
+          checked={isOnline}
+          onCheckedChange={handleToggleOnline}
           disabled={toggling}
-          title={isOnline ? 'Go Offline' : 'Go Online'}
-          className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-            isOnline
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30'
-              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-          }`}
-        >
-          {toggling ? '...' : isOnline ? 'Online' : 'Go Live'}
-        </button>
+          aria-label="Toggle availability"
+        />
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={onItemClick}
               className={({ isActive }) =>
-                `flex items-center justify-between px-4 py-3 rounded-xl font-medium text-sm transition-all duration-150 ${
+                cn(
+                  "flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all",
                   isActive
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40 font-semibold'
-                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
-                }`
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-semibold"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )
               }
             >
               <div className="flex items-center gap-3">
@@ -110,35 +113,36 @@ export const ProviderSidebar = ({ availability, onAvailabilityToggle }) => {
       </nav>
 
       {/* Provider Profile Footer */}
-      <div className="p-4 border-t border-slate-800/60">
-        <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/30 border border-slate-800/40">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-emerald-700 border-2 border-emerald-400/40 flex items-center justify-center text-white font-bold text-sm">
+      <div className="p-3 border-t border-sidebar-border bg-sidebar-accent/20">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-sidebar-accent/40 border border-sidebar-border">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center shrink-0">
               {user?.name ? user.name.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'P')}
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-xs font-bold text-white truncate max-w-[110px]">
+            <div className="flex flex-col text-left truncate">
+              <span className="text-xs font-semibold text-sidebar-foreground truncate">
                 {user?.name || user?.email?.split('@')[0] || 'Partner'}
               </span>
-              <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+              <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1 truncate">
                 <CheckCircle2 size={10} /> Verified Pro
               </span>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={(e) => {
               e.preventDefault();
-              e.stopPropagation();
               logout();
             }}
             title="Sign Out"
-            className="text-slate-400 hover:text-rose-400 transition-colors p-1.5 rounded-lg hover:bg-slate-800/80 cursor-pointer"
+            className="h-8 w-8 text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded-lg shrink-0"
+            aria-label="Sign out"
           >
-            <LogOut size={16} />
-          </button>
+            <LogOut size={15} />
+          </Button>
         </div>
       </div>
     </aside>
   );
 };
-

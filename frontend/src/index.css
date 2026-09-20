@@ -1,111 +1,115 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  
-  /* Brand Colors */
-  --primary-50: #f5f3ff;
-  --primary-100: #ede9fe;
-  --primary-200: #ddd6fe;
-  --primary-300: #c4b5fd;
-  --primary-400: #a78bfa;
-  --primary-500: #8b5cf6;
-  --primary-600: #7c3aed;
-  --primary-700: #6d28d9;
-  --primary-800: #5b21b6;
-  --primary-900: #4c1d95;
-  --primary-950: #2e1065;
-
-  /* Neutral Surface Colors */
-  --bg-app: #f8fafc;
-  --bg-card: #ffffff;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
-  --border-light: #f1f5f9;
-  --border-subtle: #e2e8f0;
-  --border-active: #cbd5e1;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 10px 25px -3px rgba(109, 40, 217, 0.08), 0 4px 12px -4px rgba(15, 23, 42, 0.05);
-  --shadow-purple: 0 8px 24px -4px rgba(109, 40, 217, 0.25);
-
-  /* Border Radius */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
-  --radius-full: 9999px;
+/* Neutral palette shared by customer, partner and admin workspaces. */
+@layer base {
+  :root {
+    --background: 220 20% 98%; --foreground: 222 20% 9%; --card: 0 0% 100%; --card-foreground: 222 20% 9%;
+    --popover: 0 0% 100%; --popover-foreground: 222 20% 9%; --primary: 220 7% 12%; --primary-foreground: 0 0% 100%;
+    --secondary: 220 16% 96%; --secondary-foreground: 222 20% 14%; --muted: 220 15% 96%; --muted-foreground: 220 9% 45%;
+    --accent: 220 14% 94%; --accent-foreground: 222 20% 10%; --destructive: 0 72% 51%; --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 90%; --input: 220 13% 90%; --ring: 220 7% 18%; --radius: .85rem;
+    --sidebar-background: 0 0% 100%; --sidebar-foreground: 222 20% 14%; --sidebar-primary: 220 7% 12%; --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 94%; --sidebar-accent-foreground: 222 20% 9%; --sidebar-border: 220 13% 91%; --sidebar-ring: 220 7% 18%;
+  }
+  .dark {
+    --background: 220 14% 6%; --foreground: 220 14% 94%; --card: 220 12% 9%; --card-foreground: 220 14% 94%;
+    --popover: 220 12% 10%; --popover-foreground: 220 14% 94%; --primary: 0 0% 96%; --primary-foreground: 220 14% 8%;
+    --secondary: 220 10% 14%; --secondary-foreground: 220 14% 94%; --muted: 220 10% 14%; --muted-foreground: 220 9% 64%;
+    --accent: 220 10% 16%; --accent-foreground: 0 0% 98%; --destructive: 0 64% 48%; --destructive-foreground: 0 0% 100%;
+    --border: 220 10% 18%; --input: 220 10% 18%; --ring: 0 0% 88%;
+    --sidebar-background: 220 14% 6%; --sidebar-foreground: 220 14% 94%; --sidebar-primary: 0 0% 96%; --sidebar-primary-foreground: 220 14% 8%;
+    --sidebar-accent: 220 10% 13%; --sidebar-accent-foreground: 0 0% 98%; --sidebar-border: 220 10% 16%; --sidebar-ring: 0 0% 88%;
+  }
+  * { @apply border-border; box-sizing: border-box; }
+  html { background: hsl(var(--background)); }
+  body { @apply bg-background text-foreground; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-feature-settings: 'rlig' 1, 'calt' 1; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4 { font-family: 'Manrope', 'DM Sans', sans-serif; }
 }
 
-* {
-  box-sizing: border-box;
+@layer components {
+  .sh-card { @apply rounded-2xl border border-border bg-card text-card-foreground shadow-[0_1px_2px_rgba(15,23,42,.035)]; }
+  .sh-card-hover { @apply transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-[0_10px_28px_rgba(15,23,42,.08)]; }
+  .workspace-title { @apply text-3xl font-extrabold tracking-[-.045em] text-foreground; }
+  .workspace-subtitle { @apply mt-1 text-sm font-medium text-muted-foreground; }
 }
 
-body {
-  font-family: var(--font-family);
-  background-color: var(--bg-app);
-  color: var(--text-main);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* Legacy page utilities stay readable in dark mode during the token migration. */
+.dark .bg-white, .dark .bg-slate-50 { background-color: hsl(var(--card)) !important; }
+.dark .bg-slate-100 { background-color: hsl(var(--muted)) !important; }
+.dark .border-slate-100, .dark .border-slate-200 { border-color: hsl(var(--border)) !important; }
+.dark .text-slate-900, .dark .text-slate-800, .dark .text-slate-700 { color: hsl(var(--foreground)) !important; }
+.dark .text-slate-600, .dark .text-slate-500, .dark .text-slate-400 { color: hsl(var(--muted-foreground)) !important; }
+.dark .bg-purple-600 { background-color: hsl(var(--primary)) !important; }
+.dark .text-purple-600, .dark .text-purple-700 { color: hsl(var(--foreground)) !important; }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
+/* Provider screens were originally dark-only. These scoped fallbacks turn their
+   hard-coded slate surfaces into the same light token system without affecting dark mode. */
+html:not(.dark) .provider-workspace [class*="bg-slate-9"],
+html:not(.dark) .provider-workspace [class*="bg-slate-8"] { background-color: hsl(var(--card)) !important; }
+html:not(.dark) .provider-workspace [class*="bg-slate-7"] { background-color: hsl(var(--muted)) !important; }
+html:not(.dark) .provider-workspace [class*="border-slate-9"],
+html:not(.dark) .provider-workspace [class*="border-slate-8"],
+html:not(.dark) .provider-workspace [class*="border-slate-7"] { border-color: hsl(var(--border)) !important; }
+html:not(.dark) .provider-workspace [class*="text-slate-3"],
+html:not(.dark) .provider-workspace [class*="text-slate-4"],
+html:not(.dark) .provider-workspace [class*="text-slate-5"] { color: hsl(var(--muted-foreground)) !important; }
+html:not(.dark) .provider-workspace [class*="text-slate-0"],
+html:not(.dark) .provider-workspace [class*="text-slate-1"],
+html:not(.dark) .provider-workspace [class*="text-slate-2"] { color: hsl(var(--foreground)) !important; }
+html:not(.dark) .provider-workspace [class*="text-white"] { color: hsl(var(--foreground)) !important; }
+html:not(.dark) .provider-workspace button[class*="bg-emerald"],
+html:not(.dark) .provider-workspace button[class*="bg-indigo"],
+html:not(.dark) .provider-workspace button[class*="bg-primary"] { color: hsl(var(--primary-foreground)) !important; }
 
-/* Card Utility */
-.sh-card {
-  background-color: var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-md);
-  transition: all 0.2s ease-in-out;
+/* Provider dashboard accents follow the monochrome workspace language in light mode. */
+html:not(.dark) .provider-workspace [class*="text-emerald-"],
+html:not(.dark) .provider-workspace [class*="text-amber-"],
+html:not(.dark) .provider-workspace [class*="text-indigo-"],
+html:not(.dark) .provider-workspace [class*="text-purple-"],
+html:not(.dark) .provider-workspace [class*="text-sky-"] { color: hsl(var(--foreground)) !important; }
+html:not(.dark) .provider-workspace [class*="bg-emerald-"][class*="/"],
+html:not(.dark) .provider-workspace [class*="bg-amber-"][class*="/"],
+html:not(.dark) .provider-workspace [class*="bg-indigo-"][class*="/"],
+html:not(.dark) .provider-workspace [class*="bg-purple-"][class*="/"],
+html:not(.dark) .provider-workspace [class*="bg-sky-"][class*="/"] { background-color: hsl(var(--muted)) !important; }
+html:not(.dark) .provider-workspace [class*="bg-emerald-"]:not([class*="/"]),
+html:not(.dark) .provider-workspace [class*="bg-amber-"]:not([class*="/"]),
+html:not(.dark) .provider-workspace [class*="bg-indigo-"]:not([class*="/"]),
+html:not(.dark) .provider-workspace [class*="bg-purple-"]:not([class*="/"]),
+html:not(.dark) .provider-workspace [class*="bg-sky-"]:not([class*="/"]) { background-color: hsl(var(--primary)) !important; }
+html:not(.dark) .provider-workspace [class*="border-emerald-"],
+html:not(.dark) .provider-workspace [class*="border-amber-"],
+html:not(.dark) .provider-workspace [class*="border-indigo-"],
+html:not(.dark) .provider-workspace [class*="border-purple-"],
+html:not(.dark) .provider-workspace [class*="border-sky-"] { border-color: hsl(var(--border)) !important; }
+html:not(.dark) .provider-workspace [class*="fill-amber-"],
+html:not(.dark) .provider-workspace [class*="fill-emerald-"],
+html:not(.dark) .provider-workspace [class*="fill-indigo-"] { fill: hsl(var(--foreground)) !important; }
+html:not(.dark) .provider-workspace button[class*="bg-emerald-"],
+html:not(.dark) .provider-workspace button[class*="bg-amber-"],
+html:not(.dark) .provider-workspace button[class*="bg-indigo-"],
+html:not(.dark) .provider-workspace button[class*="bg-purple-"],
+html:not(.dark) .provider-workspace button[class*="bg-sky-"] {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
+html:not(.dark) .provider-workspace button[class*="bg-primary"] { color: hsl(var(--primary-foreground)) !important; }
+html:not(.dark) .provider-workspace button [class*="text-white"],
+html:not(.dark) .provider-workspace button [class*="text-primary-foreground"] { color: hsl(var(--primary-foreground)) !important; }
 
-.sh-card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary-200);
-}
+/* Checkout uses the same restrained, token-based controls as the workspace. */
+.checkout-page .sh-card { @apply bg-card border-border shadow-sm; }
+.checkout-page [class*="bg-purple-"], .checkout-page [class*="bg-indigo-"], .checkout-page [class*="bg-blue-"] { background-color: hsl(var(--muted)) !important; }
+.checkout-page [class*="text-purple-"], .checkout-page [class*="text-indigo-"], .checkout-page [class*="text-blue-"] { color: hsl(var(--foreground)) !important; }
+.checkout-page [class*="border-purple-"] { border-color: hsl(var(--foreground)) !important; }
+.checkout-page input, .checkout-page textarea, .checkout-page select { color: hsl(var(--foreground)); border-color: hsl(var(--border)); background-color: hsl(var(--muted) / .6); }
+.checkout-page input:focus, .checkout-page textarea:focus, .checkout-page select:focus { border-color: hsl(var(--foreground)); outline: none; }
 
-/* Badges & Status Pills */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.25s ease-out forwards;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / .26); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / .45); }

@@ -156,7 +156,7 @@ export const ProviderProfilePage = () => {
         <button
           onClick={handleSubmit}
           disabled={saving}
-          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-md shadow-emerald-950/40 cursor-pointer disabled:opacity-50 self-start sm:self-auto"
+          className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50 self-start sm:self-auto"
         >
           <Save size={16} />
           {saving ? 'Saving...' : 'Save Changes'}
@@ -295,7 +295,7 @@ export const ProviderProfilePage = () => {
             <button
               type="button"
               onClick={() => setShowAddDocModal(true)}
-              className="px-3.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 bg-muted hover:bg-accent text-foreground border border-border rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Plus size={14} /> Add Document
             </button>
@@ -344,7 +344,7 @@ export const ProviderProfilePage = () => {
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-md shadow-emerald-950/40 cursor-pointer disabled:opacity-50"
+            className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
           >
             <Save size={16} />
             {saving ? 'Saving Updates...' : 'Save Profile & Credentials'}
@@ -400,7 +400,7 @@ export const ProviderProfilePage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-950/40 cursor-pointer"
+                  className="px-5 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
                 >
                   Attach & Submit
                 </button>
@@ -412,4 +412,3 @@ export const ProviderProfilePage = () => {
     </div>
   );
 };
-

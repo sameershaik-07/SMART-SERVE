@@ -143,7 +143,7 @@ export const ProviderEarningsPage = () => {
               setWithdrawModalOpen(true);
             }}
             disabled={availableBalance <= 0}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-md shadow-emerald-950/40 cursor-pointer disabled:opacity-50"
+            className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-100 disabled:cursor-not-allowed"
           >
             <ArrowUpRight size={16} /> Request Withdrawal
           </button>
@@ -169,19 +169,19 @@ export const ProviderEarningsPage = () => {
       {/* Financial KPI Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Available for Payout */}
-        <div className="bg-gradient-to-br from-slate-800/90 to-emerald-950/40 border border-emerald-500/40 rounded-3xl p-6 relative overflow-hidden">
+        <div className="bg-card border border-border rounded-3xl p-6 relative overflow-hidden">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+            <span className="text-xs font-bold text-foreground uppercase tracking-wider">
               Available to Withdraw
             </span>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+            <div className="w-10 h-10 rounded-2xl bg-muted text-foreground flex items-center justify-center border border-border">
               <Wallet size={20} />
             </div>
           </div>
-          <div className="text-3xl font-black text-white tracking-tight">
+          <div className="text-3xl font-black text-foreground tracking-tight">
             ₹{availableBalance.toLocaleString('en-IN')}
           </div>
-          <p className="text-[11px] text-emerald-300/80 mt-2 flex items-center gap-1 font-semibold">
+          <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1 font-semibold">
             <CheckCircle2 size={12} /> Ready for instant transfer
           </p>
         </div>
@@ -232,7 +232,7 @@ export const ProviderEarningsPage = () => {
               <Building2 size={20} />
             </div>
           </div>
-          <div className="text-3xl font-black text-slate-300 tracking-tight">
+          <div className="text-3xl font-black text-foreground tracking-tight">
             ₹{platformFeeTotal.toLocaleString('en-IN')}
           </div>
           <p className="text-[11px] text-slate-400 mt-2">
@@ -475,4 +475,3 @@ export const ProviderEarningsPage = () => {
     </div>
   );
 };
-

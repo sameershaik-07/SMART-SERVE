@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Star, CheckCircle2, MapPin, MessageSquare, ArrowRight, RefreshCw, X } from 'lucide-react';
 import { getProvidersApi } from '../../api/providers';
 
-const mockProviders = [];
+const mockProviders = [
+  { id: 'brightclean', name: 'BrightClean Services', category: 'General Services', location: 'Macherla, Andhra Pradesh', rating: 4.8, reviewCount: 120, bio: 'Verified and certified professional service partner delivering reliable doorstep assistance.', avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&q=80' },
+  { id: 'sameer', name: 'Sameer', category: 'General Services', location: 'Macherla, Andhra Pradesh', rating: 4.8, reviewCount: 120, bio: 'Top rated professional home cleaning service with 5+ years experience.', avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&q=80' },
+];
 
 // Robust normalizer for provider objects from any source (DB Prisma or Mock)
 const normalizeProvider = (p) => {
@@ -100,14 +103,14 @@ export const ProvidersPage = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Verified Service Providers</h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">
+          <h1 className="workspace-title">Verified Service Providers</h1>
+          <p className="workspace-subtitle">
             Explore top-rated professionals, view verified profiles, and start direct consultations.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-xl">
-          <CheckCircle2 size={15} className="text-purple-600" />
+        <div className="flex items-center gap-2 text-xs font-semibold text-foreground bg-muted border border-border px-3 py-1.5 rounded-xl">
+          <CheckCircle2 size={15} className="text-foreground" />
           <span>{providers.length} Verified Partners</span>
         </div>
       </div>
@@ -121,7 +124,7 @@ export const ProvidersPage = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by provider name, specialty, or area..."
-            className="w-full bg-white border border-slate-200 rounded-xl pl-11 pr-10 py-2.5 text-sm focus:border-purple-600 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+            className="w-full bg-card border border-border rounded-xl pl-11 pr-10 py-2.5 text-sm focus:border-foreground focus:ring-4 focus:ring-foreground/10 outline-none transition-all"
           />
           {search && (
             <button
@@ -161,7 +164,7 @@ export const ProvidersPage = () => {
             <div
               key={provider.id}
               onClick={() => navigate(`/providers/${provider.id}`)}
-              className="sh-card p-5 bg-white hover:border-purple-200 cursor-pointer flex flex-col justify-between space-y-4 group transition-all"
+              className="sh-card p-5 hover:border-foreground/25 cursor-pointer flex flex-col justify-between space-y-4 group transition-all"
             >
               <div className="flex items-start gap-4">
                 <img
@@ -171,14 +174,14 @@ export const ProvidersPage = () => {
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-base text-slate-900 group-hover:text-purple-700 transition-colors truncate">
+                    <h3 className="font-bold text-base text-foreground group-hover:text-muted-foreground transition-colors truncate">
                       {provider.name}
                     </h3>
                     {provider.verified && (
                       <CheckCircle2 size={16} className="text-blue-500 fill-blue-500 stroke-white shrink-0" />
                     )}
                   </div>
-                  <span className="text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100 inline-block mt-1">
+                  <span className="text-xs font-semibold text-foreground bg-muted px-2 py-0.5 rounded-md border border-border inline-block mt-1">
                     {provider.category}
                   </span>
                   <div className="flex items-center gap-2 mt-2 text-xs font-semibold text-slate-600">
@@ -194,7 +197,7 @@ export const ProvidersPage = () => {
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-medium">
                 <span className="flex items-center gap-1 text-slate-500 font-semibold truncate max-w-[180px]">
-                  <MapPin size={14} className="text-purple-600 shrink-0" />
+                  <MapPin size={14} className="text-foreground shrink-0" />
                   <span className="truncate">{provider.location}</span>
                 </span>
 
@@ -202,11 +205,11 @@ export const ProvidersPage = () => {
                   <button
                     type="button"
                     onClick={(e) => handleStartChat(e, provider)}
-                    className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl font-bold flex items-center gap-1.5 transition-colors border border-purple-200 cursor-pointer active:scale-95"
+                    className="px-3 py-1.5 bg-muted hover:bg-accent text-foreground rounded-xl font-bold flex items-center gap-1.5 transition-colors border border-border cursor-pointer active:scale-95"
                   >
                     <MessageSquare size={13} /> Message
                   </button>
-                  <span className="font-bold text-purple-600 group-hover:underline flex items-center gap-0.5">
+                  <span className="font-bold text-foreground group-hover:underline flex items-center gap-0.5">
                     Details <ArrowRight size={12} />
                   </span>
                 </div>

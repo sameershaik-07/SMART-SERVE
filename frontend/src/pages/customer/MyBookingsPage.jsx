@@ -100,31 +100,31 @@ export const MyBookingsPage = () => {
   });
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <div className="max-w-[1120px] space-y-6 animate-fade-in pb-12">
       <div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">My Bookings</h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">Manage, reschedule, and track your service appointments.</p>
+        <h1 className="workspace-title">My Bookings</h1>
+        <p className="workspace-subtitle">Manage, reschedule, and track your service appointments.</p>
       </div>
 
       {actionNotice && (
-        <div className="p-3.5 bg-purple-50 border border-purple-200 text-purple-800 rounded-2xl text-xs font-bold animate-fade-in flex items-center justify-between">
+        <div className="p-3.5 bg-muted border border-border text-foreground rounded-2xl text-xs font-bold animate-fade-in flex items-center justify-between">
           <span>{actionNotice}</span>
-          <button onClick={() => setActionNotice(null)} className="text-purple-600 hover:text-purple-900 text-xs">
+          <button onClick={() => setActionNotice(null)} className="text-muted-foreground hover:text-foreground text-xs">
             Dismiss
           </button>
         </div>
       )}
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-border pb-2 overflow-x-auto">
         {['ALL', 'PENDING', 'ACCEPTED', 'COMPLETED', 'CANCELLED'].map((tab) => (
           <button
             key={tab}
             onClick={() => setStatusFilter(tab)}
             className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
               statusFilter === tab
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'text-slate-600 hover:bg-slate-100'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
             {tab}
@@ -146,17 +146,17 @@ export const MyBookingsPage = () => {
           {filteredBookings.map((b) => (
             <div
               key={b.id}
-              className="sh-card p-5 flex flex-wrap items-center justify-between gap-4 bg-white hover:border-purple-200 transition-all cursor-pointer"
+              className="sh-card p-5 flex flex-wrap items-center justify-between gap-4 hover:border-foreground/25 transition-all cursor-pointer"
               onClick={() => navigate(`/bookings/${b.id}`)}
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-purple-50 text-purple-700 rounded-2xl flex items-center justify-center font-extrabold text-sm border border-purple-100 shrink-0">
+                <div className="w-12 h-12 bg-muted text-foreground rounded-2xl flex items-center justify-center font-extrabold text-sm border border-border shrink-0">
                   #{b.id}
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-800">{b.serviceName || b.service?.title || 'Service'}</h3>
-                  <p className="text-xs text-slate-500 font-medium">Provider: {b.providerName || b.provider?.user?.name || 'ServiceHub Pro'}</p>
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-400 font-medium">
+                  <h3 className="text-base font-bold text-foreground">{b.serviceName || b.service?.title || 'Service'}</h3>
+                  <p className="text-xs text-muted-foreground font-medium">Provider: {b.providerName || b.provider?.user?.name || 'ServiceHub Pro'}</p>
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground font-medium">
                     <span className="flex items-center gap-1"><Clock size={12} /> {b.date || 'Today'}</span>
                     <span className="flex items-center gap-1"><MapPin size={12} /> {b.location || 'Bengaluru'}</span>
                   </div>
@@ -165,7 +165,7 @@ export const MyBookingsPage = () => {
 
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <span className="text-lg font-black text-slate-900 block">₹{b.amount || b.totalPrice || 599}</span>
+                  <span className="text-lg font-black text-foreground block">₹{b.amount || b.totalPrice || 599}</span>
                   <Badge variant={statusVariants[b.status] || 'neutral'}>{b.status}</Badge>
                 </div>
 
@@ -190,7 +190,7 @@ export const MyBookingsPage = () => {
                           e.stopPropagation();
                           setRescheduleBooking(b);
                         }}
-                        className="px-3 py-1.5 text-xs font-bold text-purple-600 hover:bg-purple-50 rounded-xl border border-purple-200 transition-colors flex items-center gap-1"
+                        className="px-3 py-1.5 text-xs font-bold text-foreground hover:bg-muted rounded-xl border border-border transition-colors flex items-center gap-1"
                         title="Reschedule booking"
                       >
                         <RefreshCw size={12} /> Reschedule
@@ -208,7 +208,7 @@ export const MyBookingsPage = () => {
                     </>
                   )}
 
-                  <ChevronRight size={18} className="text-slate-400" />
+                  <ChevronRight size={18} className="text-muted-foreground" />
                 </div>
               </div>
             </div>

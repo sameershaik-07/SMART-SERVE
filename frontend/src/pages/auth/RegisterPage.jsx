@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Shield, Mail, Lock, User, Phone, ArrowRight } from 'lucide-react';
+import { Shield, Mail, Lock, User, Phone, ArrowRight, Wrench } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
@@ -17,6 +17,7 @@ export const RegisterPage = () => {
     confirmPassword: '',
     role: initialRole,
   });
+  const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -60,15 +61,19 @@ export const RegisterPage = () => {
   return (
     <div className="w-full max-w-md mx-auto space-y-5 animate-fade-in">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-600/30">
-          <Shield size={24} className="fill-white stroke-purple-600" />
+        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-sm">
+          {formData.role === 'PROVIDER' ? <Wrench size={22} /> : <Shield size={24} className="fill-current stroke-primary" />}
         </div>
-        <span className="text-2xl font-black text-slate-900 tracking-tight">ServiceHub</span>
+        <span className="text-2xl font-extrabold text-foreground tracking-tight">ServiceHub</span>
       </div>
 
       <div>
-        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Create an Account</h2>
-        <p className="text-sm text-slate-500 mt-1">Join ServiceHub to book or offer expert services.</p>
+        <h2 className="text-2xl font-extrabold text-foreground tracking-tight">
+          Create your {formData.role === 'PROVIDER' ? 'provider' : 'customer'} account
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          {formData.role === 'PROVIDER' ? 'Join the verified network and start offering your services.' : 'Book trusted local services and manage appointments in one place.'}
+        </p>
       </div>
 
       {successMsg && (
@@ -117,35 +122,6 @@ export const RegisterPage = () => {
           icon={Phone}
         />
 
-        {/* Role Selector */}
-        <div>
-          <label className="text-xs font-semibold text-slate-700 block mb-1.5">I want to join as</label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, role: 'CUSTOMER' })}
-              className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
-                formData.role === 'CUSTOMER'
-                  ? 'bg-purple-50 border-purple-600 text-purple-700 shadow-2xs'
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              Customer
-            </button>
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, role: 'PROVIDER' })}
-              className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
-                formData.role === 'PROVIDER'
-                  ? 'bg-purple-50 border-purple-600 text-purple-700 shadow-2xs'
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              Service Provider
-            </button>
-          </div>
-        </div>
-
         <Input
           label="Password"
           name="password"
@@ -180,9 +156,9 @@ export const RegisterPage = () => {
         </Button>
       </form>
 
-      <p className="text-center text-xs text-slate-500 font-medium pt-2">
+      <p className="text-center text-xs text-muted-foreground font-medium pt-2">
         Already have an account?{' '}
-        <Link to="/login" className="font-bold text-purple-600 hover:text-purple-800 transition-colors">
+        <Link to={formData.role === 'PROVIDER' ? '/login?role=provider' : '/login'} className="font-bold text-foreground hover:text-muted-foreground transition-colors">
           Sign in
         </Link>
       </p>

@@ -66,6 +66,11 @@ const getAllConversations = async (req, res, next) => {
                             category: { select: { id: true, categoryName: true } }
                         }
                     },
+                    booking: {
+                        include: {
+                            service: { select: { title: true } }
+                        }
+                    },
                     _count: {
                         select: { messages: true }
                     }
@@ -88,6 +93,7 @@ const getAllConversations = async (req, res, next) => {
                     ...conv.provider?.user,
                     category: conv.provider?.category?.categoryName
                 },
+                booking: conv.booking,
                 totalMessages: conv._count.messages,
                 lastMessage: conv.lastMessage,
                 lastMessageAt: conv.lastMessageAt,
@@ -242,4 +248,3 @@ module.exports = {
     sendAdminMessage,
     getChatStats
 };
-

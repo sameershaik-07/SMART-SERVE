@@ -14,12 +14,11 @@ import {
   Settings,
   ChevronDown
 } from 'lucide-react';
-import { getAdminAnalyticsApi, getPendingProvidersApi } from '../../api/admin';
-import { Badge } from '../../components/common/Badge';
+import { getAdminAnalyticsApi, getAdminBookingsApi } from '../../api/admin';
 
 export const AdminDashboardPage = () => {
   const [analytics, setAnalytics] = useState(null);
-  const [pendingProviders, setPendingProviders] = useState([]);
+  const [recentBookings, setRecentBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -34,15 +33,18 @@ export const AdminDashboardPage = () => {
     verificationsTrend: '0%',
   };
 
-  const mockRecentBookings = [];
   const mockQueue = [];
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await getAdminAnalyticsApi();
-        setAnalytics(res.data || res || mockAnalytics);
+        const [analyticsResponse, bookingsResponse] = await Promise.all([
+          getAdminAnalyticsApi(),
+          getAdminBookingsApi()
+        ]);
+        setAnalytics(analyticsResponse?.data || analyticsResponse || mockAnalytics);
+        setRecentBookings(Array.isArray(bookingsResponse?.data) ? bookingsResponse.data : (bookingsResponse || []));
       } catch (err) {
         console.warn('Analytics API fallback:', err);
         setAnalytics(mockAnalytics);
@@ -54,24 +56,33 @@ export const AdminDashboardPage = () => {
   }, []);
 
   const stats = analytics || mockAnalytics;
+  const visibleBookings = recentBookings.slice(0, 5);
+  const formatDateTime = (booking) => new Date(booking.serviceDate || booking.createdAt).toLocaleString([], {
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+  });
+  const statusStyle = (status) => {
+    if (status === 'COMPLETED') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    if (status === 'CANCELLED') return 'bg-rose-50 text-rose-700 border-rose-200';
+    return 'bg-muted text-foreground border-border';
+  };
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       {/* Header Greeting & Date Selector matching Reference Image 2 */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="workspace-title text-3xl flex items-center gap-2">
             Good morning, Admin 👋
           </h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">
+          <p className="workspace-subtitle mt-1">
             Here's what's happening with your platform today.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 shadow-2xs cursor-pointer hover:bg-slate-50">
-          <Calendar size={14} className="text-purple-600" />
+        <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-2 text-xs font-bold text-foreground shadow-sm cursor-default">
+          <Calendar size={14} />
           <span>May 21, 2024</span>
-          <ChevronDown size={14} className="text-slate-400" />
+          <ChevronDown size={14} className="text-muted-foreground" />
         </div>
       </div>
 
@@ -80,16 +91,16 @@ export const AdminDashboardPage = () => {
         {/* Total Bookings */}
         <div className="sh-card p-5 bg-white space-y-3">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 bg-purple-50 text-purple-700 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-muted text-foreground rounded-xl flex items-center justify-center">
               <Calendar size={20} />
             </div>
-            <span className="text-xs text-slate-400 font-semibold">Total Bookings</span>
+            <span className="text-xs text-muted-foreground font-semibold">Total Bookings</span>
           </div>
           <div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">{stats.totalBookings}</h2>
+            <h2 className="text-3xl font-black text-foreground tracking-tight">{stats.totalBookings}</h2>
             <div className="flex items-center gap-1 mt-1 text-xs font-bold text-emerald-600">
               <TrendingUp size={14} /> <span>↑ 12.5%</span>
-              <span className="text-slate-400 font-normal">vs last 7 days</span>
+              <span className="text-muted-foreground font-normal">vs last 7 days</span>
             </div>
           </div>
         </div>
@@ -97,16 +108,16 @@ export const AdminDashboardPage = () => {
         {/* Active Providers */}
         <div className="sh-card p-5 bg-white space-y-3">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 bg-purple-50 text-purple-700 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-muted text-foreground rounded-xl flex items-center justify-center">
               <Users size={20} />
             </div>
-            <span className="text-xs text-slate-400 font-semibold">Active Providers</span>
+            <span className="text-xs text-muted-foreground font-semibold">Active Providers</span>
           </div>
           <div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">{stats.activeProviders}</h2>
+            <h2 className="text-3xl font-black text-foreground tracking-tight">{stats.activeProviders ?? stats.totalProviders}</h2>
             <div className="flex items-center gap-1 mt-1 text-xs font-bold text-emerald-600">
               <TrendingUp size={14} /> <span>↑ 8.3%</span>
-              <span className="text-slate-400 font-normal">vs last 7 days</span>
+              <span className="text-muted-foreground font-normal">vs last 7 days</span>
             </div>
           </div>
         </div>
@@ -114,16 +125,16 @@ export const AdminDashboardPage = () => {
         {/* Revenue */}
         <div className="sh-card p-5 bg-white space-y-3">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 bg-purple-50 text-purple-700 rounded-xl flex items-center justify-center font-extrabold text-lg">
+            <div className="w-10 h-10 bg-muted text-foreground rounded-xl flex items-center justify-center font-extrabold text-lg">
               ₹
             </div>
-            <span className="text-xs text-slate-400 font-semibold">Revenue</span>
+            <span className="text-xs text-muted-foreground font-semibold">Revenue</span>
           </div>
           <div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">{stats.revenue}</h2>
+            <h2 className="text-3xl font-black text-foreground tracking-tight">{stats.revenue ?? `₹${stats.totalRevenue || 0}`}</h2>
             <div className="flex items-center gap-1 mt-1 text-xs font-bold text-emerald-600">
               <TrendingUp size={14} /> <span>↑ 15.7%</span>
-              <span className="text-slate-400 font-normal">vs last 7 days</span>
+              <span className="text-muted-foreground font-normal">vs last 7 days</span>
             </div>
           </div>
         </div>
@@ -131,16 +142,16 @@ export const AdminDashboardPage = () => {
         {/* Pending Verifications */}
         <div className="sh-card p-5 bg-white space-y-3">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 bg-purple-50 text-purple-700 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-muted text-foreground rounded-xl flex items-center justify-center">
               <ShieldCheck size={20} />
             </div>
-            <span className="text-xs text-slate-400 font-semibold">Pending Verifications</span>
+            <span className="text-xs text-muted-foreground font-semibold">Pending Verifications</span>
           </div>
           <div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">{stats.pendingVerifications}</h2>
+            <h2 className="text-3xl font-black text-foreground tracking-tight">{stats.pendingVerifications ?? '0'}</h2>
             <div className="flex items-center gap-1 mt-1 text-xs font-bold text-rose-600">
               <TrendingDown size={14} /> <span>↓ 5.6%</span>
-              <span className="text-slate-400 font-normal">vs last 7 days</span>
+              <span className="text-muted-foreground font-normal">vs last 7 days</span>
             </div>
           </div>
         </div>
@@ -151,21 +162,15 @@ export const AdminDashboardPage = () => {
         {/* Recent Bookings Table (7 cols) matching Reference Image 2 */}
         <div className="lg:col-span-7 space-y-4">
           <div className="sh-card bg-white p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-extrabold text-slate-900">Recent Bookings</h3>
-              <button
-                onClick={() => navigate('/admin/bookings')}
-                className="text-xs font-bold text-purple-600 hover:text-purple-800"
-              >
-                View all
-              </button>
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h3 className="text-base font-extrabold text-foreground">Recent Bookings</h3>
             </div>
 
             {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <tr className="border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                     <th className="pb-3">Booking ID</th>
                     <th className="pb-3">Service</th>
                     <th className="pb-3">Provider</th>
@@ -174,41 +179,37 @@ export const AdminDashboardPage = () => {
                     <th className="pb-3 text-right">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                  {mockRecentBookings.map((b) => (
-                    <tr key={b.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3.5 font-bold text-slate-900">{b.id}</td>
-                      <td className="py-3.5">{b.service}</td>
+                <tbody className="divide-y divide-border text-xs font-semibold text-foreground">
+                  {visibleBookings.map((b) => (
+                    <tr key={b.id} className="hover:bg-muted/60 transition-colors">
+                      <td className="py-3.5 font-bold text-foreground">#BK-{b.id}</td>
+                      <td className="py-3.5">{b.service?.title || 'Service booking'}</td>
                       <td className="py-3.5 flex items-center gap-2">
-                        <img src={b.avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
-                        <span>{b.customer}</span>
+                        <span>{b.provider?.user?.name || 'Unassigned'}</span>
                       </td>
-                      <td className="py-3.5 text-slate-500 font-medium">{b.dateTime}</td>
+                      <td className="py-3.5 text-muted-foreground font-medium">{formatDateTime(b)}</td>
                       <td className="py-3.5">
                         <span
-                          className={`inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                            b.status === 'Completed'
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : b.status === 'In Progress'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-purple-100 text-purple-700'
-                          }`}
+                          className={`inline-flex border px-2.5 py-0.5 rounded-full text-[11px] font-bold ${statusStyle(b.status)}`}
                         >
-                          {b.status}
+                          {b.status.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="py-3.5 text-right font-extrabold text-slate-900">{b.amount}</td>
+                      <td className="py-3.5 text-right font-extrabold text-foreground">₹{b.totalPrice || 0}</td>
                     </tr>
                   ))}
+                  {!loading && visibleBookings.length === 0 && (
+                    <tr><td colSpan="6" className="py-8 text-center text-muted-foreground font-medium">No bookings yet.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400 font-medium">
-              <span>Showing 5 of 25 bookings</span>
+            <div className="pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground font-medium">
+              <span>{loading ? 'Loading bookings…' : `Showing ${visibleBookings.length} of ${recentBookings.length} bookings`}</span>
               <button
                 onClick={() => navigate('/admin/bookings')}
-                className="font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1"
+                className="font-bold text-foreground hover:text-muted-foreground flex items-center gap-1"
               >
                 View all bookings <ArrowRight size={14} />
               </button>
@@ -220,11 +221,11 @@ export const AdminDashboardPage = () => {
         <div className="lg:col-span-5 space-y-6">
           {/* Provider Verification Queue */}
           <div className="sh-card bg-white p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-extrabold text-slate-900">Provider Verification Queue</h3>
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h3 className="text-base font-extrabold text-foreground">Provider Verification Queue</h3>
               <button
                 onClick={() => navigate('/admin/providers')}
-                className="text-xs font-bold text-purple-600 hover:text-purple-800"
+                className="text-xs font-bold text-foreground hover:text-muted-foreground"
               >
                 View all
               </button>
@@ -232,19 +233,19 @@ export const AdminDashboardPage = () => {
 
             <div className="space-y-3">
               {mockQueue.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50">
+                <div key={item.id} className="flex items-center justify-between p-2 rounded-xl hover:bg-muted">
                   <div className="flex items-center gap-3">
                     <img src={item.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900">{item.name}</h4>
-                      <span className="text-[11px] text-slate-500 block">{item.category}</span>
-                      <span className="text-[10px] text-slate-400">{item.time}</span>
+                      <h4 className="text-xs font-bold text-foreground">{item.name}</h4>
+                      <span className="text-[11px] text-muted-foreground block">{item.category}</span>
+                      <span className="text-[10px] text-muted-foreground">{item.time}</span>
                     </div>
                   </div>
 
                   <button
                     onClick={() => navigate('/admin/providers')}
-                    className="px-3 py-1.5 border border-purple-200 text-purple-700 hover:bg-purple-50 text-xs font-bold rounded-xl transition-colors"
+                    className="px-3 py-1.5 border border-border text-foreground hover:bg-muted text-xs font-bold rounded-xl transition-colors"
                   >
                     Review
                   </button>
@@ -253,11 +254,11 @@ export const AdminDashboardPage = () => {
             </div>
 
             {/* Pending Notice Banner */}
-            <div className="p-3 bg-purple-50 border border-purple-100 rounded-xl flex items-center justify-between text-xs font-semibold text-purple-900">
+            <div className="p-3 bg-muted border border-border rounded-xl flex items-center justify-between text-xs font-semibold text-foreground">
               <span>🕒 18 providers pending verification</span>
               <button
                 onClick={() => navigate('/admin/providers')}
-                className="font-bold text-purple-700 hover:underline flex items-center gap-1"
+                className="font-bold text-foreground hover:underline flex items-center gap-1"
               >
                 Go to Verifications <ArrowRight size={12} />
               </button>
@@ -266,39 +267,39 @@ export const AdminDashboardPage = () => {
 
           {/* Quick Actions Block matching Reference Image 2 */}
           <div className="sh-card bg-white p-6 space-y-4">
-            <h3 className="text-base font-extrabold text-slate-900 pb-2">Quick Actions</h3>
+            <h3 className="text-base font-extrabold text-foreground pb-2">Quick Actions</h3>
 
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => navigate('/admin/providers')}
-                className="p-4 bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all group"
+                className="p-4 bg-muted hover:bg-accent border border-border rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all group"
               >
-                <UserPlus size={20} className="text-purple-600 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-slate-800">Add Provider</span>
+                <UserPlus size={20} className="text-foreground group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-foreground">Verify Provider</span>
               </button>
 
               <button
                 onClick={() => navigate('/admin/bookings')}
-                className="p-4 bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all group"
+                className="p-4 bg-muted hover:bg-accent border border-border rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all group"
               >
-                <CalendarPlus size={20} className="text-purple-600 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-slate-800">Create Booking</span>
+                <CalendarPlus size={20} className="text-foreground group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-foreground">Search Bookings</span>
               </button>
 
               <button
                 onClick={() => navigate('/admin/analytics')}
-                className="p-4 bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all group"
+                className="p-4 bg-muted hover:bg-accent border border-border rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all group"
               >
-                <BarChart size={20} className="text-purple-600 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-slate-800">View Analytics</span>
+                <BarChart size={20} className="text-foreground group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-foreground">View Analytics</span>
               </button>
 
               <button
                 onClick={() => navigate('/admin/settings')}
-                className="p-4 bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all group"
+                className="p-4 bg-muted hover:bg-accent border border-border rounded-2xl flex flex-col items-center justify-center gap-2 text-center transition-all group"
               >
-                <Settings size={20} className="text-purple-600 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-slate-800">Platform Settings</span>
+                <Settings size={20} className="text-foreground group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-foreground">Platform Settings</span>
               </button>
             </div>
           </div>

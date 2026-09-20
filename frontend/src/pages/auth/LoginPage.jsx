@@ -52,31 +52,31 @@ export const LoginPage = () => {
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6 animate-fade-in">
-      <Link to="/" className="inline-flex items-center text-sm font-semibold text-slate-500 hover:text-purple-600 transition-colors">
+      <Link to="/" className="inline-flex items-center text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft size={16} className="mr-1.5" /> Back to Home
       </Link>
       
       {/* Brand Logo Header */}
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg ${isProvider ? 'bg-slate-900 shadow-slate-900/30' : 'bg-purple-600 shadow-purple-600/30'}`}>
-          {isProvider ? <Wrench size={22} /> : <Shield size={24} className="fill-white stroke-purple-600" />}
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary text-primary-foreground shadow-sm">
+          {isProvider ? <Wrench size={22} /> : <Shield size={24} className="fill-current stroke-primary" />}
         </div>
-        <span className="text-2xl font-black text-slate-900 tracking-tight">ServiceHub</span>
+        <span className="text-2xl font-extrabold text-foreground tracking-tight">ServiceHub</span>
       </div>
 
       {/* Provider context badge */}
       {isProvider && (
-        <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 rounded-full text-[11px] font-bold">
+        <div className="inline-flex items-center gap-2 bg-muted text-foreground border border-border px-3 py-1 rounded-full text-[11px] font-bold">
           <Wrench size={12} /> Provider Portal
         </div>
       )}
 
       {/* Heading */}
       <div>
-        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+        <h2 className="text-2xl font-extrabold text-foreground tracking-tight">
           {isProvider ? 'Provider Sign In' : 'Welcome back'}
         </h2>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           {isProvider
             ? 'Sign in to your provider account to manage bookings and services.'
             : 'Sign in with your verified account credentials.'}
@@ -116,7 +116,7 @@ export const LoginPage = () => {
           <div className="flex justify-end mt-1.5">
             <Link
               to="/forgot-password"
-              className="text-xs font-bold text-purple-600 hover:text-purple-800 transition-colors"
+              className="text-xs font-bold text-foreground hover:text-muted-foreground transition-colors"
             >
               Forgot password?
             </Link>
@@ -130,29 +130,29 @@ export const LoginPage = () => {
           icon={ArrowRight}
           iconPosition="right"
           size="lg"
-          className={`rounded-xl shadow-md ${isProvider ? 'bg-slate-900 hover:bg-black shadow-slate-900/20' : 'shadow-purple-600/20'}`}
+          className="rounded-xl shadow-sm"
         >
           {isProvider ? 'Sign In as Provider' : 'Sign In'}
         </Button>
       </form>
 
       {/* Footer */}
-      <p className="text-center text-xs text-slate-500 font-medium pt-4 border-t border-slate-100">
+      <p className="text-center text-xs text-muted-foreground font-medium pt-4 border-t border-border">
         {isProvider ? (
           <>
             Not a provider yet?{' '}
-            <Link to="/register?role=provider" className="font-bold text-slate-800 hover:text-black transition-colors">
+            <Link to="/register?role=provider" className="font-bold text-foreground hover:text-muted-foreground transition-colors">
               Register as Provider
             </Link>
             {' · '}
-            <Link to="/" className="font-bold text-slate-500 hover:text-slate-700 transition-colors">
+            <Link to="/" className="font-bold text-muted-foreground hover:text-foreground transition-colors">
               Back to Home
             </Link>
           </>
         ) : (
           <>
             Don't have an account yet?{' '}
-            <Link to="/register" className="font-bold text-purple-600 hover:text-purple-800 transition-colors">
+            <Link to="/register" className="font-bold text-foreground hover:text-muted-foreground transition-colors">
               Create an account
             </Link>
           </>

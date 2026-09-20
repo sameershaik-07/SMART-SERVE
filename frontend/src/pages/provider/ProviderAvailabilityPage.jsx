@@ -342,8 +342,8 @@ export const ProviderAvailabilityPage = () => {
                     }
                     className={`py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       activeDays[day]
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'bg-slate-900/80 text-slate-500 border border-slate-800 hover:text-slate-300'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-card text-muted-foreground border border-border hover:text-foreground'
                     }`}
                   >
                     {day}
@@ -396,7 +396,7 @@ export const ProviderAvailabilityPage = () => {
             <button
               onClick={handleBulkGenerate}
               disabled={generatingBulk}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-950/40 cursor-pointer disabled:opacity-50"
+              className="w-full py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
             >
               <Plus size={16} />
               {generatingBulk ? 'Generating Slots...' : 'Publish Weekly Working Slots'}
@@ -552,4 +552,3 @@ export const ProviderAvailabilityPage = () => {
     </div>
   );
 };
-

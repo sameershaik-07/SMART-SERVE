@@ -353,55 +353,55 @@ export const BookingDetailsPage = () => {
       </section>
 
       {/* Main Booking Summary Card */}
-      <div className="sh-card p-6 bg-white space-y-6 rounded-2xl border border-slate-200/80 shadow-sm">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+      <div className="sh-card p-6 space-y-6 rounded-2xl border border-border shadow-sm">
+        <div className="flex items-center justify-between pb-4 border-b border-border">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">{serviceTitle}</h3>
-            <p className="text-xs text-slate-500">
-              Provider: <span className="font-semibold text-slate-700">{providerName}</span> ({providerCategory})
+            <h3 className="text-lg font-bold text-foreground">{serviceTitle}</h3>
+            <p className="text-xs text-muted-foreground">
+              Provider: <span className="font-semibold text-foreground">{providerName}</span> ({providerCategory})
             </p>
           </div>
           <div className="text-right">
-            <span className="text-xs text-slate-400 block font-medium">Total Amount</span>
-            <span className="text-2xl font-black text-purple-700">₹{totalAmount}</span>
+            <span className="text-xs text-muted-foreground block font-medium">Total Amount</span>
+            <span className="text-2xl font-black text-foreground">₹{totalAmount}</span>
           </div>
         </div>
 
         {/* Status Lifecycle Stepper */}
         <div className="space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Order Progress</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Order Progress</h4>
           <div className="grid grid-cols-4 gap-2 text-center">
-            <div className={`p-2.5 rounded-xl border ${['PENDING', 'ACCEPTED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(status) ? 'bg-purple-50 border-purple-200 text-purple-800' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+            <div className={`p-2.5 rounded-xl border ${['PENDING', 'ACCEPTED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(status) ? 'bg-muted border-foreground/30 text-foreground' : 'bg-muted/50 border-border text-muted-foreground'}`}>
               <span className="text-[11px] font-bold block">1. Requested</span>
-              <span className="text-[10px] text-slate-500">Confirmed</span>
+              <span className="text-[10px] text-muted-foreground">Confirmed</span>
             </div>
-            <div className={`p-2.5 rounded-xl border ${['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(status) ? 'bg-purple-50 border-purple-200 text-purple-800' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+            <div className={`p-2.5 rounded-xl border ${['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(status) ? 'bg-muted border-foreground/30 text-foreground' : 'bg-muted/50 border-border text-muted-foreground'}`}>
               <span className="text-[11px] font-bold block">2. Accepted</span>
-              <span className="text-[10px] text-slate-500">Provider Assigned</span>
+              <span className="text-[10px] text-muted-foreground">Provider Assigned</span>
             </div>
-            <div className={`p-2.5 rounded-xl border ${['IN_PROGRESS', 'COMPLETED'].includes(status) ? 'bg-purple-50 border-purple-200 text-purple-800' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+            <div className={`p-2.5 rounded-xl border ${['IN_PROGRESS', 'COMPLETED'].includes(status) ? 'bg-muted border-foreground/30 text-foreground' : 'bg-muted/50 border-border text-muted-foreground'}`}>
               <span className="text-[11px] font-bold block">3. In Route</span>
-              <span className="text-[10px] text-slate-500">On the way</span>
+              <span className="text-[10px] text-muted-foreground">On the way</span>
             </div>
-            <div className={`p-2.5 rounded-xl border ${status === 'COMPLETED' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : status === 'CANCELLED' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+            <div className={`p-2.5 rounded-xl border ${status === 'COMPLETED' ? 'bg-muted border-foreground/30 text-foreground' : status === 'CANCELLED' ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'bg-muted/50 border-border text-muted-foreground'}`}>
               <span className="text-[11px] font-bold block">{status === 'CANCELLED' ? 'Cancelled' : '4. Completed'}</span>
-              <span className="text-[10px] text-slate-500">{status === 'CANCELLED' ? 'Closed' : 'Done'}</span>
+              <span className="text-[10px] text-muted-foreground">{status === 'CANCELLED' ? 'Closed' : 'Done'}</span>
             </div>
           </div>
         </div>
 
         {/* Location & Payment Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <MapPin size={14} className="text-purple-600" /> Customer Service Address
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <MapPin size={14} className="text-foreground" /> Customer Service Address
               </h4>
               <button
                 type="button"
                 onClick={detectAndSetCustomerLocation}
                 disabled={updatingLocation}
-                className="text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 shadow-xs active:scale-95"
+                className="text-[11px] font-bold text-foreground bg-muted hover:bg-accent border border-border px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
                 title="Detect your device location and update the service destination pin"
               >
                 {updatingLocation ? (
@@ -412,16 +412,16 @@ export const BookingDetailsPage = () => {
                 <span>{updatingLocation ? "Detecting..." : "Update to My Location"}</span>
               </button>
             </div>
-            <p className="text-xs font-semibold text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <p className="text-xs font-semibold text-foreground bg-muted/60 p-3 rounded-xl border border-border">
               {locationText}
             </p>
           </div>
 
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-              <CreditCard size={14} className="text-purple-600" /> Payment Breakdown
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+              <CreditCard size={14} className="text-foreground" /> Payment Breakdown
             </h4>
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 text-xs font-medium text-slate-600">
+            <div className="bg-muted/60 p-3 rounded-xl border border-border space-y-1.5 text-xs font-medium text-muted-foreground">
               <div className="flex justify-between">
                 <span>Service Charge</span>
                 <span>₹{Math.round(totalAmount * 0.94)}</span>
@@ -430,9 +430,9 @@ export const BookingDetailsPage = () => {
                 <span>Taxes & Platform GST (6%)</span>
                 <span>₹{Math.round(totalAmount * 0.06)}</span>
               </div>
-              <div className="flex justify-between font-bold text-slate-900 pt-1.5 border-t border-slate-200">
+              <div className="flex justify-between font-bold text-foreground pt-1.5 border-t border-border">
                 <span>Total Amount Paid</span>
-                <span className="text-purple-700">₹{totalAmount}</span>
+                <span>₹{totalAmount}</span>
               </div>
             </div>
           </div>

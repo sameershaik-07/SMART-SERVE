@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import React, { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
+import { Input as ShadcnInput } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 export const Input = ({
   label,
@@ -11,43 +14,44 @@ export const Input = ({
   required = false,
   ...props
 }) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const isPassword = type === 'password';
+  const [showPassword, setShowPassword] = useState(false)
+  const isPassword = type === 'password'
 
   return (
-    <div className={`flex flex-col gap-1.5 w-full ${className}`}>
+    <div className={cn("flex flex-col gap-1.5 w-full", className)}>
       {label && (
-        <label className="text-xs font-semibold text-slate-700 tracking-wide">
-          {label} {required && <span className="text-rose-500">*</span>}
-        </label>
+        <Label className="text-xs font-semibold tracking-wide flex items-center gap-1">
+          {label} {required && <span className="text-destructive">*</span>}
+        </Label>
       )}
       <div className="relative flex items-center">
         {Icon && (
-          <div className="absolute left-3.5 text-slate-400 pointer-events-none">
-            <Icon size={18} />
+          <div className="absolute left-3 text-muted-foreground pointer-events-none z-10">
+            <Icon size={16} />
           </div>
         )}
-        <input
+        <ShadcnInput
           type={isPassword ? (showPassword ? 'text' : 'password') : type}
           placeholder={placeholder}
-          className={`w-full bg-white border ${
-            error ? 'border-rose-500 focus:ring-rose-200' : 'border-slate-200 focus:border-purple-600 focus:ring-purple-100'
-          } rounded-xl ${Icon ? 'pl-10' : 'pl-4'} ${
-            isPassword ? 'pr-10' : 'pr-4'
-          } py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 transition-all duration-150`}
+          className={cn(
+            Icon && "pl-9",
+            isPassword && "pr-10",
+            error && "border-destructive focus-visible:ring-destructive"
+          )}
           {...props}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3.5 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+            className="absolute right-3 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         )}
       </div>
-      {error && <span className="text-xs text-rose-500 font-medium">{error}</span>}
+      {error && <span className="text-xs text-destructive font-medium">{error}</span>}
     </div>
-  );
-};
+  )
+}

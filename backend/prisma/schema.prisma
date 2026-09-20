@@ -102,6 +102,7 @@ model Booking {
   longitude     Float?
   status        BookingStatus   @default(PENDING)
   createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
   serviceId     Int?
   slotId        Int?
   totalPrice    Float?
@@ -227,4 +228,3 @@ model ChatMessage {
   @@index([conversationId])
   @@index([createdAt])
 }
-
