@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/common/Button';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { 
   getConversationsApi, 
   createOrGetConversationApi, 
@@ -47,6 +48,7 @@ import { getSocket } from '../../api/socket';
 
 export const MessagesPage = () => {
   const { user } = useAuth();
+  const { effectiveTheme } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const targetProviderId = searchParams.get('providerId');
@@ -505,7 +507,8 @@ export const MessagesPage = () => {
 
   // ── Theme config: dark for provider, light for customer ──────────────────
   const isProvider = user?.role === 'PROVIDER';
-  const t = isProvider
+  const useDarkProviderTheme = isProvider && effectiveTheme === 'dark';
+  const t = useDarkProviderTheme
     ? {
         // Provider dark navy theme
         shell:        'bg-[#0f172a] border-slate-800',
@@ -581,92 +584,69 @@ export const MessagesPage = () => {
         infoPanelIcon:'text-emerald-500',
       }
     : {
-        // Customer light purple theme (original)
-        shell:        'bg-white border-slate-200/90',
-        sidebar:      'bg-slate-50/70 border-slate-200/80',
-        sidebarHdr:   'bg-white border-slate-100',
-        iconBg:       'bg-gradient-to-tr from-purple-600 to-indigo-600',
-        titleColor:   'text-slate-900',
-        subtitleColor:'text-slate-400',
-        threadsBadge: 'bg-purple-100/70 text-purple-700 border-purple-200/50',
-        searchBg:     'bg-slate-100/70 border-transparent focus:border-purple-500 focus:bg-white text-slate-900 placeholder:text-slate-400',
-        tabBar:       'bg-slate-100/70',
-        tabActive:    'bg-white text-purple-700 shadow-xs',
-        tabInactive:  'text-slate-500 hover:text-slate-900',
-        listDivide:   'divide-slate-100/70',
-        convActive:   'bg-white shadow-md shadow-purple-900/5 border-purple-100/90 ring-1 ring-purple-500/20',
-        convInactive: 'hover:bg-white/80 border-transparent hover:border-slate-200/50',
-        convAccent:   'bg-gradient-to-b from-purple-600 to-indigo-600',
-        imgBorder:    'border-slate-200/80',
-        onlineDot:    'border-white',
-        nameActive:   'text-purple-950',
-        nameInactive: 'text-slate-900',
-        rolePill:     'text-purple-700 bg-purple-50 border-purple-100/70',
+        // Customer workspace: neutral cards, monochrome actions and semantic status colors.
+        shell:        'bg-card border-border',
+        sidebar:      'bg-muted/35 border-border',
+        sidebarHdr:   'bg-card border-border',
+        iconBg:       'bg-primary',
+        titleColor:   'text-foreground',
+        subtitleColor:'text-muted-foreground',
+        threadsBadge: 'bg-muted text-foreground border-border',
+        searchBg:     'bg-muted/70 border-transparent focus:border-foreground focus:bg-card text-foreground placeholder:text-muted-foreground',
+        tabBar:       'bg-muted/70',
+        tabActive:    'bg-card text-foreground shadow-sm',
+        tabInactive:  'text-muted-foreground hover:text-foreground',
+        listDivide:   'divide-border',
+        convActive:   'bg-card shadow-sm border-border ring-1 ring-foreground/10',
+        convInactive: 'hover:bg-card/80 border-transparent hover:border-border',
+        convAccent:   'bg-primary',
+        imgBorder:    'border-border',
+        onlineDot:    'border-card',
+        nameActive:   'text-foreground',
+        nameInactive: 'text-foreground',
+        rolePill:     'text-muted-foreground bg-muted border-border',
         lastMsg:      'text-slate-500',
         lastMsgActive:'text-slate-700',
-        unreadBadge:  'bg-purple-600 text-white',
-        footer:       'bg-white/70 border-slate-100',
-        mainPanel:    'bg-white',
-        chatHdr:      'bg-white/95 border-slate-200/80',
-        avatarBorder: 'border-purple-100',
-        nameHdr:      'text-slate-900',
-        roleHdrPill:  'text-purple-700 bg-purple-50 border-purple-100',
+        unreadBadge:  'bg-primary text-primary-foreground',
+        footer:       'bg-card/70 border-border',
+        mainPanel:    'bg-card',
+        chatHdr:      'bg-card/95 border-border',
+        avatarBorder: 'border-border',
+        nameHdr:      'text-foreground',
+        roleHdrPill:  'text-muted-foreground bg-muted border-border',
         onlineText:   'text-emerald-600',
-        callSegment:  'bg-slate-100/90 border-slate-200/80',
-        callBtn:      'text-slate-700 hover:text-purple-700 hover:bg-white',
-        callIcon:     'text-purple-600',
-        bookingBtn:   'text-purple-700 bg-purple-50 hover:bg-purple-100 border-purple-200/80',
-        infoBtn:      'text-slate-600 hover:text-purple-700 hover:bg-purple-50 border-slate-200/70 bg-white',
-        infoBtnActive:'bg-purple-600 text-white border-purple-600',
-        pinBar:       'bg-gradient-to-r from-purple-50/90 to-indigo-50/70 border-purple-100/60 text-slate-700',
-        pinBtn:       'text-purple-700 hover:text-purple-900',
+        callSegment:  'bg-muted/90 border-border',
+        callBtn:      'text-foreground hover:bg-card',
+        callIcon:     'text-foreground',
+        bookingBtn:   'text-foreground bg-muted hover:bg-accent border-border',
+        infoBtn:      'text-muted-foreground hover:text-foreground hover:bg-muted border-border bg-card',
+        infoBtnActive:'bg-primary text-primary-foreground border-primary',
+        pinBar:       'bg-muted/70 border-border text-foreground',
+        pinBtn:       'text-foreground hover:text-muted-foreground',
         errorBar:     'bg-red-50 text-red-700 border-red-100',
-        msgStream:    'bg-slate-50/40',
-        encryptPill:  'text-slate-500 bg-white border-slate-200/90',
-        loaderColor:  'text-purple-600',
-        emptyIcon:    'bg-purple-50 text-purple-600',
-        emptyTitle:   'text-slate-800',
-        emptyText:    'text-slate-400',
-        theirBubble:  'bg-white text-slate-800 border-slate-200/90',
-        myBubble:     'bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-purple-600/20',
-        readCheck:    'text-purple-600',
-        typingBubble: 'bg-white border-slate-200/80',
-        typingDot:    'bg-purple-500',
-        typingText:   'text-slate-500',
-        quickBar:     'bg-white border-slate-100',
-        quickLabel:   'text-slate-400',
-        quickChip:    'bg-slate-100/80 hover:bg-purple-50 text-slate-700 hover:text-purple-700 border-slate-200/50 hover:border-purple-200',
-        inputDock:    'bg-white border-slate-100',
-        attachPreview:'bg-purple-50 border-purple-200',
-        attachText:   'text-purple-900',
-        emojiPicker:  'bg-white border-slate-200',
-        attachBtn:    'text-slate-400 hover:text-purple-600 hover:bg-purple-50',
-        emojiBtn:     'text-slate-400 hover:text-purple-600 hover:bg-purple-50',
-        emojiBtnActive:'text-purple-600 bg-purple-50',
-        inputField:   'bg-slate-50 focus:bg-white border-slate-200 focus:border-purple-600 text-slate-900 placeholder:text-slate-400 shadow-inner',
-        sendBtn:      'shadow-purple-600/20',
-        infoPanel:    'bg-white border-slate-100',
-        infoPanelHdr: 'text-slate-900',
-        infoPanelX:   'text-slate-400 hover:text-slate-700 hover:bg-slate-100',
-        infoPanelBorder:'border-slate-100',
-        infoPanelPill:'text-purple-700 bg-purple-50 border-purple-100',
-        infoPanelMeta:'text-slate-400',
-        infoPanelVal: 'text-slate-800',
-        infoPanelIcon:'text-purple-600',
+        msgStream:    'bg-muted/25', encryptPill: 'text-muted-foreground bg-card border-border', loaderColor: 'text-foreground',
+        emptyIcon: 'bg-muted text-foreground', emptyTitle: 'text-foreground', emptyText: 'text-muted-foreground',
+        theirBubble: 'bg-card text-foreground border-border', myBubble: 'bg-primary text-primary-foreground shadow-sm', readCheck: 'text-foreground',
+        typingBubble: 'bg-card border-border', typingDot: 'bg-foreground', typingText: 'text-muted-foreground', quickBar: 'bg-card border-border', quickLabel: 'text-muted-foreground',
+        quickChip: 'bg-muted/80 hover:bg-accent text-foreground border-border', inputDock: 'bg-card border-border', attachPreview: 'bg-muted border-border', attachText: 'text-foreground',
+        emojiPicker: 'bg-card border-border', attachBtn: 'text-muted-foreground hover:text-foreground hover:bg-muted', emojiBtn: 'text-muted-foreground hover:text-foreground hover:bg-muted', emojiBtnActive: 'text-foreground bg-muted',
+        inputField: 'bg-muted/60 focus:bg-card border-border focus:border-foreground text-foreground placeholder:text-muted-foreground shadow-none', sendBtn: 'shadow-sm',
+        infoPanel: 'bg-card border-border', infoPanelHdr: 'text-foreground', infoPanelX: 'text-muted-foreground hover:text-foreground hover:bg-muted', infoPanelBorder: 'border-border',
+        infoPanelPill: 'text-muted-foreground bg-muted border-border', infoPanelMeta: 'text-muted-foreground', infoPanelVal: 'text-foreground', infoPanelIcon: 'text-foreground',
       };
 
   return (
-    <div className="h-[calc(100vh-6rem)] max-w-7xl mx-auto flex flex-col animate-fade-in">
+    <div className="h-full min-h-0 max-w-none mx-0 flex flex-col animate-fade-in">
       {/* Outer Shell */}
-      <div className={`flex-1 rounded-3xl border shadow-2xl flex overflow-hidden relative ${t.shell}`}>
+      <div className={`flex-1 min-h-0 border-0 shadow-none rounded-none flex overflow-hidden relative ${t.shell}`}>
 
         {/* ===== LEFT SIDEBAR ===== */}
-        <div className={`w-full md:w-80 lg:w-[330px] shrink-0 border-r flex flex-col z-20 ${t.sidebar} ${showMobileList ? 'flex' : 'hidden md:flex'}`}>
+        <div className={`w-full md:w-80 lg:w-[330px] min-h-0 shrink-0 border-r flex flex-col z-20 ${t.sidebar} ${showMobileList ? 'flex' : 'hidden md:flex'}`}>
           {/* Header */}
-          <div className={`p-5 border-b ${t.sidebarHdr}`}>
+          <div className={`shrink-0 p-5 border-b ${t.sidebarHdr}`}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-md ${t.iconBg}`}>
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-primary-foreground shadow-sm ${t.iconBg}`}>
                   <MessageSquare size={20} />
                 </div>
                 <div>
@@ -763,7 +743,7 @@ export const MessagesPage = () => {
           </div>
 
           {/* Footer */}
-          <div className={`p-3.5 border-t text-center ${t.footer}`}>
+          <div className={`shrink-0 p-3.5 border-t text-center ${t.footer}`}>
             <span className={`text-[10px] font-bold flex items-center justify-center gap-1.5 ${t.subtitleColor}`}>
               <ShieldCheck size={13} className="text-emerald-500" /> ServiceHub Safe Consultation Guarantee
             </span>
@@ -773,7 +753,7 @@ export const MessagesPage = () => {
         {/* ===== RIGHT MAIN PANEL ===== */}
         <div className={`flex-1 flex flex-col h-full overflow-hidden ${t.mainPanel} ${showMobileList ? 'hidden md:flex' : 'flex'}`}>
           {/* Chat Header */}
-          <div className={`px-5 py-3.5 border-b flex items-center justify-between backdrop-blur-md z-10 shadow-xs gap-3 ${t.chatHdr}`}>
+          <div className={`shrink-0 px-5 py-3.5 border-b flex items-center justify-between backdrop-blur-md z-10 shadow-xs gap-3 ${t.chatHdr}`}>
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <button type="button" onClick={() => setShowMobileList(true)} className={`md:hidden p-2 -ml-1 rounded-xl transition-colors shrink-0 ${t.callBtn}`} title="Back">
                 <ArrowLeft size={18} />
@@ -821,7 +801,7 @@ export const MessagesPage = () => {
 
           {/* Booking Pin Bar */}
           {activeConv?.booking && (
-            <div className={`px-6 py-2 border-b flex items-center justify-between text-xs ${t.pinBar}`}>
+            <div className={`shrink-0 px-6 py-2 border-b flex items-center justify-between text-xs ${t.pinBar}`}>
               <div className="flex items-center gap-2 font-medium">
                 <span className="w-2 h-2 rounded-full bg-current opacity-60" />
                 <span>Active Booking: <strong>{activeConv.booking.service || 'Home Service'}</strong></span>
@@ -834,14 +814,14 @@ export const MessagesPage = () => {
 
           {/* Error Banner */}
           {errorMessage && (
-            <div className={`px-6 py-2 text-xs flex items-center justify-between border-b ${t.errorBar}`}>
+            <div className={`shrink-0 px-6 py-2 text-xs flex items-center justify-between border-b ${t.errorBar}`}>
               <div className="flex items-center gap-2"><AlertCircle size={15} /><span>{errorMessage}</span></div>
               <button onClick={() => setErrorMessage(null)}><X size={14} /></button>
             </div>
           )}
 
           {/* Message Stream */}
-          <div className={`flex-1 p-6 overflow-y-auto space-y-4 relative ${t.msgStream}`}>
+          <div className={`flex-1 min-h-0 p-6 overflow-y-auto space-y-4 relative ${t.msgStream}`}>
             <div className="text-center py-2">
               <span className={`inline-flex items-center gap-1.5 text-[10px] uppercase font-black tracking-wider px-3.5 py-1.5 rounded-full border ${t.encryptPill}`}>
                 <ShieldCheck size={13} className="text-emerald-500" /> End-to-End Encrypted
@@ -889,7 +869,7 @@ export const MessagesPage = () => {
           </div>
 
           {/* Quick Reply Chips */}
-          <div className={`px-6 py-2 border-t flex items-center gap-2 overflow-x-auto no-scrollbar ${t.quickBar}`}>
+          <div className={`shrink-0 px-6 py-2 border-t flex items-center gap-2 overflow-x-auto no-scrollbar ${t.quickBar}`}>
             <span className={`text-[10px] uppercase font-extrabold shrink-0 ${t.quickLabel}`}>Quick replies:</span>
             {quickPrompts.map((chip, i) => (
               <button key={i} onClick={() => handleSendPrompt(chip.text)} className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all ${t.quickChip}`}>
@@ -899,7 +879,7 @@ export const MessagesPage = () => {
           </div>
 
           {/* Input Dock */}
-          <div className={`p-4 border-t relative ${t.inputDock}`}>
+          <div className={`shrink-0 p-4 border-t relative ${t.inputDock}`}>
             {attachedImage && (
               <div className={`mb-3 p-2 border rounded-2xl flex items-center justify-between max-w-xs ${t.attachPreview}`}>
                 <div className="flex items-center gap-2.5">
@@ -929,7 +909,13 @@ export const MessagesPage = () => {
                   className={`w-full border rounded-2xl px-4 py-3 text-xs font-medium outline-none transition-all ${t.inputField}`}
                 />
               </div>
-              <Button type="submit" size="md" icon={Send} disabled={sending || (!inputText.trim() && !attachedImage)} className={`rounded-2xl px-5 shadow-md ${t.sendBtn}`}>
+              <Button
+                type="submit"
+                size="default"
+                icon={Send}
+                disabled={sending || (!inputText.trim() && !attachedImage)}
+                className={`h-11 min-w-[104px] rounded-2xl bg-primary px-5 text-primary-foreground shadow-sm disabled:opacity-100 ${t.sendBtn}`}
+              >
                 {sending ? 'Sending...' : 'Send'}
               </Button>
             </form>

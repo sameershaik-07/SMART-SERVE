@@ -1,7 +1,6 @@
-import React from 'react';
+import React from 'react'
+import { Skeleton as ShadcnSkeleton } from '@/components/ui/skeleton'
 
 export const Skeleton = ({ className = '' }) => {
-  return (
-    <div className={`animate-pulse bg-slate-200/80 rounded-xl ${className}`} />
-  );
-};
+  return <ShadcnSkeleton className={className} />
+}

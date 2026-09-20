@@ -10,6 +10,24 @@ const getPendingProviders = async (req, res, next) => {
     }
 };
 
+const getProviders = async (req, res, next) => {
+    try {
+        const providers = await adminService.getProviders();
+        return res.status(200).json(providers);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getUsers = async (req, res, next) => {
+    try {
+        const users = await adminService.getUsers();
+        return res.status(200).json(users);
+    } catch (error) {
+        next(error);
+    }
+};
+
 const verifyProvider = async (req, res, next) => {
     try {
         const userId = req.user.userId;
@@ -98,6 +116,24 @@ const getAnalytics = async (req, res, next) => {
     }
 };
 
+const getAnalyticsTrends = async (req, res, next) => {
+    try {
+        const trends = await adminService.getAnalyticsTrends(req.query.days);
+        return res.status(200).json(trends);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getBookings = async (req, res, next) => {
+    try {
+        const bookings = await adminService.getBookings();
+        return res.status(200).json(bookings);
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getAuditLogs = async (req, res, next) => {
     try {
         const logs = await adminService.getAuditLogs();
@@ -109,6 +145,8 @@ const getAuditLogs = async (req, res, next) => {
 
 module.exports = {
     getPendingProviders,
+    getProviders,
+    getUsers,
     verifyProvider,
     rejectProvider,
     createCategory,
@@ -116,5 +154,7 @@ module.exports = {
     deleteCategory,
     getCategories,
     getAnalytics,
+    getAnalyticsTrends,
+    getBookings,
     getAuditLogs
 };

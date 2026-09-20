@@ -11,6 +11,32 @@ const getPendingProviders = async () => {
     });
 };
 
+const getProviders = async () => {
+    return prisma.serviceProvider.findMany({
+        include: {
+            user: { select: { id: true, name: true, email: true, phone: true, createdAt: true } },
+            category: true,
+            services: { select: { id: true, title: true, isActive: true } }
+        },
+        orderBy: { user: { createdAt: "desc" } }
+    });
+};
+
+const getUsers = async () => {
+    return prisma.user.findMany({
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            role: true,
+            isEmailVerified: true,
+            createdAt: true
+        },
+        orderBy: { createdAt: "desc" }
+    });
+};
+
 const verifyProvider = async (userId, providerId) => {
     const admin = await prisma.admin.findUnique({ where: { userId } });
     if (!admin) {
@@ -133,6 +159,71 @@ const getAnalyticsOverview = async () => {
     };
 };
 
+const getAnalyticsTrends = async (days = 7) => {
+    const safeDays = Math.min(Math.max(parseInt(days) || 7, 1), 31);
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - (safeDays - 1));
+
+    const [bookings, payments] = await Promise.all([
+        prisma.booking.findMany({
+            where: { createdAt: { gte: start } },
+            select: { createdAt: true }
+        }),
+        prisma.payment.findMany({
+            where: { status: "SUCCESS", createdAt: { gte: start } },
+            select: { amount: true, createdAt: true }
+        })
+    ]);
+
+    const dateKey = (value) => {
+        const date = new Date(value);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    };
+    const series = Array.from({ length: safeDays }, (_, index) => {
+        const date = new Date(start);
+        date.setDate(start.getDate() + index);
+        return {
+            date: dateKey(date),
+            day: date.toLocaleDateString("en-US", { weekday: "short" }),
+            bookings: 0,
+            revenue: 0
+        };
+    });
+    const byDate = new Map(series.map((item) => [item.date, item]));
+
+    bookings.forEach((booking) => {
+        const bucket = byDate.get(dateKey(booking.createdAt));
+        if (bucket) bucket.bookings += 1;
+    });
+    payments.forEach((payment) => {
+        const bucket = byDate.get(dateKey(payment.createdAt));
+        if (bucket) bucket.revenue += payment.amount;
+    });
+
+    return {
+        days: safeDays,
+        totalBookings: bookings.length,
+        totalRevenue: payments.reduce((sum, payment) => sum + payment.amount, 0),
+        series
+    };
+};
+
+const getBookings = async () => {
+    return prisma.booking.findMany({
+        include: {
+            customer: {
+                include: { user: { select: { name: true, email: true } } }
+            },
+            provider: {
+                include: { user: { select: { name: true, email: true } } }
+            },
+            service: { select: { title: true } }
+        },
+        orderBy: { createdAt: "desc" }
+    });
+};
+
 const getAuditLogs = async () => {
     return prisma.auditLog.findMany({
         include: {
@@ -148,6 +239,8 @@ const getAuditLogs = async () => {
 
 module.exports = {
     getPendingProviders,
+    getProviders,
+    getUsers,
     verifyProvider,
     rejectProvider,
     createCategory,
@@ -155,5 +248,7 @@ module.exports = {
     deleteCategory,
     getCategories,
     getAnalyticsOverview,
+    getAnalyticsTrends,
+    getBookings,
     getAuditLogs
 };

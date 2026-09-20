@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -10,11 +10,14 @@ import {
   FolderTree,
   MessageSquare,
   Settings,
-  LogOut
+  LogOut,
+  Sparkles
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-export const AdminSidebar = () => {
+export const AdminSidebar = ({ className, onItemClick }) => {
   const { user, logout } = useAuth();
 
   const adminNavItems = [
@@ -29,20 +32,26 @@ export const AdminSidebar = () => {
   ];
 
   return (
-    <aside className="w-64 bg-[#3b1578] text-purple-100 flex flex-col min-h-screen sticky top-0 border-r border-purple-900/50 shadow-2xl z-30">
+    <aside className={cn("w-[248px] bg-sidebar text-sidebar-foreground flex flex-col h-full border-r border-sidebar-border select-none transition-colors", className)}>
       {/* Brand Header */}
-      <div className="flex items-center gap-3 px-6 py-6 border-b border-purple-900/40">
-        <div className="w-9 h-9 bg-purple-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-600/30">
-          <ShieldCheck size={22} className="fill-white stroke-purple-600" />
+      <Link
+        to="/admin"
+        onClick={onItemClick}
+        className="h-[76px] flex items-center gap-3 px-5 border-b border-sidebar-border hover:bg-sidebar-accent/50 transition-colors"
+      >
+        <div className="w-10 h-10 bg-sidebar-primary rounded-xl flex items-center justify-center text-sidebar-primary-foreground shadow-sm">
+          <ShieldCheck size={22} className="fill-current" />
         </div>
         <div className="flex flex-col">
-          <span className="text-lg font-extrabold tracking-tight text-white leading-none">ServiceHub</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-purple-300">Admin Panel</span>
+          <span className="text-lg font-bold tracking-tight text-sidebar-foreground">ServiceHub</span>
+          <span className="text-[11px] font-semibold text-sidebar-foreground/70 uppercase tracking-wider flex items-center gap-1">
+            <Sparkles size={10} className="text-primary" /> Admin Panel
+          </span>
         </div>
-      </div>
+      </Link>
 
       {/* Navigation Links */}
-      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {adminNavItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -50,12 +59,14 @@ export const AdminSidebar = () => {
               key={item.path}
               to={item.path}
               end={item.path === '/admin'}
+              onClick={onItemClick}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-150 ${
+                cn(
+                  "flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all",
                   isActive
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-950/40 font-semibold'
-                    : 'text-purple-200 hover:bg-purple-800/40 hover:text-white'
-                }`
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-semibold"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )
               }
             >
               <Icon size={18} />
@@ -66,26 +77,29 @@ export const AdminSidebar = () => {
       </nav>
 
       {/* Admin User Footer */}
-      <div className="p-4 border-t border-purple-900/40">
-        <div className="flex items-center justify-between p-2 rounded-xl bg-purple-900/30">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-purple-400 text-purple-950 font-extrabold text-sm flex items-center justify-center">
+      <div className="p-3 border-t border-sidebar-border bg-sidebar-accent/20">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-sidebar-accent/40 border border-sidebar-border">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center shrink-0">
               {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
             </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-white truncate max-w-[110px]">
+            <div className="flex flex-col truncate">
+              <span className="text-xs font-semibold text-sidebar-foreground truncate">
                 {user?.name || 'Administrator'}
               </span>
-              <span className="text-[10px] text-purple-300">Super Admin</span>
+              <span className="text-[10px] text-muted-foreground">Super Admin</span>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={logout}
             title="Logout"
-            className="text-purple-300 hover:text-rose-400 transition-colors p-1"
+            className="h-8 w-8 text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded-lg shrink-0"
+            aria-label="Sign out"
           >
-            <LogOut size={16} />
-          </button>
+            <LogOut size={15} />
+          </Button>
         </div>
       </div>
     </aside>

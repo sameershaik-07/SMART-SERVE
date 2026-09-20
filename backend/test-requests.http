@@ -10,6 +10,10 @@ provider_test@example.com
 customer@smartserve.com
 Password123!
 
+testingc@gmail.com
+testingp@gmail.com
+
+12345678
 
 ### 1) Register Customer
 # REST Client:

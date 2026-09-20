@@ -18,6 +18,10 @@ export const deleteCategoryApi = (id) => apiFetch(`/admin/categories/${id}`, {
 
 export const getPendingProvidersApi = () => apiFetch('/admin/providers/pending');
 
+export const getAdminProvidersApi = () => apiFetch('/admin/providers');
+
+export const getAdminUsersApi = () => apiFetch('/admin/users');
+
 export const verifyProviderApi = (id) => apiFetch(`/admin/providers/${id}/verify`, {
   method: 'PATCH',
 });
@@ -27,6 +31,10 @@ export const rejectProviderApi = (id) => apiFetch(`/admin/providers/${id}/reject
 });
 
 export const getAdminAnalyticsApi = () => apiFetch('/admin/analytics/overview');
+
+export const getAdminAnalyticsTrendsApi = (days = 7) => apiFetch(`/admin/analytics/trends?days=${days}`);
+
+export const getAdminBookingsApi = () => apiFetch('/admin/bookings');
 
 export const getAuditLogsApi = () => apiFetch('/admin/audit-log');
 

@@ -12,12 +12,16 @@ router.put("/categories/:id", authenticate, authorize("ADMIN"), adminController.
 router.delete("/categories/:id", authenticate, authorize("ADMIN"), adminController.deleteCategory);
 
 // Provider Verification Queue (Admin Protected)
+router.get("/providers", authenticate, authorize("ADMIN"), adminController.getProviders);
 router.get("/providers/pending", authenticate, authorize("ADMIN"), adminController.getPendingProviders);
 router.patch("/providers/:id/verify", authenticate, authorize("ADMIN"), adminController.verifyProvider);
 router.patch("/providers/:id/reject", authenticate, authorize("ADMIN"), adminController.rejectProvider);
+router.get("/users", authenticate, authorize("ADMIN"), adminController.getUsers);
 
 // Analytics & Audit Logs (Admin Protected)
 router.get("/analytics/overview", authenticate, authorize("ADMIN"), adminController.getAnalytics);
+router.get("/analytics/trends", authenticate, authorize("ADMIN"), adminController.getAnalyticsTrends);
+router.get("/bookings", authenticate, authorize("ADMIN"), adminController.getBookings);
 router.get("/audit-log", authenticate, authorize("ADMIN"), adminController.getAuditLogs);
 
 // Real-Time Messaging & Chat Audit Inspection (Admin Protected)

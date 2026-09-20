@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { FavoritesProvider } from './context/FavoritesContext';
 
 // Layouts
 import { CustomerLayout } from './components/layout/CustomerLayout';
@@ -98,8 +100,10 @@ const RootHandler = () => {
 
 export function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <ThemeProvider defaultTheme="system" storageKey="servicehub-ui-theme">
+      <AuthProvider>
+      <FavoritesProvider>
+        <BrowserRouter>
         <Routes>
           {/* Public Landing Page (Login / Sign Up options only; redirect if authenticated) */}
           <Route path="/" element={<RootHandler />} />
@@ -161,7 +165,9 @@ export function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+      </FavoritesProvider>
+      </AuthProvider>
+  </ThemeProvider>
   );
 }
 

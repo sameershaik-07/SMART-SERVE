@@ -49,10 +49,13 @@ export const AdminChatAuditPage = () => {
         if (list.length > 0 && !selectedConv) {
           selectConversation(list[0]);
         }
+        if (list.length === 0) setSelectedConv(null);
+      } else if (convRes.status === 'rejected') {
+        setFeedback({ type: 'error', msg: convRes.reason?.message || 'Unable to load chat conversations.' });
       }
 
       if (statsRes.status === 'fulfilled' && statsRes.value) {
-        setStats(statsRes.value);
+        setStats(statsRes.value.data || statsRes.value);
       }
     } catch (err) {
       console.warn('Could not load chat audit data:', err);
@@ -89,14 +92,13 @@ export const AdminChatAuditPage = () => {
       setFeedback({ type: '', msg: '' });
 
       const res = await sendAdminChatMessageApi(selectedConv.id, {
-        text: adminReplyText.trim(),
-        senderRole: 'ADMIN',
+        message: adminReplyText.trim(),
       });
 
-      const newMsg = res.message || {
+      const newMsg = res.data || {
         id: Date.now(),
         senderRole: 'ADMIN',
-        text: adminReplyText.trim(),
+        message: adminReplyText.trim(),
         createdAt: new Date().toISOString(),
       };
 
@@ -124,8 +126,8 @@ export const AdminChatAuditPage = () => {
   const filteredConversations = conversations.filter((c) => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
-    const cust = c.customer?.user?.name?.toLowerCase() || '';
-    const prov = c.provider?.user?.name?.toLowerCase() || '';
+    const cust = (c.customer?.name || c.customer?.user?.name || '').toLowerCase();
+    const prov = (c.provider?.name || c.provider?.user?.name || '').toLowerCase();
     const svc = c.booking?.service?.title?.toLowerCase() || '';
     const id = String(c.bookingId || c.id);
     return cust.includes(q) || prov.includes(q) || svc.includes(q) || id.includes(q);
@@ -134,27 +136,27 @@ export const AdminChatAuditPage = () => {
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-16 font-sans">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-6 rounded-3xl shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border p-6 rounded-3xl shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs uppercase font-extrabold text-purple-700 tracking-wider">
+            <span className="text-xs uppercase font-extrabold text-foreground tracking-wider">
               Safety & Compliance Audit
             </span>
-            <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-purple-200">
+            <span className="inline-flex items-center gap-1 bg-muted text-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-border">
               <Shield size={12} /> Live Message Audit
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="workspace-title text-2xl md:text-3xl">
             Chat Moderation & Dispute Audit
           </h1>
-          <p className="text-xs md:text-sm text-slate-500 mt-0.5">
+          <p className="workspace-subtitle text-xs md:text-sm mt-0.5">
             Inspect customer-to-provider communications, mediate active disputes, and issue official resolution notices.
           </p>
         </div>
 
         <button
           onClick={fetchAuditData}
-          className="p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl border border-slate-200 transition-colors cursor-pointer self-start sm:self-auto"
+          className="p-2.5 bg-muted hover:bg-accent text-foreground rounded-xl border border-border transition-colors cursor-pointer self-start sm:self-auto"
           title="Refresh Audit Logs"
         >
           <RefreshCw size={16} className={loadingList ? 'animate-spin' : ''} />
@@ -163,37 +165,37 @@ export const AdminChatAuditPage = () => {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center gap-3 shadow-2xs">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+        <div className="p-4 bg-card border border-border rounded-2xl flex items-center gap-3 shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center">
             <MessageSquare size={18} />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-bold uppercase">Active Channels</div>
-            <div className="text-xl font-black text-slate-900">
-              {stats.totalConversations || conversations.length} Channels
+            <div className="text-xs text-muted-foreground font-bold uppercase">Active Channels</div>
+            <div className="text-xl font-black text-foreground">
+              {stats.totalConversations ?? conversations.length} Channels
             </div>
           </div>
         </div>
 
-        <div className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center gap-3 shadow-2xs">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+        <div className="p-4 bg-card border border-border rounded-2xl flex items-center gap-3 shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center">
             <FileText size={18} />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-bold uppercase">Messages Audited</div>
-            <div className="text-xl font-black text-slate-900">
-              {stats.totalMessages || (conversations.length * 8)} Total
+            <div className="text-xs text-muted-foreground font-bold uppercase">Messages Today</div>
+            <div className="text-xl font-black text-foreground">
+              {stats.messagesToday ?? 0} Today
             </div>
           </div>
         </div>
 
-        <div className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center gap-3 shadow-2xs">
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+        <div className="p-4 bg-card border border-border rounded-2xl flex items-center gap-3 shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center">
             <CheckCircle2 size={18} />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-bold uppercase">Moderator Status</div>
-            <div className="text-xl font-black text-emerald-600">Encrypted / Active</div>
+            <div className="text-xs text-muted-foreground font-bold uppercase">Moderator Status</div>
+            <div className="text-xl font-black text-foreground">Encrypted / Active</div>
           </div>
         </div>
       </div>
@@ -217,24 +219,24 @@ export const AdminChatAuditPage = () => {
       {/* Two-Pane Audit Console */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Pane (5 Cols): Conversations Browser */}
-        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-5 space-y-4 shadow-sm">
+        <div className="lg:col-span-5 bg-card border border-border rounded-3xl p-5 space-y-4 shadow-sm">
           {/* Search Conversations */}
           <div className="relative">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by customer, pro, or booking ID..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-purple-600 focus:outline-none transition-all"
+              className="w-full bg-muted border border-border rounded-xl pl-10 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:bg-card focus:border-foreground focus:outline-none transition-all"
             />
           </div>
 
           {/* Conversations List */}
           {loadingList ? (
             <div className="py-20 flex flex-col items-center justify-center space-y-2">
-              <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-xs text-slate-400">Loading audit threads...</span>
+              <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-xs text-muted-foreground">Loading audit threads...</span>
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="py-16 text-center space-y-2">
@@ -246,8 +248,8 @@ export const AdminChatAuditPage = () => {
             <div className="space-y-2 max-h-[580px] overflow-y-auto pr-1">
               {filteredConversations.map((conv) => {
                 const isSelected = selectedConv?.id === conv.id;
-                const custName = conv.customer?.user?.name || 'Customer';
-                const provName = conv.provider?.user?.name || 'Provider';
+                const custName = conv.customer?.name || conv.customer?.user?.name || 'Customer';
+                const provName = conv.provider?.name || conv.provider?.user?.name || 'Provider';
                 const serviceTitle = conv.booking?.service?.title || 'Service Appointment';
 
                 return (
@@ -256,12 +258,12 @@ export const AdminChatAuditPage = () => {
                     onClick={() => selectConversation(conv)}
                     className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-purple-50/80 border-purple-300 ring-2 ring-purple-600/15'
-                        : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
+                        ? 'bg-muted border-foreground ring-2 ring-foreground/10'
+                        : 'border-border hover:bg-muted'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="text-[11px] font-black text-slate-900 truncate">
+                      <span className="text-[11px] font-black text-foreground truncate">
                         {custName} ↔ {provName}
                       </span>
                       {conv.bookingId && (
@@ -271,7 +273,7 @@ export const AdminChatAuditPage = () => {
                       )}
                     </div>
 
-                    <div className="text-xs text-purple-700 font-semibold truncate mb-1">
+                    <div className="text-xs text-foreground font-semibold truncate mb-1">
                       {serviceTitle}
                     </div>
 
@@ -286,28 +288,28 @@ export const AdminChatAuditPage = () => {
         </div>
 
         {/* Right Pane (7 Cols): Transcript & Intervention Console */}
-        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 space-y-4 shadow-sm">
+        <div className="lg:col-span-7 bg-card border border-border rounded-3xl p-6 space-y-4 shadow-sm">
           {selectedConv ? (
             <>
               {/* Header Details */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-black text-slate-900">
+                    <span className="text-sm font-black text-foreground">
                       Channel #{selectedConv.id} Audit
                     </span>
-                    <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full">
+                    <span className="text-[10px] font-bold bg-muted text-foreground px-2.5 py-0.5 rounded-full border border-border">
                       Escrow Protected
                     </span>
                   </div>
                   <div className="text-xs text-slate-500 flex flex-wrap items-center gap-3">
                     <span className="flex items-center gap-1">
-                      <User size={12} className="text-purple-600" />
-                      <strong>Customer:</strong> {selectedConv.customer?.user?.name || 'Customer'}
+                      <User size={12} className="text-foreground" />
+                      <strong>Customer:</strong> {selectedConv.customer?.name || selectedConv.customer?.user?.name || 'Customer'}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Wrench size={12} className="text-emerald-600" />
-                      <strong>Pro:</strong> {selectedConv.provider?.user?.name || 'Provider'}
+                      <Wrench size={12} className="text-foreground" />
+                      <strong>Pro:</strong> {selectedConv.provider?.name || selectedConv.provider?.user?.name || 'Provider'}
                     </span>
                   </div>
                 </div>
@@ -316,17 +318,17 @@ export const AdminChatAuditPage = () => {
                   <span className="text-[10px] uppercase font-extrabold text-slate-400 block">
                     Service Reference
                   </span>
-                  <span className="text-xs font-black text-slate-800">
+                  <span className="text-xs font-black text-foreground">
                     {selectedConv.booking?.service?.title || 'Appointment'}
                   </span>
                 </div>
               </div>
 
               {/* Message Transcript Viewer */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 min-h-[340px] max-h-[400px] overflow-y-auto space-y-3">
+              <div className="bg-muted/60 border border-border rounded-2xl p-4 min-h-[340px] max-h-[400px] overflow-y-auto space-y-3">
                 {loadingMessages ? (
                   <div className="py-20 flex flex-col items-center justify-center space-y-2">
-                    <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin"></div>
                     <span className="text-xs text-slate-400">Decrypting messages...</span>
                   </div>
                 ) : messages.length === 0 ? (
@@ -354,20 +356,20 @@ export const AdminChatAuditPage = () => {
                           {isAdmin
                             ? '🛡️ Official ServiceHub Moderator Notice'
                             : isCustomer
-                            ? `👤 Customer (${selectedConv.customer?.user?.name || 'Customer'})`
-                            : `🔧 Provider (${selectedConv.provider?.user?.name || 'Pro'})`}
+                            ? `👤 Customer (${selectedConv.customer?.name || selectedConv.customer?.user?.name || 'Customer'})`
+                            : `🔧 Provider (${selectedConv.provider?.name || selectedConv.provider?.user?.name || 'Pro'})`}
                         </span>
 
                         <div
                           className={`p-3 rounded-2xl max-w-md text-xs leading-relaxed ${
                             isAdmin
-                              ? 'bg-purple-900 text-white font-semibold text-center border border-purple-700 shadow-md'
+                              ? 'bg-foreground text-background font-semibold text-center border border-foreground shadow-md'
                               : isCustomer
-                              ? 'bg-white text-slate-800 border border-slate-200 shadow-2xs'
+                              ? 'bg-card text-foreground border border-border shadow-sm'
                               : 'bg-slate-800 text-white shadow-2xs'
                           }`}
                         >
-                          {m.text || m.content}
+                          {m.message || m.text || m.content}
                         </div>
 
                         <span className="text-[9px] text-slate-400 px-1">
@@ -387,8 +389,8 @@ export const AdminChatAuditPage = () => {
               {/* Official Moderator Action & Resolution */}
               <div className="pt-2 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <ShieldAlert size={14} className="text-purple-600" />
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <ShieldAlert size={14} className="text-foreground" />
                     Official Moderator Ruling / Intervention
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -399,7 +401,7 @@ export const AdminChatAuditPage = () => {
                           'Notice: ServiceHub Dispute Support has reviewed this booking. Technician arrival has been verified.'
                         )
                       }
-                      className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-semibold transition-colors"
+                      className="text-[10px] bg-muted hover:bg-accent text-foreground border border-border px-2 py-1 rounded-md font-semibold transition-colors"
                     >
                       Verify Arrival
                     </button>
@@ -410,7 +412,7 @@ export const AdminChatAuditPage = () => {
                           'Dispute Ruling: Customer service guarantee has been approved. Warranty re-work scheduled at zero cost.'
                         )
                       }
-                      className="text-[10px] bg-purple-50 hover:bg-purple-100 text-purple-700 px-2 py-1 rounded-md font-semibold transition-colors"
+                      className="text-[10px] bg-muted hover:bg-accent text-foreground border border-border px-2 py-1 rounded-md font-semibold transition-colors"
                     >
                       Warranty Re-work
                     </button>
@@ -424,12 +426,12 @@ export const AdminChatAuditPage = () => {
                     value={adminReplyText}
                     onChange={(e) => setAdminReplyText(e.target.value)}
                     placeholder="Type official moderation message or dispute ruling..."
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-purple-600 focus:outline-none"
+                    className="flex-1 bg-muted border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:bg-card focus:border-foreground focus:outline-none"
                   />
                   <button
                     type="submit"
                     disabled={sendingReply}
-                    className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-purple-600/30 cursor-pointer disabled:opacity-50"
+                    className="px-4 py-2.5 bg-foreground hover:bg-foreground/90 text-background rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer disabled:opacity-50"
                   >
                     <Send size={14} />
                     {sendingReply ? 'Posting...' : 'Post Notice'}
@@ -440,7 +442,7 @@ export const AdminChatAuditPage = () => {
           ) : (
             <div className="py-36 text-center space-y-3">
               <Shield size={40} className="mx-auto text-slate-300" />
-              <h4 className="text-sm font-bold text-slate-700">Select a Conversation to Audit</h4>
+              <h4 className="text-sm font-bold text-foreground">Select a Conversation to Audit</h4>
               <p className="text-xs text-slate-400 max-w-xs mx-auto">
                 Choose an active communication channel from the left panel to review message transcripts.
               </p>
@@ -451,4 +453,3 @@ export const AdminChatAuditPage = () => {
     </div>
   );
 };
-

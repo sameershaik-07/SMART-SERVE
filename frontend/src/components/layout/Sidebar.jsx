@@ -10,91 +10,101 @@ import {
   Star,
   Heart,
   Settings,
-  ChevronDown,
-  LogOut
+  LogOut,
+  Sparkles
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
-export const Sidebar = ({ isCollapsed, toggleSidebar }) => {
+export const Sidebar = ({ className, onItemClick }) => {
   const { user, logout } = useAuth();
 
   const navItems = [
-    { label: 'Home', path: '/services', icon: Home },
-    { label: 'Bookings', path: '/bookings', icon: Calendar },
-    { label: 'Providers', path: '/providers', icon: Users },
+    { label: 'Browse Services', path: '/services', icon: Home },
+    { label: 'My Bookings', path: '/bookings', icon: Calendar },
+    { label: 'Service Providers', path: '/providers', icon: Users },
     { label: 'Messages', path: '/messages', icon: MessageSquare },
-    { label: 'Wallet', path: '/wallet', icon: Wallet },
-    { label: 'Reviews', path: '/reviews', icon: Star },
+    { label: 'My Wallet', path: '/wallet', icon: Wallet },
+    { label: 'My Reviews', path: '/reviews', icon: Star },
     { label: 'Favorites', path: '/favorites', icon: Heart },
     { label: 'Settings', path: '/settings', icon: Settings },
   ];
 
   return (
-    <aside className="w-64 bg-[#35146c] text-purple-100 flex flex-col min-h-screen sticky top-0 border-r border-purple-900/50 shadow-2xl z-30 transition-all duration-300">
-      {/* Brand Header: Points to /services as authenticated home */}
-      <Link to="/services" className="flex items-center gap-3 px-6 py-6 border-b border-purple-900/40 hover:bg-purple-900/20 transition-colors">
-        <div className="w-9 h-9 bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
-          <Shield size={22} className="fill-white stroke-purple-600" />
+    <aside className={cn("w-[248px] bg-sidebar text-sidebar-foreground flex flex-col h-full border-r border-sidebar-border select-none transition-colors", className)}>
+      {/* Brand Header */}
+      <Link
+        to="/services"
+        onClick={onItemClick}
+        className="h-[76px] flex items-center gap-3 px-5 border-b border-sidebar-border hover:bg-sidebar-accent/50 transition-colors"
+      >
+        <div className="w-10 h-10 bg-sidebar-primary rounded-xl flex items-center justify-center text-sidebar-primary-foreground shadow-sm">
+          <Shield size={22} className="fill-current" />
         </div>
-        <span className="text-xl font-extrabold tracking-tight text-white">ServiceHub</span>
+        <div className="flex flex-col">
+          <span className="text-lg font-bold tracking-tight text-sidebar-foreground">ServiceHub</span>
+          <span className="text-[11px] font-medium text-sidebar-foreground/60">Customer Portal</span>
+        </div>
       </Link>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+      {/* Navigation Items */}
+      <nav className="flex-1 px-4 py-5 space-y-1.5 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={onItemClick}
               className={({ isActive }) =>
-                `flex items-center justify-between px-4 py-3 rounded-xl font-medium text-sm transition-all duration-150 ${
+                cn(
+                  "flex items-center justify-between px-3.5 py-3 rounded-xl font-medium text-sm transition-all",
                   isActive
-                    ? 'bg-purple-600/90 text-white shadow-md shadow-purple-900/40 font-semibold'
-                    : 'text-purple-200 hover:bg-purple-800/40 hover:text-white'
-                }`
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-semibold"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )
               }
             >
               <div className="flex items-center gap-3">
                 <Icon size={18} />
                 <span>{item.label}</span>
               </div>
-              {item.badge && (
-                <span className="w-5 h-5 bg-rose-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                  {item.badge}
-                </span>
-              )}
             </NavLink>
           );
         })}
       </nav>
-      {/* User Profile Footer */}
-      <div className="p-4 border-t border-purple-900/40">
-        <div className="flex items-center justify-between p-2 rounded-xl hover:bg-purple-800/40 transition-colors group">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-purple-500 border-2 border-purple-300 flex items-center justify-center text-white font-bold text-sm">
+
+      {/* User Footer */}
+      <div className="p-3 border-t border-sidebar-border bg-sidebar-accent/20">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-sidebar-accent/40 border border-sidebar-border">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-sidebar-primary text-sidebar-primary-foreground font-bold text-xs flex items-center justify-center shrink-0">
               {user?.name ? user.name.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'U')}
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-sm font-bold text-white truncate max-w-[110px]">
+            <div className="flex flex-col text-left truncate">
+              <span className="text-xs font-semibold text-sidebar-foreground truncate">
                 {user?.name || user?.email?.split('@')[0] || 'User'}
               </span>
-              <span className="text-[11px] text-purple-300 capitalize">
-                {user?.role?.toLowerCase() || 'Customer'}
+              <span className="text-[10px] text-sidebar-foreground/60 capitalize truncate">
+                Customer
               </span>
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={(e) => {
               e.preventDefault();
-              e.stopPropagation();
               logout();
             }}
             title="Sign Out"
-            className="text-purple-300 hover:text-rose-400 transition-colors p-1.5 rounded-lg hover:bg-purple-800/60 cursor-pointer"
+            className="h-8 w-8 text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded-lg shrink-0"
+            aria-label="Sign out"
           >
-            <LogOut size={16} />
-          </button>
+            <LogOut size={15} />
+          </Button>
         </div>
       </div>
     </aside>

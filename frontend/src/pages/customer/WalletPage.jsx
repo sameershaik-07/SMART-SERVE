@@ -30,22 +30,22 @@ export const WalletPage = () => {
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl pb-16">
       <div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">ServiceHub Wallet</h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">Manage your funds, view credits, and track transactions.</p>
+        <h1 className="workspace-title">ServiceHub Wallet</h1>
+        <p className="workspace-subtitle">Manage your funds, view credits, and track transactions.</p>
       </div>
 
       {/* Balance Card */}
-      <div className="sh-card p-8 bg-gradient-to-br from-purple-700 via-purple-800 to-indigo-900 text-white shadow-xl relative overflow-hidden">
+      <div className="sh-card p-8 bg-primary text-primary-foreground shadow-lg relative overflow-hidden">
         <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
         <div className="flex flex-wrap items-center justify-between gap-6 relative z-10">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-purple-200 block mb-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary-foreground/65 block mb-1">
               Available Balance
             </span>
             <h2 className="text-4xl font-black tracking-tight">
               ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </h2>
-            <span className="text-xs text-purple-200 mt-2 block font-medium">
+            <span className="text-xs text-primary-foreground/65 mt-2 block font-medium">
               🔒 Instant 1-click checkout for all services
             </span>
           </div>
@@ -62,10 +62,10 @@ export const WalletPage = () => {
       </div>
 
       {/* Transactions Section */}
-      <div className="sh-card p-6 bg-white space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-            <History size={18} className="text-purple-600" /> Transaction History
+      <div className="sh-card p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-border">
+          <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+            <History size={18} className="text-foreground" /> Transaction History
           </h3>
         </div>
 

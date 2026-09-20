@@ -17,6 +17,7 @@ import { CategoryCard } from '../../components/service/CategoryCard';
 import { ServiceCard } from '../../components/service/ServiceCard';
 import { getServicesApi } from '../../api/services';
 import { Skeleton } from '../../components/common/Skeleton';
+import { marketplaceCategories } from '../../constants/marketplaceCategories';
 
 export const BrowseServicesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -30,20 +31,23 @@ export const BrowseServicesPage = () => {
   const [priceRange, setPriceRange] = useState(10000);
   const [minRating, setMinRating] = useState(0);
 
-  const categories = [
-    { title: 'Home Services', count: '1,248', icon: Home, colorBg: '#eff6ff', colorText: '#2563eb' },
-    { title: 'Repairs', count: '842', icon: Wrench, colorBg: '#fff7ed', colorText: '#ea580c' },
-    { title: 'Beauty', count: '673', icon: Sparkles, colorBg: '#fdf2f8', colorText: '#db2777' },
-    { title: 'Automotive', count: '532', icon: Car, colorBg: '#ecfeff', colorText: '#0891b2' },
-    { title: 'Tutors', count: '615', icon: GraduationCap, colorBg: '#f5f3ff', colorText: '#7c3aed' },
-    { title: 'Health & Wellness', count: '389', icon: HeartPulse, colorBg: '#ecfdf5', colorText: '#059669' },
-    { title: 'Events', count: '274', icon: Camera, colorBg: '#fffbeb', colorText: '#d97706' },
-    { title: 'Pet Care', count: '198', icon: Dog, colorBg: '#fef2f2', colorText: '#dc2626' },
-  ];
+  const categoryIcons = [Home, Wrench, Sparkles, Car, GraduationCap, HeartPulse, Camera, Dog];
+  const categories = marketplaceCategories.map((category, index) => ({
+    ...category,
+    icon: categoryIcons[index],
+    colorBg: 'hsl(var(--muted))',
+    colorText: 'hsl(var(--foreground))',
+  }));
 
   const categoryPills = ['All', 'Home Services', 'Repairs', 'Beauty', 'Automotive', 'Tutors'];
 
-  const fallbackServices = [];
+  // Kept as a visual catalogue for first-run/demo sessions; live API data replaces matching items.
+  const fallbackServices = [
+    { id: 'ac-repair', title: 'AC Repair & Service', category: 'Repairs', providerName: 'CoolTech Solutions', price: 499, rating: 4.8, reviewCount: 124, image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=900&q=80' },
+    { id: 'facial', title: 'Facial & Skincare', category: 'Beauty', providerName: 'Glow Beauty Studio', price: 799, rating: 4.6, reviewCount: 89, image: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=900&q=80' },
+    { id: 'car-service', title: 'Car Servicing', category: 'Automotive', providerName: 'AutoCare Pro', price: 1499, rating: 4.7, reviewCount: 210, image: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=900&q=80' },
+    { id: 'tutoring', title: 'Maths Tutoring', category: 'Tutors', providerName: 'Bright Minds', price: 599, rating: 4.9, reviewCount: 76, image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80' },
+  ];
 
   const [services, setServices] = useState(fallbackServices);
 
@@ -166,11 +170,11 @@ export const BrowseServicesPage = () => {
     });
 
   return (
-    <div className="space-y-8 animate-fade-in pb-12">
+    <div className="max-w-[1120px] space-y-6 animate-fade-in pb-10">
       {/* Page Title Header */}
       <div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Book Services</h1>
-        <p className="text-sm text-slate-500 font-medium mt-1">
+        <h1 className="workspace-title">Book Services</h1>
+        <p className="workspace-subtitle">
           {searchTerm ? `Showing results for "${searchTerm}"` : 'Find trusted professionals for every need and book in seconds'}
         </p>
       </div>
@@ -183,8 +187,8 @@ export const BrowseServicesPage = () => {
             onClick={() => handleTabChange(cat)}
             className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-2xs whitespace-nowrap ${
               activeCategoryTab === cat
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card text-muted-foreground hover:bg-muted border border-border'
             }`}
           >
             {cat}
@@ -209,23 +213,23 @@ export const BrowseServicesPage = () => {
       </div>
 
       {/* Filter Controls Bar matching Reference Image 3 */}
-      <div className="sh-card p-4 flex flex-wrap items-center justify-between gap-4 bg-white">
+      <div className="sh-card p-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
             <SlidersHorizontal size={14} /> Filter:
           </div>
 
           <select
             value={priceSort}
             onChange={(e) => setPriceSort(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none cursor-pointer hover:border-purple-300"
+            className="bg-muted/60 border border-border rounded-xl px-3 py-2 text-xs font-bold text-foreground outline-none cursor-pointer"
           >
             <option value="relevant">Sort by: Relevance</option>
             <option value="low">Price: Low to High</option>
             <option value="high">Price: High to Low</option>
           </select>
 
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700">
+          <div className="flex items-center gap-2 bg-muted/60 border border-border rounded-xl px-3 py-2 text-xs font-bold text-foreground">
             <span>Max Price: ₹{priceRange}</span>
             <input
               type="range"
@@ -234,14 +238,14 @@ export const BrowseServicesPage = () => {
               step="100"
               value={priceRange}
               onChange={(e) => setPriceRange(Number(e.target.value))}
-              className="w-24 accent-purple-600 cursor-pointer"
+              className="w-24 accent-neutral-900 dark:accent-white cursor-pointer"
             />
           </div>
 
           <select
             value={minRating}
             onChange={(e) => setMinRating(Number(e.target.value))}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none cursor-pointer hover:border-purple-300"
+            className="bg-muted/60 border border-border rounded-xl px-3 py-2 text-xs font-bold text-foreground outline-none cursor-pointer"
           >
             <option value={0}>Minimum Rating: Any</option>
             <option value={4.0}>⭐ 4.0+</option>
@@ -250,21 +254,16 @@ export const BrowseServicesPage = () => {
           </select>
         </div>
 
-        {/* Map / List Toggle */}
-        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl text-xs font-bold">
-          <button className="px-3 py-1.5 bg-white rounded-lg shadow-2xs text-purple-700">List View</button>
-          <button className="px-3 py-1.5 text-slate-500 hover:text-slate-800">Map View</button>
-        </div>
       </div>
 
 
       {/* Popular Services Section Header */}
       <div className="flex items-center justify-between pt-2">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-xl font-extrabold text-foreground tracking-tight">
             {searchTerm ? `Search Results (${filteredServices.length})` : 'Popular near you'}
           </h2>
-          <p className="text-xs text-slate-500">Top rated services in Hyderabad right now.</p>
+          <p className="text-xs text-muted-foreground">Top rated services in Hyderabad right now.</p>
         </div>
         <button
           onClick={() => {
@@ -274,7 +273,7 @@ export const BrowseServicesPage = () => {
             searchParams.delete('category');
             setSearchParams(searchParams);
           }}
-          className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1"
+          className="text-xs font-bold text-foreground hover:text-muted-foreground flex items-center gap-1"
         >
           View all &gt;
         </button>
@@ -284,20 +283,20 @@ export const BrowseServicesPage = () => {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((n) => (
-            <div key={n} className="sh-card p-4 h-72 animate-pulse bg-slate-100"></div>
+            <div key={n} className="sh-card p-4 h-72 animate-pulse bg-muted"></div>
           ))}
         </div>
       ) : filteredServices.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-2xl border border-slate-100 p-8">
-          <p className="text-base font-bold text-slate-700">No services matched your filters.</p>
-          <p className="text-xs text-slate-400 mt-1">Try resetting the search or category filters.</p>
+        <div className="text-center py-12 bg-card rounded-2xl border border-border p-8">
+          <p className="text-base font-bold text-foreground">No services matched your filters.</p>
+          <p className="text-xs text-muted-foreground mt-1">Try resetting the search or category filters.</p>
           <button
             onClick={() => {
               setActiveCategoryTab('All');
               setSearchTerm('');
               setPriceRange(10000);
             }}
-            className="mt-4 px-4 py-2 bg-purple-600 text-white text-xs font-bold rounded-xl"
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl"
           >
             Reset All Filters
           </button>

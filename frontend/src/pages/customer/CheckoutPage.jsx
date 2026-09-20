@@ -176,41 +176,43 @@ export const CheckoutPage = () => {
         navigate(`/bookings/${bookingId}`);
       }, 2000);
     } catch (err) {
-      setErrorMsg(err.message || 'Could not place booking. Please try again.');
+      console.error('Booking submission failed:', err);
+      // Never expose server paths, SQL details, or stack traces in the checkout UI.
+      setErrorMsg('We could not create your booking right now. Please try again in a moment.');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-16 max-w-6xl mx-auto font-sans">
+    <div className="checkout-page space-y-6 animate-fade-in pb-16 max-w-6xl mx-auto font-sans">
       {/* Breadcrumb Header */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
         <button
           onClick={() => navigate(-1)}
-          className="hover:text-purple-600 flex items-center gap-1 transition-colors cursor-pointer"
+          className="hover:text-foreground flex items-center gap-1 transition-colors cursor-pointer"
         >
           <ArrowLeft size={14} /> Back
         </button>
         <span>/</span>
-        <Link to="/services" className="hover:text-purple-600">
+        <Link to="/services" className="hover:text-foreground">
           Services
         </Link>
         <span>/</span>
-        <span className="text-purple-700 font-bold">Secure Checkout</span>
+        <span className="text-foreground font-bold">Secure Checkout</span>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-200 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-border pb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight">
             Order Checkout & Confirmation
           </h1>
-          <p className="text-xs md:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
             Review service details, select your preferred schedule, and pay securely.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-full text-xs font-bold self-start md:self-auto shadow-2xs">
+        <div className="flex items-center gap-2 bg-muted text-foreground border border-border px-3 py-1.5 rounded-full text-xs font-bold self-start md:self-auto shadow-sm">
           <Lock size={13} /> 256-Bit SSL Encrypted
         </div>
       </div>
@@ -394,22 +396,22 @@ export const CheckoutPage = () => {
                 onClick={() => setPaymentMethod('WALLET')}
                 className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                   paymentMethod === 'WALLET'
-                    ? 'border-purple-600 bg-purple-50/60 ring-2 ring-purple-600/20'
-                    : 'border-slate-200 hover:border-slate-300'
+                    ? 'border-foreground bg-muted ring-2 ring-foreground/10'
+                    : 'border-border hover:border-foreground/30'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center">
                     <Wallet size={18} />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                    <div className="text-xs font-bold text-foreground flex items-center gap-2">
                       ServiceHub Wallet
-                      <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md font-bold">
+                      <span className="text-[10px] bg-muted text-foreground px-2 py-0.5 rounded-md font-bold">
                         1-Click Instant
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
                       Available Balance: <strong>₹{walletBalance.toFixed(2)}</strong>
                     </div>
                   </div>
@@ -417,8 +419,8 @@ export const CheckoutPage = () => {
                 <div
                   className={`w-5 h-5 rounded-full border flex items-center justify-center ${
                     paymentMethod === 'WALLET'
-                      ? 'border-purple-600 bg-purple-600 text-white'
-                      : 'border-slate-300'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border'
                   }`}
                 >
                   {paymentMethod === 'WALLET' && <Check size={12} />}
@@ -430,19 +432,19 @@ export const CheckoutPage = () => {
                 onClick={() => setPaymentMethod('UPI')}
                 className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                   paymentMethod === 'UPI'
-                    ? 'border-purple-600 bg-purple-50/60 ring-2 ring-purple-600/20'
-                    : 'border-slate-200 hover:border-slate-300'
+                    ? 'border-foreground bg-muted ring-2 ring-foreground/10'
+                    : 'border-border hover:border-foreground/30'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xs">
+                  <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center font-black text-xs">
                     UPI
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-900">
+                    <div className="text-xs font-bold text-foreground">
                       UPI (Google Pay, PhonePe, Paytm, BHIM)
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
                       Fast & zero transaction fees
                     </div>
                   </div>
@@ -450,8 +452,8 @@ export const CheckoutPage = () => {
                 <div
                   className={`w-5 h-5 rounded-full border flex items-center justify-center ${
                     paymentMethod === 'UPI'
-                      ? 'border-purple-600 bg-purple-600 text-white'
-                      : 'border-slate-300'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border'
                   }`}
                 >
                   {paymentMethod === 'UPI' && <Check size={12} />}
@@ -463,19 +465,19 @@ export const CheckoutPage = () => {
                 onClick={() => setPaymentMethod('CARD')}
                 className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                   paymentMethod === 'CARD'
-                    ? 'border-purple-600 bg-purple-50/60 ring-2 ring-purple-600/20'
-                    : 'border-slate-200 hover:border-slate-300'
+                    ? 'border-foreground bg-muted ring-2 ring-foreground/10'
+                    : 'border-border hover:border-foreground/30'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center">
                     <CreditCard size={18} />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-900">
+                    <div className="text-xs font-bold text-foreground">
                       Credit or Debit Card
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
                       Visa, Mastercard, RuPay, Maestro
                     </div>
                   </div>
@@ -483,8 +485,8 @@ export const CheckoutPage = () => {
                 <div
                   className={`w-5 h-5 rounded-full border flex items-center justify-center ${
                     paymentMethod === 'CARD'
-                      ? 'border-purple-600 bg-purple-600 text-white'
-                      : 'border-slate-300'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border'
                   }`}
                 >
                   {paymentMethod === 'CARD' && <Check size={12} />}
@@ -496,19 +498,19 @@ export const CheckoutPage = () => {
                 onClick={() => setPaymentMethod('COD')}
                 className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                   paymentMethod === 'COD'
-                    ? 'border-purple-600 bg-purple-50/60 ring-2 ring-purple-600/20'
-                    : 'border-slate-200 hover:border-slate-300'
+                    ? 'border-foreground bg-muted ring-2 ring-foreground/10'
+                    : 'border-border hover:border-foreground/30'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center">
                     <Banknote size={18} />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-900">
+                    <div className="text-xs font-bold text-foreground">
                       Pay After Service (Cash / QR to Pro)
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
                       Inspect technician work first before releasing payment
                     </div>
                   </div>
@@ -516,8 +518,8 @@ export const CheckoutPage = () => {
                 <div
                   className={`w-5 h-5 rounded-full border flex items-center justify-center ${
                     paymentMethod === 'COD'
-                      ? 'border-purple-600 bg-purple-600 text-white'
-                      : 'border-slate-300'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border'
                   }`}
                 >
                   {paymentMethod === 'COD' && <Check size={12} />}
@@ -529,7 +531,7 @@ export const CheckoutPage = () => {
 
         {/* Right Column (5 Cols): Order Summary & Confirm Box */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="sh-card p-6 bg-white rounded-3xl border border-slate-200/90 space-y-5 shadow-sm sticky top-24">
+          <div className="sh-card p-6 rounded-3xl space-y-5 shadow-sm sticky top-24">
             <h3 className="text-base font-black text-slate-900 pb-3 border-b border-slate-100">
               Booking Summary
             </h3>
@@ -662,7 +664,7 @@ export const CheckoutPage = () => {
               fullWidth
               loading={submitting}
               size="lg"
-              className="rounded-2xl py-3.5 shadow-lg shadow-purple-600/30 text-sm font-bold"
+              className="mt-1 h-12 w-full rounded-xl bg-primary py-0 text-sm font-bold text-primary-foreground shadow-sm"
             >
               Confirm & Book Appointment (₹{grandTotal})
             </Button>
@@ -672,4 +674,3 @@ export const CheckoutPage = () => {
     </div>
   );
 };
-

@@ -174,7 +174,7 @@ export const ProviderBookingsPage = () => {
 
         <button
           onClick={fetchBookings}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-2xl text-xs font-bold border border-slate-700 transition-colors cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-muted hover:bg-accent text-foreground rounded-2xl text-xs font-bold border border-border transition-colors cursor-pointer self-start sm:self-auto"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh List
         </button>
@@ -221,18 +221,18 @@ export const ProviderBookingsPage = () => {
               onClick={() => setSearchParams({ tab: tab.key })}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === tab.key
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40'
-                  : 'bg-slate-800/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-slate-700/60'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-card text-muted-foreground hover:bg-muted hover:text-foreground border border-border'
               }`}
             >
               <span>{tab.label}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                   activeTab === tab.key
-                    ? 'bg-white/20 text-white'
+                    ? 'bg-primary-foreground/15 text-primary-foreground'
                     : tab.highlight
                     ? 'bg-amber-500 text-slate-900 font-black'
-                    : 'bg-slate-700 text-slate-300'
+                    : 'bg-muted text-muted-foreground'
                 }`}
               >
                 {tab.count}
@@ -423,4 +423,3 @@ export const ProviderBookingsPage = () => {
     </div>
   );
 };
-
