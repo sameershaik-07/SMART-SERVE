@@ -3,12 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Star, CheckCircle2, MapPin, MessageSquare, ArrowRight, RefreshCw, X } from 'lucide-react';
 import { getProvidersApi } from '../../api/providers';
 
-const mockProviders = [
-  { id: 'brightclean', name: 'BrightClean Services', category: 'General Services', location: 'Macherla, Andhra Pradesh', rating: 4.8, reviewCount: 120, bio: 'Verified and certified professional service partner delivering reliable doorstep assistance.', avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&q=80' },
-  { id: 'sameer', name: 'Sameer', category: 'General Services', location: 'Macherla, Andhra Pradesh', rating: 4.8, reviewCount: 120, bio: 'Top rated professional home cleaning service with 5+ years experience.', avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&q=80' },
-];
-
-// Robust normalizer for provider objects from any source (DB Prisma or Mock)
+// Robust normalizer for provider objects from any source
 const normalizeProvider = (p) => {
   const name = p.name || p.user?.name || 'Verified Technician';
   const category = 
@@ -41,7 +36,7 @@ const normalizeProvider = (p) => {
 };
 
 export const ProvidersPage = () => {
-  const [providers, setProviders] = useState(() => mockProviders.map(normalizeProvider));
+  const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
@@ -54,18 +49,14 @@ export const ProvidersPage = () => {
       try {
         const res = await getProvidersApi();
         const rawList = res?.data || res?.providers || (Array.isArray(res) ? res : []);
-        
+
         if (isMounted) {
-          if (Array.isArray(rawList) && rawList.length > 0) {
-            setProviders(rawList.map(normalizeProvider));
-          } else {
-            setProviders(mockProviders.map(normalizeProvider));
-          }
+          setProviders(Array.isArray(rawList) ? rawList.map(normalizeProvider) : []);
         }
       } catch (err) {
         console.warn('[ProvidersPage] Providers API fallback:', err);
         if (isMounted) {
-          setProviders(mockProviders.map(normalizeProvider));
+          setProviders([]);
         }
       } finally {
         if (isMounted) {
@@ -227,7 +218,9 @@ export const ProvidersPage = () => {
           </div>
           <h3 className="text-base font-bold text-slate-800">No providers found</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            No service providers match your search for "{search}". Try searching by category like "AC", "Cleaning", or "Electrician".
+            {search
+              ? `No service providers match your search for "${search}". Try searching by category like "AC", "Cleaning", or "Electrician".`
+              : 'No verified service providers are available right now. Please check back later.'}
           </p>
           <button
             onClick={() => setSearch('')}

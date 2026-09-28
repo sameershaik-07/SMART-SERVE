@@ -78,7 +78,7 @@ export const ServiceCard = ({ service, onFavoriteToggle }) => {
           {/* Provider Name + Verified Badge */}
           <div className="flex items-center gap-1.5 mt-2">
             <span className="text-xs font-semibold text-muted-foreground truncate">
-              {service.providerName || service.provider?.user?.name || 'CoolComfort Services'}
+              {service.providerName || service.provider?.user?.name || 'Verified Service Provider'}
             </span>
             <CheckCircle2 size={14} className="text-blue-500 fill-blue-500 stroke-white shrink-0" />
           </div>

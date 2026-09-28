@@ -1,19 +1,16 @@
 @baseUrl = http://localhost:3000
-@customerEmail = customer_test@example.com
-@customerPassword = Password123!
-@providerEmail = provider_test@example.com
-@providerPassword = Password123!
-@adminEmail = admin_test@example.com
-@adminPassword = Password123!
 
-provider_test@example.com
-customer@smartserve.com
+
+
+admin@smartserve.com
 Password123!
 
 testingc@gmail.com
 testingp@gmail.com
 
 12345678
+
+
 
 ### 1) Register Customer
 # REST Client:

@@ -59,200 +59,6 @@ export const ServiceDetailsPage = () => {
     }
   };
 
-  const SERVICES_CATALOG = {
-    101: {
-      id: 101,
-      title: 'AC Repair & Service',
-      category: 'Repairs',
-      rating: 4.8,
-      reviewCount: 1256,
-      price: 499,
-      providerName: 'CoolComfort Services',
-      verified: true,
-      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=80',
-      description: 'Professional AC repair and maintenance to keep your air conditioner running efficiently. Certified technicians inspect, deep-clean and service indoor and outdoor units.',
-      whatsIncluded: [
-        'Complete AC diagnostic & airflow check',
-        'Deep cleaning of cooling coils & filters',
-        'Refrigerant gas level inspection',
-        'Compressor performance check',
-        'Cooling test and electrical safety audit',
-      ],
-      similarServices: [
-        { id: 201, title: 'AC Installation & Uninstallation', rating: 4.7, reviews: 842, price: 999, provider: 'CoolTech Services', image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=400&q=80' },
-        { id: 103, title: 'Electrical Services', rating: 4.9, reviews: 278, price: 449, provider: 'PowerFix Technicians', image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=400&q=80' },
-      ],
-    },
-    104: {
-      id: 104,
-      title: 'Salon at Home (Haircut & Styling)',
-      category: 'Beauty',
-      rating: 4.8,
-      reviewCount: 230,
-      price: 499,
-      providerName: 'Glamour Studio',
-      verified: true,
-      image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1200&q=80',
-      description: 'Luxury doorstep salon experience provided by certified cosmetologists. Complete haircut, custom styling, hair wash, and blow-dry in the comfort of your home.',
-      whatsIncluded: [
-        'Professional hair texture and styling consultation',
-        'Precision scissors & clipper haircut',
-        'Relaxing hair wash & scalp massage',
-        'Professional blowdry & volume heat styling',
-        'Single-use disposable cape & full cleanup',
-      ],
-      similarServices: [
-        { id: 107, title: 'Men & Women Haircut & Grooming', rating: 4.9, reviews: 312, price: 349, provider: 'Glamour Studio', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80' },
-        { id: 108, title: 'Kids & Teens Haircut at Home', rating: 4.8, reviews: 145, price: 249, provider: 'Glamour Studio', image: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=400&q=80' },
-        { id: 109, title: 'Hair Spa, Blowdry & Haircut Combo', rating: 4.9, reviews: 198, price: 699, provider: 'Glamour Studio', image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=400&q=80' },
-      ],
-    },
-    107: {
-      id: 107,
-      title: 'Men & Women Haircut & Grooming',
-      category: 'Beauty',
-      rating: 4.9,
-      reviewCount: 312,
-      price: 349,
-      providerName: 'Glamour Studio',
-      verified: true,
-      image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=80',
-      description: 'Premium doorstep haircut and grooming tailored to your face structure. Includes beard shaping, neck trimming, relaxing scalp massage, and blowdry.',
-      whatsIncluded: [
-        'Style consultation with senior groomer',
-        'Precision scissor & clipper haircut',
-        'Beard shaping, line trim & beard oil finish',
-        'Scalp wash and blowout styling',
-        'Sanitized single-use equipment kit',
-      ],
-      similarServices: [
-        { id: 104, title: 'Salon at Home (Haircut & Styling)', rating: 4.8, reviews: 230, price: 499, provider: 'Glamour Studio', image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=400&q=80' },
-        { id: 108, title: 'Kids & Teens Haircut at Home', rating: 4.8, reviews: 145, price: 249, provider: 'Glamour Studio', image: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=400&q=80' },
-      ],
-    },
-    108: {
-      id: 108,
-      title: 'Kids & Teens Haircut at Home',
-      category: 'Beauty',
-      rating: 4.8,
-      reviewCount: 145,
-      price: 249,
-      providerName: 'Glamour Studio',
-      verified: true,
-      image: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=1200&q=80',
-      description: 'Gentle, patient, and comfortable haircut service for children, toddlers, and teenagers right at your doorstep.',
-      whatsIncluded: [
-        'Kid-friendly stylist interaction',
-        'Low-noise clipper and rounded scissor cut',
-        'Gentle hair dusting & towel cleanup',
-        'Complimentary kid-safe styling gel/spray',
-      ],
-      similarServices: [
-        { id: 107, title: 'Men & Women Haircut & Grooming', rating: 4.9, reviews: 312, price: 349, provider: 'Glamour Studio', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=400&q=80' },
-      ],
-    },
-    109: {
-      id: 109,
-      title: 'Hair Spa, Blowdry & Haircut Combo',
-      category: 'Beauty',
-      rating: 4.9,
-      reviewCount: 198,
-      price: 699,
-      providerName: 'Glamour Studio',
-      verified: true,
-      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=80',
-      description: 'Rejuvenating hair spa therapy with deep nourishment cream, hair steam, relaxing head massage, and designer haircut.',
-      whatsIncluded: [
-        'Deep conditioning spa mask application',
-        'Steam therapy & 15-min scalp acupressure massage',
-        'Precision designer haircut',
-        'Blowdry & shine-enhancement serum finish',
-      ],
-      similarServices: [
-        { id: 104, title: 'Salon at Home (Haircut & Styling)', rating: 4.8, reviews: 230, price: 499, provider: 'Glamour Studio', image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=400&q=80' },
-      ],
-    },
-    102: {
-      id: 102,
-      title: 'Deep Cleaning',
-      category: 'Home Services',
-      rating: 4.7,
-      reviewCount: 512,
-      price: 999,
-      providerName: 'Cleanify Experts',
-      verified: true,
-      image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80',
-      description: 'Intensive deep cleaning and sanitization for residences and offices using professional equipment.',
-      whatsIncluded: [
-        'Single-disc floor scrubbing machine buffing',
-        'Kitchen degreasing and tile descaling',
-        'Bathroom sanitization and grout cleaning',
-        'Balcony and window glass cleaning',
-      ],
-      similarServices: [
-        { id: 101, title: 'AC Repair & Service', rating: 4.8, reviews: 320, price: 499, provider: 'CoolComfort Services', image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=400&q=80' },
-      ],
-    },
-    103: {
-      id: 103,
-      title: 'Electrical Services',
-      category: 'Repairs',
-      rating: 4.9,
-      reviewCount: 278,
-      price: 449,
-      providerName: 'PowerFix Technicians',
-      verified: true,
-      image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
-      description: 'Certified electrical technicians for emergency repairs, switchboard maintenance, rewiring, and appliance power fixes.',
-      whatsIncluded: [
-        'Circuit diagnosis and earthing check',
-        'Switchboard and MCB repair/replacement',
-        'Appliance power connection safety check',
-        'Thermal insulation inspection',
-      ],
-      similarServices: [
-        { id: 101, title: 'AC Repair & Service', rating: 4.8, reviews: 320, price: 499, provider: 'CoolComfort Services', image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=400&q=80' },
-      ],
-    },
-    105: {
-      id: 105,
-      title: 'Car Detailing & Wash',
-      category: 'Automotive',
-      rating: 4.9,
-      reviewCount: 142,
-      price: 899,
-      providerName: 'AutoShine Pros',
-      verified: true,
-      image: 'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=1200&q=80',
-      description: 'Doorstep high-pressure foam wash, interior vacuuming, dashboard polish, and tyre dressing.',
-      whatsIncluded: [
-        'Exterior high-pressure foam wash',
-        'Interior deep vacuuming & sanitization',
-        'Dashboard & trim dressing',
-        'Tyre gloss & windshield polish',
-      ],
-      similarServices: [],
-    },
-    106: {
-      id: 106,
-      title: 'Mathematics Tutoring',
-      category: 'Tutors',
-      rating: 4.9,
-      reviewCount: 88,
-      price: 799,
-      providerName: 'Apex Tutors',
-      verified: true,
-      image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=80',
-      description: 'One-on-one personalized math tutoring for school and college curricula.',
-      whatsIncluded: [
-        'Concept review & problem solving',
-        'Homework & exam prep guidance',
-        'Customized weekly practice sheets',
-      ],
-      similarServices: [],
-    },
-  };
-
   const parsedId = Number(id);
   const [service, setService] = useState(null);
   const [loadingService, setLoadingService] = useState(true);
@@ -276,24 +82,20 @@ export const ServiceDetailsPage = () => {
               id: fetchedService.id,
               title: fetchedService.title,
               category: fetchedService.provider?.category?.categoryName || 'General',
-              rating: 5.0,
-              reviewCount: 0,
+              rating: Number(fetchedService.rating || 5.0),
+              reviewCount: Number(fetchedService.reviewCount || 0),
               price: fetchedService.price,
-              providerName: fetchedService.provider?.user?.name || 'Unknown Provider',
+              providerName: fetchedService.provider?.user?.name || 'Verified Service Provider',
               providerId: fetchedService.provider?.id || fetchedService.providerId,
               verified: true,
               image: (fetchedService.images && fetchedService.images[0]) || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80',
-              description: fetchedService.description,
+              description: fetchedService.description || 'Service information will appear here once a provider adds it.',
               whatsIncluded: [
                 'Professional service execution',
                 'Quality check post completion'
               ],
               similarServices: []
            });
-        } else if (SERVICES_CATALOG[parsedId]) {
-           setService(SERVICES_CATALOG[parsedId]);
-        } else if (SERVICES_CATALOG[104]) {
-           setService(SERVICES_CATALOG[104]);
         } else {
            setServiceError('Service not found');
         }

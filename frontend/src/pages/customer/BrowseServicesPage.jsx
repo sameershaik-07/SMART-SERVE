@@ -18,6 +18,7 @@ import { ServiceCard } from '../../components/service/ServiceCard';
 import { getServicesApi } from '../../api/services';
 import { Skeleton } from '../../components/common/Skeleton';
 import { marketplaceCategories } from '../../constants/marketplaceCategories';
+import { getCategoriesApi } from '../../api/admin';
 
 export const BrowseServicesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,15 +42,8 @@ export const BrowseServicesPage = () => {
 
   const categoryPills = ['All', 'Home Services', 'Repairs', 'Beauty', 'Automotive', 'Tutors'];
 
-  // Kept as a visual catalogue for first-run/demo sessions; live API data replaces matching items.
-  const fallbackServices = [
-    { id: 'ac-repair', title: 'AC Repair & Service', category: 'Repairs', providerName: 'CoolTech Solutions', price: 499, rating: 4.8, reviewCount: 124, image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=900&q=80' },
-    { id: 'facial', title: 'Facial & Skincare', category: 'Beauty', providerName: 'Glow Beauty Studio', price: 799, rating: 4.6, reviewCount: 89, image: 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=900&q=80' },
-    { id: 'car-service', title: 'Car Servicing', category: 'Automotive', providerName: 'AutoCare Pro', price: 1499, rating: 4.7, reviewCount: 210, image: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=900&q=80' },
-    { id: 'tutoring', title: 'Maths Tutoring', category: 'Tutors', providerName: 'Bright Minds', price: 599, rating: 4.9, reviewCount: 76, image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80' },
-  ];
-
-  const [services, setServices] = useState(fallbackServices);
+  const [services, setServices] = useState([]);
+  const [categoriesFromApi, setCategoriesFromApi] = useState([]);
 
   useEffect(() => {
     if (searchKeyword) {
@@ -63,43 +57,54 @@ export const BrowseServicesPage = () => {
   }, [searchParams]);
 
   useEffect(() => {
+    // load categories to map names -> ids
+    (async () => {
+      try {
+        const cats = await getCategoriesApi();
+        setCategoriesFromApi(Array.isArray(cats) ? cats : []);
+      } catch (err) {
+        setCategoriesFromApi([]);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await getServicesApi().catch(() => null);
+        setLoading(true);
+        const params = {};
+        // If a category tab is active and not 'All', attempt to resolve its id and request server-side filtering
+        if (activeCategoryTab && activeCategoryTab !== 'All') {
+          const matched = categoriesFromApi.find(c => c.categoryName === activeCategoryTab);
+          if (matched) params.categoryId = matched.id;
+        }
+
+        const res = await getServicesApi(params).catch(() => null);
         const apiServices = res?.data || res?.services || (Array.isArray(res) ? res : []);
         if (Array.isArray(apiServices) && apiServices.length > 0) {
           const normalizedApi = apiServices.map((s) => ({
             ...s,
-            category: s.category || s.provider?.category?.categoryName || s.provider?.category?.name || 'Home Services',
+            category: s.provider?.category?.categoryName || s.provider?.category?.name || 'Home Services',
             providerName: s.providerName || s.provider?.user?.name || 'Verified Specialist',
             image: s.image || s.images?.[0] || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80',
             rating: Number(s.rating || 4.8),
             reviewCount: Number(s.reviewCount || 150),
           }));
 
-          // Merge: keep all rich fallbackServices and overlay any custom ones from backend
-          const combined = [...fallbackServices];
-          normalizedApi.forEach((apiItem) => {
-            const idx = combined.findIndex((f) => f.id === apiItem.id || f.title?.toLowerCase() === apiItem.title?.toLowerCase());
-            if (idx >= 0) {
-              combined[idx] = { ...combined[idx], ...apiItem };
-            } else {
-              combined.push(apiItem);
-            }
-          });
-          setServices(combined);
+          setServices(normalizedApi);
         } else {
-          setServices(fallbackServices);
+          setServices([]);
         }
       } catch (err) {
-        console.warn('[BrowseServicesPage] API error, using default catalog:', err);
-        setServices(fallbackServices);
+        console.warn('[BrowseServicesPage] API error, no services available:', err);
+        setServices([]);
       } finally {
         setLoading(false);
       }
     };
     fetchServices();
-  }, []);
+    // re-run when activeCategoryTab or categoriesFromApi are updated
+  }, [activeCategoryTab, categoriesFromApi]);
 
   const handleTabChange = (cat) => {
     setActiveCategoryTab(cat);

@@ -22,6 +22,8 @@ import {
   updateServiceApi,
   deleteServiceApi,
 } from '../../api/services';
+import { getCategoriesApi } from '../../api/admin';
+import { marketplaceCategories } from '../../constants/marketplaceCategories';
 
 export const ProviderServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -38,7 +40,13 @@ export const ProviderServicesPage = () => {
     description: '',
     price: '',
     durationMinutes: 60,
+    categoryId: '',
   });
+  const [categories, setCategories] = useState([]);
+  const allowedCategoryNames = marketplaceCategories.map((category) => category.title);
+  const visibleCategories = categories.filter((category) =>
+    allowedCategoryNames.includes(category.categoryName)
+  );
 
   const fetchServices = async () => {
     try {
@@ -55,6 +63,15 @@ export const ProviderServicesPage = () => {
 
   useEffect(() => {
     fetchServices();
+    // load categories for provider to choose from
+    (async () => {
+      try {
+        const cats = await getCategoriesApi();
+        setCategories(Array.isArray(cats) ? cats : []);
+      } catch (err) {
+        // fallback: do nothing, categories may be empty
+      }
+    })();
   }, []);
 
   const openCreateModal = () => {
@@ -97,6 +114,7 @@ export const ProviderServicesPage = () => {
         description: formData.description.trim(),
         price: parseFloat(formData.price),
         durationMinutes: parseInt(formData.durationMinutes) || 60,
+        categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
       };
 
       if (editingService) {
@@ -458,6 +476,24 @@ export const ProviderServicesPage = () => {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full bg-muted/60 border border-border rounded-xl p-4 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground leading-relaxed"
                 />
+              </div>
+
+              {/* Category Select */}
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  Category *
+                </label>
+                <select
+                  required
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="w-full bg-muted/60 border border-border rounded-xl px-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-foreground"
+                >
+                  <option value="">Select category</option>
+                  {visibleCategories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.categoryName}</option>
+                  ))}
+                </select>
               </div>
 
               {/* Submit Buttons */}
