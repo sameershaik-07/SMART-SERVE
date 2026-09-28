@@ -166,30 +166,40 @@ const getUserConversations = async (userId, role) => {
         orderBy: { updatedAt: "desc" }
     });
 
-    // Compute unread message count for each conversation
-    const conversationsWithUnread = await Promise.all(
-        conversations.map(async (conv) => {
-            const unreadCount = await prisma.chatMessage.count({
-                where: {
-                    conversationId: conv.id,
-                    senderId: { not: userId },
-                    isRead: false
-                }
-            });
+    // Compute unread message count for each conversation in a single grouped query
+    // This avoids the N+1 pattern where we counted per conversation.
+    const convIds = conversations.map((c) => c.id);
 
-            return {
-                ...conv,
-                unreadCount,
-                lastMessageSnippet: conv.messages[0] || null
-            };
-        })
-    );
+    let unreadGroups = [];
+    if (convIds.length > 0) {
+        // Group counts by conversationId where sender is not the current user and message is unread
+        unreadGroups = await prisma.chatMessage.groupBy({
+            by: ["conversationId"],
+            where: {
+                conversationId: { in: convIds },
+                senderId: { not: userId },
+                isRead: false
+            },
+            _count: { _all: true }
+        });
+    }
+
+    const unreadMap = unreadGroups.reduce((acc, g) => {
+        acc[g.conversationId] = g._count._all || 0;
+        return acc;
+    }, {});
+
+    const conversationsWithUnread = conversations.map((conv) => ({
+        ...conv,
+        unreadCount: unreadMap[conv.id] || 0,
+        lastMessageSnippet: conv.messages[0] || null
+    }));
 
     return conversationsWithUnread;
 };
 
 // 3. Fetch paginated messages for a conversation
-const getConversationMessages = async (conversationId, userId, role, page = 1, limit = 50) => {
+const getConversationMessages = async (conversationId, userId, role, page = 1, limit = 50, skipCount = false) => {
     const convId = parseInt(conversationId);
 
     const conversation = await prisma.conversation.findUnique({
@@ -217,7 +227,38 @@ const getConversationMessages = async (conversationId, userId, role, page = 1, l
 
     const skip = (page - 1) * limit;
 
-    const [total, messages] = await Promise.all([
+    // If skipCount is requested, avoid performing the expensive COUNT() query.
+    // To preserve API semantics for existing callers, when skipCount=true we
+    // OMIT the `totalMessages` and `totalPages` fields entirely rather than
+    // returning an incorrect or approximate value. Callers that need those
+    // fields must call without skipCount (default behavior).
+    let messages = [];
+
+    if (skipCount) {
+        messages = await prisma.chatMessage.findMany({
+            where: { conversationId: convId },
+            skip,
+            take: limit,
+            orderBy: { createdAt: "asc" },
+            include: {
+                sender: {
+                    select: { id: true, name: true, email: true, role: true }
+                }
+            }
+        });
+
+        const result = {
+            conversationId: convId,
+            page,
+            limit,
+            messages
+        };
+
+        return result;
+    }
+
+    // Default behavior: run COUNT() and return exact totals
+    const [total, msgs] = await Promise.all([
         prisma.chatMessage.count({ where: { conversationId: convId } }),
         prisma.chatMessage.findMany({
             where: { conversationId: convId },
@@ -238,7 +279,7 @@ const getConversationMessages = async (conversationId, userId, role, page = 1, l
         page,
         limit,
         totalPages: Math.ceil(total / limit),
-        messages
+        messages: msgs
     };
 };
 

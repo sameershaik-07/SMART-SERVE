@@ -4,6 +4,7 @@ const createServiceSchema = z.object({
     title: z.string().trim().min(3, "Title must be at least 3 characters"),
     description: z.string().optional(),
     price: z.number().positive("Price must be greater than 0"),
+    categoryId: z.number().int().positive("Category must be selected"),
     durationMinutes: z.number().int().positive().optional().default(60),
     images: z.array(z.string()).optional().default([])
 });

@@ -2,6 +2,8 @@ import React from 'react';
 import { ChevronRight } from 'lucide-react';
 
 export const CategoryCard = ({ title, count, icon: Icon, colorBg, colorText, onClick, active }) => {
+  const countLabel = typeof count === 'number' || (typeof count === 'string' && count.trim() !== '') ? `${count} services` : 'services';
+
   return (
     <div
       onClick={onClick}
@@ -18,7 +20,7 @@ export const CategoryCard = ({ title, count, icon: Icon, colorBg, colorText, onC
         </div>
         <div className="flex min-w-0 flex-col">
           <h4 className="truncate text-sm font-bold text-foreground tracking-tight">{title}</h4>
-          <span className="text-xs text-muted-foreground font-medium">{count} services</span>
+          <span className="text-xs text-muted-foreground font-medium">{countLabel}</span>
         </div>
       </div>
       <ChevronRight size={16} className="shrink-0 text-muted-foreground/60 group-hover:text-foreground transition-colors" />

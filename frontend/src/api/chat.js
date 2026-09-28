@@ -14,8 +14,10 @@ export const createOrGetConversationApi = (providerId, bookingId = null) => {
   });
 };
 
-export const getMessagesApi = (conversationId, page = 1, limit = 50) => {
-  return apiFetch(`/chat/conversations/${conversationId}/messages?page=${page}&limit=${limit}`);
+export const getMessagesApi = (conversationId, page = 1, limit = 50, skipCount = false) => {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (skipCount) params.set('skipCount', 'true');
+  return apiFetch(`/chat/conversations/${conversationId}/messages?${params.toString()}`);
 };
 
 export const sendMessageApi = (conversationId, message, messageType = 'TEXT') => {

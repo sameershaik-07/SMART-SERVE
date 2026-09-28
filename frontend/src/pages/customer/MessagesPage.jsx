@@ -83,6 +83,7 @@ export const MessagesPage = () => {
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
+  const initialMessagesLoadRef = useRef(true); // only the first messages fetch should skip the COUNT()
 
   // Call timer simulation
   useEffect(() => {
@@ -256,7 +257,7 @@ export const MessagesPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [targetProviderId, targetProviderName, targetProviderAvatar, targetBookingId, user]);
+  }, [targetProviderId, targetProviderName, targetProviderAvatar, targetBookingId, user?.id, user?.role]);
 
   // 2. Fetch messages & Socket subscription
   useEffect(() => {
@@ -284,11 +285,16 @@ export const MessagesPage = () => {
           return;
         }
 
-        const res = await getMessagesApi(activeChatId);
+          // For the very first messages load on page open, we don't need the total count
+          // so pass skipCount=true to avoid a COUNT() in the DB. Subsequent navigations
+          // will request the full count as before.
+          const res = await getMessagesApi(activeChatId, 1, 50, initialMessagesLoadRef.current);
         if (isMounted) {
           const apiMsgs = res.messages || [];
           setMessages(apiMsgs.map(formatMessage));
           markMessagesReadApi(activeChatId).catch(() => {});
+          // After initial load, subsequent loads should request the full count
+          if (initialMessagesLoadRef.current) initialMessagesLoadRef.current = false;
         }
       } catch (err) {
         console.warn('Failed to load messages from backend:', err);
@@ -369,7 +375,7 @@ export const MessagesPage = () => {
         socket.off('user_stopped_typing', handleUserStoppedTyping);
       };
     }
-  }, [activeChatId, user]);
+  }, [activeChatId, user?.id, user?.role]);
 
   const handleInputChange = (e) => {
     setInputText(e.target.value);

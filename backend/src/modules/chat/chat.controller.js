@@ -1,7 +1,8 @@
 const {
     createConversationSchema,
     sendMessageSchema,
-    getMessagesQuerySchema
+    getMessagesQuerySchema,
+    getMessagesQuerySchemaWithSkip
 } = require("./chat.validation");
 const chatService = require("./chat.service");
 
@@ -51,14 +52,16 @@ const getConversationMessages = async (req, res, next) => {
         const userId = req.user.userId;
         const role = req.user.role;
         const conversationId = req.params.id;
-        const { page, limit } = getMessagesQuerySchema.parse(req.query);
+        // Support optional skipCount query param (default false)
+        const { page, limit, skipCount } = getMessagesQuerySchemaWithSkip.parse(req.query);
 
         const history = await chatService.getConversationMessages(
             conversationId,
             userId,
             role,
             page,
-            limit
+            limit,
+            skipCount
         );
 
         return res.status(200).json(history);

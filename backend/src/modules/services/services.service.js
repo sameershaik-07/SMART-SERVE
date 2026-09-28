@@ -1,12 +1,66 @@
 const prisma = require("../../config/prisma");
 
-const createService = async (userId, serviceData) => {
-    const provider = await prisma.serviceProvider.findUnique({
+const ALLOWED_MARKETPLACE_CATEGORY_NAMES = [
+    "Home Services",
+    "Repairs",
+    "Beauty",
+    "Automotive",
+    "Tutors",
+    "Health & Wellness",
+    "Events",
+    "Pet Care"
+];
+
+const ensureProviderProfile = async (userId) => {
+    let provider = await prisma.serviceProvider.findUnique({
         where: { userId }
     });
 
-    if (!provider) {
+    if (provider) return provider;
+
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true }
+    });
+
+    if (!user || user.role !== "PROVIDER") {
         throw new Error("Provider profile required to create services");
+    }
+
+    const fallbackCategory = await prisma.serviceCategory.findFirst({
+        where: { categoryName: { in: ALLOWED_MARKETPLACE_CATEGORY_NAMES } }
+    });
+
+    provider = await prisma.serviceProvider.create({
+        data: {
+            userId,
+            categoryId: fallbackCategory?.id || 1,
+            verified: false,
+            availability: true,
+            bio: "Provider profile created automatically. Please update your profile details."
+        }
+    });
+
+    return provider;
+};
+
+const createService = async (userId, serviceData) => {
+    const provider = await ensureProviderProfile(userId);
+
+    // Restrict service publication to the official 8 marketplace categories required by the UI.
+    if (serviceData.categoryId) {
+        const category = await prisma.serviceCategory.findUnique({
+            where: { id: parseInt(serviceData.categoryId) }
+        });
+
+        if (!category || !ALLOWED_MARKETPLACE_CATEGORY_NAMES.includes(category.categoryName)) {
+            throw new Error("Please select one of the 8 marketplace categories before publishing.");
+        }
+
+        await prisma.serviceProvider.update({
+            where: { id: provider.id },
+            data: { categoryId: parseInt(serviceData.categoryId) }
+        });
     }
 
     const service = await prisma.service.create({
@@ -38,6 +92,16 @@ const getAllServices = async (queryParams = {}) => {
 
     const whereClause = {
         isActive: true,
+        provider: {
+            is: {
+                verified: true,
+                user: {
+                    is: {
+                        isEmailVerified: true
+                    }
+                }
+            }
+        },
         ...(minPrice || maxPrice ? {
             price: {
                 ...(minPrice && { gte: parseFloat(minPrice) }),
@@ -51,7 +115,12 @@ const getAllServices = async (queryParams = {}) => {
             ]
         }),
         ...(categoryId && {
-            provider: { categoryId: parseInt(categoryId) }
+            provider: {
+                is: {
+                    verified: true,
+                    categoryId: parseInt(categoryId)
+                }
+            }
         })
     };
 
