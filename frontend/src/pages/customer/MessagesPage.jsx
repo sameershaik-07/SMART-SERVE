@@ -45,6 +45,15 @@ import {
   markMessagesReadApi 
 } from '../../api/chat';
 import { getSocket } from '../../api/socket';
+import {
+  getConversations as cacheGetConversations,
+  setConversations as cacheSetConversations,
+  getMessages as cacheGetMessages,
+  setMessages as cacheSetMessages,
+  withOngoing as cacheWithOngoing,
+  mergeMessages as cacheMergeMessages,
+  mergeConversations as cacheMergeConversations,
+} from '../../lib/pageCache';
 
 export const MessagesPage = () => {
   const { user } = useAuth();
@@ -167,45 +176,71 @@ export const MessagesPage = () => {
     let isMounted = true;
 
     const loadConversations = async () => {
-      setLoadingConversations(true);
       setErrorMessage(null);
 
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          // Demo mode without token
-          if (targetProviderId) {
-            const pId = Number(targetProviderId);
-            const exists = defaultConversations.find(c => c.id === pId);
-            if (!exists && targetProviderName) {
-              const newConv = {
-                id: pId,
-                name: decodeURIComponent(targetProviderName),
-                avatar: targetProviderAvatar ? decodeURIComponent(targetProviderAvatar) : 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80',
-                lastMessage: 'Conversation opened',
-                time: 'Just now',
-                unread: 0,
-                role: 'Verified Service Provider',
-                rating: 4.9,
-                online: true,
-                booking: targetBookingId ? { id: Number(targetBookingId), service: 'Scheduled Service' } : null,
-              };
-              setConversations([newConv, ...defaultConversations]);
-              setActiveChatId(pId);
-            } else {
-              setActiveChatId(pId || defaultConversations[0]?.id || null);
-            }
+      const token = localStorage.getItem('token');
+      // Demo mode without token: keep existing behavior
+      if (!token) {
+        setLoadingConversations(false);
+        if (targetProviderId) {
+          const pId = Number(targetProviderId);
+          const exists = defaultConversations.find(c => c.id === pId);
+          if (!exists && targetProviderName) {
+            const newConv = {
+              id: pId,
+              name: decodeURIComponent(targetProviderName),
+              avatar: targetProviderAvatar ? decodeURIComponent(targetProviderAvatar) : 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80',
+              lastMessage: 'Conversation opened',
+              time: 'Just now',
+              unread: 0,
+              role: 'Verified Service Provider',
+              rating: 4.9,
+              online: true,
+              booking: targetBookingId ? { id: Number(targetBookingId), service: 'Scheduled Service' } : null,
+            };
+            setConversations([newConv, ...defaultConversations]);
+            setActiveChatId(pId);
           } else {
-            setConversations(defaultConversations);
-            setActiveChatId(defaultConversations[0]?.id || null);
+            setActiveChatId(pId || defaultConversations[0]?.id || null);
           }
-          setLoadingConversations(false);
-          return;
+        } else {
+          setConversations(defaultConversations);
+          setActiveChatId(defaultConversations[0]?.id || null);
         }
+        return;
+      }
 
-        // Live API call
+      // If cached conversations exist for this user, show them immediately and refresh in background
+      const cached = cacheGetConversations(user?.id);
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        setConversations(cached.map(formatConversation));
+        setLoadingConversations(false);
+
+        // Background refresh (deduplicated)
+        cacheWithOngoing(`conversations:${user?.id}`, async () => {
+          try {
+            const res = await getConversationsApi();
+            const convList = res.conversations || [];
+            // update cache with merged conversations (raw server objects)
+            const merged = cacheMergeConversations(cached, convList);
+            cacheSetConversations(user?.id, merged);
+            if (!isMounted) return;
+            setConversations(merged.map(formatConversation));
+          } catch (err) {
+            console.warn('Background refresh conversations failed:', err);
+          }
+        }).catch(() => {});
+
+        return;
+      }
+
+      // No cache: perform normal load (blocking UI)
+      setLoadingConversations(true);
+      try {
         const res = await getConversationsApi();
         const convList = res.conversations || [];
+        // store raw conversations in cache
+        cacheSetConversations(user?.id, convList);
         const formattedList = convList.map(formatConversation);
 
         if (!isMounted) return;
@@ -260,11 +295,11 @@ export const MessagesPage = () => {
   }, [targetProviderId, targetProviderName, targetProviderAvatar, targetBookingId, user?.id, user?.role]);
 
   // 2. Fetch messages & Socket subscription
+
   useEffect(() => {
     if (!activeChatId) return;
 
     let isMounted = true;
-    setLoadingMessages(true);
 
     const loadMessages = async () => {
       try {
@@ -285,12 +320,42 @@ export const MessagesPage = () => {
           return;
         }
 
-          // For the very first messages load on page open, we don't need the total count
-          // so pass skipCount=true to avoid a COUNT() in the DB. Subsequent navigations
-          // will request the full count as before.
-          const res = await getMessagesApi(activeChatId, 1, 50, initialMessagesLoadRef.current);
+        // If we have cached messages for this conversation, show them immediately
+        const cached = cacheGetMessages(user?.id, activeChatId);
+        if (cached && Array.isArray(cached) && cached.length > 0) {
+          setMessages(cached.map(formatMessage));
+          setLoadingMessages(false);
+
+          // background refresh (deduplicated)
+          cacheWithOngoing(`messages:${user?.id}:${activeChatId}`, async () => {
+            try {
+              const res = await getMessagesApi(activeChatId, 1, 50, initialMessagesLoadRef.current);
+              const apiMsgs = res.messages || [];
+              // merge raw arrays and update cache
+              const mergedRaw = cacheMergeMessages(cached, apiMsgs);
+              cacheSetMessages(user?.id, activeChatId, mergedRaw);
+              if (!isMounted) return;
+              setMessages(mergedRaw.map(formatMessage));
+              markMessagesReadApi(activeChatId).catch(() => {});
+              if (initialMessagesLoadRef.current) initialMessagesLoadRef.current = false;
+            } catch (err) {
+              console.warn('Background refresh messages failed:', err);
+            }
+          }).catch(() => {});
+
+          return;
+        }
+
+        // No cache: perform normal blocking load
+        setLoadingMessages(true);
+        // For the very first messages load on page open, we don't need the total count
+        // so pass skipCount=true to avoid a COUNT() in the DB. Subsequent navigations
+        // will request the full count as before.
+        const res = await getMessagesApi(activeChatId, 1, 50, initialMessagesLoadRef.current);
         if (isMounted) {
           const apiMsgs = res.messages || [];
+          // store raw messages in cache
+          cacheSetMessages(user?.id, activeChatId, apiMsgs);
           setMessages(apiMsgs.map(formatMessage));
           markMessagesReadApi(activeChatId).catch(() => {});
           // After initial load, subsequent loads should request the full count

@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { Search, Star, CheckCircle2, MapPin, MessageSquare, ArrowRight, RefreshCw, X } from 'lucide-react';
 import { getProvidersApi } from '../../api/providers';
+import {
+  getProviders as cacheGetProviders,
+  setProviders as cacheSetProviders,
+  withOngoing as cacheWithOngoing,
+} from '../../lib/pageCache';
 
 // Robust normalizer for provider objects from any source
 const normalizeProvider = (p) => {
@@ -36,6 +42,7 @@ const normalizeProvider = (p) => {
 };
 
 export const ProvidersPage = () => {
+  const { user } = useAuth();
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -45,10 +52,34 @@ export const ProvidersPage = () => {
     let isMounted = true;
 
     const fetchProviders = async () => {
-      setLoading(true);
       try {
+        // If cached providers exist for this user, show them immediately and refresh in background
+        const uid = user?.id || 'anon';
+        const cached = cacheGetProviders(uid);
+        if (cached && Array.isArray(cached) && cached.length > 0) {
+          setProviders(cached.map(normalizeProvider));
+          setLoading(false);
+
+          // background refresh
+          cacheWithOngoing(`providers:${uid}`, async () => {
+            try {
+              const res = await getProvidersApi();
+              const rawList = res?.data || res?.providers || (Array.isArray(res) ? res : []);
+              cacheSetProviders(uid, rawList);
+              if (!isMounted) return;
+              setProviders(Array.isArray(rawList) ? rawList.map(normalizeProvider) : []);
+            } catch (err) {
+              console.warn('[ProvidersPage] background refresh failed:', err);
+            }
+          }).catch(() => {});
+
+          return;
+        }
+
+        setLoading(true);
         const res = await getProvidersApi();
         const rawList = res?.data || res?.providers || (Array.isArray(res) ? res : []);
+        cacheSetProviders(uid, rawList);
 
         if (isMounted) {
           setProviders(Array.isArray(rawList) ? rawList.map(normalizeProvider) : []);

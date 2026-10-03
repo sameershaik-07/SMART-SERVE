@@ -39,6 +39,8 @@ const initSocket = (httpServer) => {
 
     io.on("connection", (socket) => {
         const { userId, role } = socket.user;
+        // Track conversations this socket is authorized for to avoid repeated DB checks
+        socket.authorizedConversations = new Map(); // convId -> { customerUserId, providerUserId }
         const userRoom = `user_${userId}`;
         socket.join(userRoom);
 
@@ -76,6 +78,18 @@ const initSocket = (httpServer) => {
                 if (!isCustomer && !isProvider) {
                     return socket.emit("error", { message: "Unauthorized to join this conversation" });
                 }
+
+                // Store minimal conversation metadata on the socket for fast authorization checks
+                socket.authorizedConversations.set(convId, {
+                    customerUserId: conversation.customer?.userId || null,
+                    providerUserId: conversation.provider?.userId || null
+                });
+            } else {
+                // Admins are allowed — store an empty metadata entry for consistency
+                socket.authorizedConversations.set(convId, {
+                    customerUserId: null,
+                    providerUserId: null
+                });
             }
 
             socket.join(convRoom);
@@ -86,13 +100,17 @@ const initSocket = (httpServer) => {
         // Leave conversation room
         socket.on("leave_conversation", ({ conversationId }) => {
             if (!conversationId) return;
-            const convRoom = `conversation_${parseInt(conversationId)}`;
+            const convId = parseInt(conversationId);
+            const convRoom = `conversation_${convId}`;
             socket.leave(convRoom);
+            // Remove in-memory authorization state for this socket
+            if (socket.authorizedConversations) socket.authorizedConversations.delete(convId);
             console.log(`User ${userId} left room ${convRoom}`);
         });
 
         // Send message via WebSocket
         socket.on("send_message", async (payload, callback) => {
+            const perfStart = Date.now();
             try {
                 const { conversationId, message, messageType = "TEXT" } = payload;
                 if (!conversationId || !message?.trim()) {
@@ -102,30 +120,51 @@ const initSocket = (httpServer) => {
 
                 const convId = parseInt(conversationId);
 
-                // Verify participant or admin
-                const conversation = await prisma.conversation.findUnique({
-                    where: { id: convId },
-                    include: {
-                        customer: { include: { user: true } },
-                        provider: { include: { user: true } }
-                    }
-                });
+                // Fast authorization: check in-memory socket state first
+                const tAuthStart = Date.now();
+                let conversationMeta = socket.authorizedConversations?.get(convId);
+                const tAuthEnd = Date.now();
 
-                if (!conversation) {
-                    if (callback) callback({ error: "Conversation not found" });
-                    return;
-                }
+                // If not present in-memory, fall back to DB check (preserves current behavior)
+                if (!conversationMeta) {
+                    const tDbAuthStart = Date.now();
+                    const conversation = await prisma.conversation.findUnique({
+                        where: { id: convId },
+                        include: {
+                            customer: { include: { user: true } },
+                            provider: { include: { user: true } }
+                        }
+                    });
 
-                if (role !== "ADMIN") {
-                    const isCustomer = conversation.customer?.userId === userId;
-                    const isProvider = conversation.provider?.userId === userId;
-                    if (!isCustomer && !isProvider) {
-                        if (callback) callback({ error: "Unauthorized to send messages in this conversation" });
+                    const tDbAuthEnd = Date.now();
+
+                    if (!conversation) {
+                        console.log("[CHAT PERF] conversation query:", tDbAuthEnd - tDbAuthStart, "ms");
+                        if (callback) callback({ error: "Conversation not found" });
                         return;
                     }
+
+                    if (role !== "ADMIN") {
+                        const isCustomer = conversation.customer?.userId === userId;
+                        const isProvider = conversation.provider?.userId === userId;
+                        if (!isCustomer && !isProvider) {
+                            if (callback) callback({ error: "Unauthorized to send messages in this conversation" });
+                            return;
+                        }
+                    }
+
+                    // Build conversationMeta from DB result (do not auto-add to in-memory to avoid trusting client)
+                    conversationMeta = {
+                        customerUserId: conversation.customer?.userId || null,
+                        providerUserId: conversation.provider?.userId || null
+                    };
+                    console.log("[CHAT PERF] DB auth duration:", tDbAuthEnd - tDbAuthStart, "ms");
+                } else {
+                    console.log("[CHAT PERF] in-memory auth check:", tAuthEnd - tAuthStart, "ms");
                 }
 
-                // Persist message in PostgreSQL
+                // Persist message in PostgreSQL (critical for durability)
+                const tInsertStart = Date.now();
                 const chatMessage = await prisma.chatMessage.create({
                     data: {
                         conversationId: convId,
@@ -140,39 +179,59 @@ const initSocket = (httpServer) => {
                         }
                     }
                 });
+                const tInsertEnd = Date.now();
+                console.log("[CHAT PERF] message insert:", tInsertEnd - tInsertStart, "ms");
 
-                // Update conversation snippet
-                await prisma.conversation.update({
-                    where: { id: convId },
-                    data: {
-                        lastMessage: message.trim(),
-                        lastMessageAt: new Date()
-                    }
-                });
-
-                // Broadcast to conversation room
+                // Emit canonical message immediately to the conversation room (short critical path)
+                const tEmitStart = Date.now();
                 io.to(`conversation_${convId}`).emit("new_message", chatMessage);
+                const tEmitEnd = Date.now();
+                console.log("[CHAT PERF] socket emit:", tEmitEnd - tEmitStart, "ms");
 
-                // Also notify recipient's personal user room if they are outside the chat view
-                const recipientUserId =
-                    role === "CUSTOMER"
-                        ? conversation.provider?.userId
-                        : conversation.customer?.userId;
+                // Respond to sender via callback immediately
+                if (callback) callback({ success: true, message: chatMessage });
 
-                if (recipientUserId && recipientUserId !== userId) {
-                    io.to(`user_${recipientUserId}`).emit("message_notification", {
+                // Non-critical: update conversation snippet asynchronously
+                (async () => {
+                    try {
+                        const tConvUpdateStart = Date.now();
+                        await prisma.conversation.update({
+                            where: { id: convId },
+                            data: {
+                                lastMessage: message.trim(),
+                                lastMessageAt: new Date()
+                            }
+                        });
+                        const tConvUpdateEnd = Date.now();
+                        console.log("[CHAT PERF] conversation update:", tConvUpdateEnd - tConvUpdateStart, "ms");
+                    } catch (err) {
+                        console.error("Conversation update failed:", err);
+                    }
+                })();
+
+                // Notify recipient's personal room (if known)
+                try {
+                    const recipientUserId =
+                        role === "CUSTOMER" ? conversationMeta.providerUserId : conversationMeta.customerUserId;
+
+                    if (recipientUserId && recipientUserId !== userId) {
+                        io.to(`user_${recipientUserId}`).emit("message_notification", {
+                            conversationId: convId,
+                            message: chatMessage
+                        });
+                    }
+
+                    // Admin monitoring
+                    io.to("admin_monitoring").emit("admin_new_message", {
                         conversationId: convId,
                         message: chatMessage
                     });
+                } catch (err) {
+                    console.error("Socket notification emit failed:", err);
                 }
 
-                // Broadcast to admin monitoring room for real-time compliance oversight
-                io.to("admin_monitoring").emit("admin_new_message", {
-                    conversationId: convId,
-                    message: chatMessage
-                });
-
-                if (callback) callback({ success: true, message: chatMessage });
+                const perfEnd = Date.now();
+                console.log("[CHAT PERF] total handler duration:", perfEnd - perfStart, "ms");
             } catch (err) {
                 console.error("Socket send_message error:", err);
                 if (callback) callback({ error: err.message || "Failed to send message" });
