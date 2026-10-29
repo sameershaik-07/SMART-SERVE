@@ -8,40 +8,58 @@ import {
   Calendar as CalendarIcon,
   Clock,
   MapPin,
-  Info,
-  ChevronLeft,
   ChevronRight,
   Shield,
   Plus,
   Minus,
   Crosshair,
-  Loader2
+  Loader2,
+  Sparkles,
 } from 'lucide-react';
-import { getBookingByIdApi, createBookingApi } from '../../api/bookings';
-import { getServicesApi, getServiceByIdApi } from '../../api/services';
+import { getServiceByIdApi } from '../../api/services';
 import { Button } from '../../components/common/Button';
+import { Badge } from '@/components/ui/badge';
 import { getAccurateGPSLocation, reverseGeocodeCoords } from '../../utils/geolocation';
+import { cn } from '@/lib/utils';
+
+const timeSlots = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '03:30 PM', '05:00 PM'];
+
+const buildDates = () => {
+  const base = new Date();
+  return Array.from({ length: 10 }, (_, index) => {
+    const date = new Date(base);
+    date.setDate(base.getDate() + index);
+    return {
+      key: date.toISOString().slice(0, 10),
+      weekday: date.toLocaleDateString('en-IN', { weekday: 'short' }),
+      day: date.getDate(),
+      month: date.toLocaleDateString('en-IN', { month: 'short' }),
+      label: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
+    };
+  });
+};
 
 export const ServiceDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dates = React.useMemo(buildDates, []);
 
   const [activeTab, setActiveTab] = useState('Overview');
-  const [selectedDate, setSelectedDate] = useState('8 June 2025');
+  const [selectedDate, setSelectedDate] = useState(dates[0]?.label || '');
   const [selectedSlot, setSelectedSlot] = useState('10:30 AM');
   const [quantity, setQuantity] = useState(1);
   const [loadingBooking, setLoadingBooking] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
-  const [locationAddress, setLocationAddress] = useState('Home - Macherla, Palnadu District, Andhra Pradesh 522426');
-  const [coords, setCoords] = useState({ lat: 16.4800, lng: 79.4300 });
+  const [locationAddress, setLocationAddress] = useState(
+    'Home - Macherla, Palnadu District, Andhra Pradesh 522426'
+  );
+  const [coords, setCoords] = useState({ lat: 16.48, lng: 79.43 });
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [locationStatus, setLocationStatus] = useState('');
 
-  const timeSlots = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '03:30 PM', '05:00 PM'];
-
   const detectExactLocation = async () => {
     setDetectingLocation(true);
-    setLocationStatus("Detecting GPS...");
+    setLocationStatus('Detecting GPS...');
 
     try {
       const loc = await getAccurateGPSLocation();
@@ -50,7 +68,7 @@ export const ServiceDetailsPage = () => {
 
       const readableAddress = await reverseGeocodeCoords(loc.lat, loc.lng);
       setLocationAddress(readableAddress);
-      setLocationStatus(`📍 Exact GPS locked: ${loc.source.toUpperCase()} (±${loc.accuracy}m)`);
+      setLocationStatus(`Exact GPS locked: ${loc.source.toUpperCase()} (±${loc.accuracy}m)`);
     } catch (err) {
       console.warn('[ServiceDetailsPage] Location detection error:', err);
       setLocationStatus(err.message || 'GPS blocked. Please check browser permissions.');
@@ -59,7 +77,6 @@ export const ServiceDetailsPage = () => {
     }
   };
 
-  const parsedId = Number(id);
   const [service, setService] = useState(null);
   const [loadingService, setLoadingService] = useState(true);
   const [serviceError, setServiceError] = useState(null);
@@ -69,7 +86,7 @@ export const ServiceDetailsPage = () => {
       try {
         setLoadingService(true);
         setServiceError(null);
-        
+
         let fetchedService = null;
         try {
           fetchedService = await getServiceByIdApi(id);
@@ -78,52 +95,60 @@ export const ServiceDetailsPage = () => {
         }
 
         if (fetchedService) {
-           setService({
-              id: fetchedService.id,
-              title: fetchedService.title,
-              category: fetchedService.provider?.category?.categoryName || 'General',
-              rating: Number(fetchedService.rating || 5.0),
-              reviewCount: Number(fetchedService.reviewCount || 0),
-              price: fetchedService.price,
-              providerName: fetchedService.provider?.user?.name || 'Verified Service Provider',
-              providerId: fetchedService.provider?.id || fetchedService.providerId,
-              verified: true,
-              image: (fetchedService.images && fetchedService.images[0]) || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80',
-              description: fetchedService.description || 'Service information will appear here once a provider adds it.',
-              whatsIncluded: [
-                'Professional service execution',
-                'Quality check post completion'
-              ],
-              similarServices: []
-           });
+          setService({
+            id: fetchedService.id,
+            title: fetchedService.title,
+            category: fetchedService.provider?.category?.categoryName || 'General',
+            rating: Number(fetchedService.rating || 5.0),
+            reviewCount: Number(fetchedService.reviewCount || 0),
+            price: fetchedService.price,
+            providerName: fetchedService.provider?.user?.name || 'Verified Service Provider',
+            providerId: fetchedService.provider?.id || fetchedService.providerId,
+            verified: true,
+            image:
+              (fetchedService.images && fetchedService.images[0]) ||
+              'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1400&q=80',
+            description:
+              fetchedService.description ||
+              'Service information will appear here once a provider adds it.',
+            whatsIncluded: [
+              'Professional service execution',
+              'Quality check post completion',
+            ],
+            similarServices: [],
+          });
         } else {
-           setServiceError('Service not found');
+          setServiceError('Service not found');
         }
       } catch (err) {
-        console.error("Error fetching service:", err);
+        console.error('Error fetching service:', err);
         setServiceError('Failed to load service details.');
       } finally {
         setLoadingService(false);
       }
     };
-    
+
     fetchService();
   }, [id]);
 
   if (loadingService) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin text-purple-600" size={32} />
+      <div className="flex h-72 items-center justify-center">
+        <Loader2 className="animate-spin text-primary" size={28} />
       </div>
     );
   }
 
   if (serviceError || !service) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Service Not Found</h2>
-        <p className="text-slate-500 mb-6">{serviceError || "The service you're looking for doesn't exist."}</p>
-        <Button onClick={() => navigate(-1)} variant="outline">Go Back</Button>
+      <div className="flex h-72 flex-col items-center justify-center text-center">
+        <h2 className="font-display text-2xl text-ink">Service not found</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {serviceError || "The service you're looking for doesn't exist."}
+        </p>
+        <Button onClick={() => navigate(-1)} variant="outline" className="mt-6">
+          Go back
+        </Button>
       </div>
     );
   }
@@ -131,6 +156,7 @@ export const ServiceDetailsPage = () => {
   const similarServices = service.similarServices || [];
 
   const handleBookNow = () => {
+    setLoadingBooking(true);
     navigate('/checkout', {
       state: {
         serviceId: service.id,
@@ -141,352 +167,421 @@ export const ServiceDetailsPage = () => {
         coords,
         providerName: service.providerName,
         providerId: service.providerId,
+        date: selectedDate,
+        timeSlot: selectedSlot,
       },
     });
   };
 
   return (
-    <div className="service-details space-y-6 animate-fade-in pb-16">
-      {/* Top Breadcrumb Navigation matching Reference Image 4 */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-        <button onClick={() => navigate(-1)} className="hover:text-purple-600 flex items-center gap-1">
-          <ArrowLeft size={14} /> Back
+    <div className="mx-auto max-w-[1180px] pb-16">
+      {/* Breadcrumb */}
+      <nav className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 transition-colors hover:text-ink">
+          <ArrowLeft size={12} /> Back
         </button>
-        <span>/</span>
-        <Link to="/" className="hover:text-purple-600">Home</Link>
-        <span>/</span>
-        <Link to="/services" className="hover:text-purple-600">Services</Link>
-        <span>/</span>
-        <Link to={`/services?category=${encodeURIComponent(service.category || 'Beauty')}`} className="hover:text-purple-600 font-medium">
-          {service.category || 'Beauty'}
+        <span className="opacity-50">/</span>
+        <Link to="/" className="transition-colors hover:text-ink">Home</Link>
+        <span className="opacity-50">/</span>
+        <Link to="/services" className="transition-colors hover:text-ink">Services</Link>
+        <span className="opacity-50">/</span>
+        <Link
+          to={`/services?category=${encodeURIComponent(service.category || 'All')}`}
+          className="transition-colors hover:text-ink"
+        >
+          {service.category || 'All'}
         </Link>
-        <span>/</span>
-        <span className="text-purple-700 font-bold">{service.title}</span>
-      </div>
+        <span className="opacity-50">/</span>
+        <span className="max-w-[180px] truncate font-medium text-ink">{service.title}</span>
+      </nav>
 
-      {/* Main Grid Layout (Left Content + Right Booking Widget) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column (8 cols) */}
-        <div className="lg:col-span-8 space-y-8">
-          {/* Service Banner Image & Info Card */}
-          <div className="sh-card p-6 space-y-6">
-            {/* Hero Image Container */}
-            <div className="relative h-72 md:h-80 w-full rounded-2xl overflow-hidden bg-slate-100">
-              <img
-                src={service.image}
-                alt={service.title}
-                className="w-full h-full object-cover"
-              />
-              {/* Rating Overlay Pill */}
-              <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
-                <Star size={14} className="fill-amber-400 text-amber-400" />
-                <span>4.8 ({service.reviewCount.toLocaleString()} reviews)</span>
-              </div>
-            </div>
-
-            {/* Title & Provider Row */}
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">
-                  {service.title}
-                </h1>
-                <div className="flex items-center gap-3 mt-2">
-                  <div className="flex items-center gap-1 text-xs font-bold text-foreground">
-                    <Star size={14} className="fill-amber-400 text-amber-400" />
-                    <span>{service.rating} ({service.reviewCount.toLocaleString()} reviews)</span>
-                  </div>
-                  <span className="text-slate-300">|</span>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground bg-muted px-2.5 py-0.5 rounded-full border border-border">
-                    <ShieldCheck size={14} /> Highly rated service
+      <div className="mt-5 grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+        {/* Main column */}
+        <div className="space-y-8 lg:col-span-8">
+          <div className="overflow-hidden rounded-lg border border-hairline bg-card">
+            <div className="relative h-72 w-full overflow-hidden bg-surface-soft md:h-[380px]">
+              <img src={service.image} alt={service.title} className="h-full w-full object-cover" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#141413]/70 via-[#141413]/5 to-transparent" />
+              <div className="absolute bottom-5 left-5 right-5 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <span className="rounded-pill border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white backdrop-blur-md">
+                    {service.category}
                   </span>
+                  <h1 className="mt-3 max-w-[24ch] font-display text-[clamp(2rem,4vw,3rem)] leading-[1.02] tracking-[-0.03em] text-white">
+                    {service.title}
+                  </h1>
                 </div>
-              </div>
-
-              <div className="text-right">
-                <span className="text-xs text-slate-400 block font-medium">Price</span>
-                <span className="text-2xl font-black text-foreground">₹{service.price}</span>
-                <span className="text-xs text-slate-400 block font-medium">onwards</span>
+                <span className="flex items-center gap-1.5 rounded-pill border border-white/20 bg-[#141413]/55 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
+                  <Star size={12} className="fill-accent-amber text-accent-amber" />
+                  {service.rating.toFixed(1)}
+                  <span className="text-white/60">({service.reviewCount.toLocaleString()})</span>
+                </span>
               </div>
             </div>
 
-            {/* Provider Card Badge */}
-            <div className="flex items-center justify-between p-3.5 bg-muted/60 border border-border rounded-2xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary text-primary-foreground rounded-xl font-extrabold flex items-center justify-center text-sm shadow-sm">
-                  C
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold text-foreground">{service.providerName}</span>
-                    <span className="bg-card text-foreground text-[10px] font-bold px-2 py-0.5 rounded-full border border-border flex items-center gap-1">
-                      <CheckCircle2 size={10} className="fill-current stroke-card" /> Verified
-                    </span>
+            <div className="p-5 sm:p-7">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-hairline pb-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-display text-lg text-primary">
+                    {(service.providerName || 'S').charAt(0)}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[13px] font-medium text-ink">{service.providerName}</span>
+                      <BadgeCheckIcon />
+                    </div>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      Verified professional · {service.category}
+                    </p>
                   </div>
                 </div>
-              </div>
-              <button className="text-slate-400 hover:text-slate-600">
-                <Info size={18} />
-              </button>
-            </div>
 
-            {/* Tabs: Overview, Reviews, Gallery */}
-            <div className="border-b border-border flex gap-8">
-              {['Overview', 'Reviews', 'Gallery'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`pb-3 text-sm font-bold transition-all relative ${
-                    activeTab === tab ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {tab}
-                  {activeTab === tab && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground rounded-full"></span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab Content: About & Included */}
-            {activeTab === 'Overview' && (
-              <div className="space-y-6 pt-2">
-                <div>
-                  <h3 className="text-base font-bold text-foreground mb-2">About This Service</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
+                <div className="text-right">
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Starting at</p>
+                  <p className="font-display text-[1.9rem] leading-none text-ink">
+                    ₹{Number(service.price).toLocaleString('en-IN')}
+                  </p>
                 </div>
+              </div>
 
-                <div>
-                  <h3 className="text-base font-bold text-foreground mb-3">What's Included</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {service.whatsIncluded.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2.5 text-xs font-semibold text-foreground">
-                        <CheckCircle2 size={16} className="text-foreground shrink-0" />
-                        <span>{item}</span>
+              {/* Tabs */}
+              <div className="mt-6 flex gap-7 border-b border-hairline">
+                {['Overview', 'Reviews', 'Gallery'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={cn(
+                      'relative pb-3 text-[12px] font-medium transition-colors',
+                      activeTab === tab ? 'text-ink' : 'text-muted-foreground hover:text-ink'
+                    )}
+                  >
+                    {tab}
+                    {activeTab === tab && (
+                      <span className="absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-primary" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {activeTab === 'Overview' && (
+                <div className="space-y-7 pt-6">
+                  <div>
+                    <h2 className="font-display text-[1.5rem] leading-tight text-ink">About this service</h2>
+                    <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
+                      {service.description}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-[12px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                      What’s included
+                    </h3>
+                    <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                      {service.whatsIncluded.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2.5 rounded-md border border-hairline bg-surface-soft/50 px-3 py-2.5 text-xs text-body"
+                        >
+                          <CheckCircle2 size={15} className="shrink-0 text-accent-teal" strokeWidth={1.9} />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-md border border-hairline bg-surface-soft/50 p-4">
+                    <div className="flex items-start gap-3">
+                      <ShieldCheck size={18} className="mt-0.5 shrink-0 text-accent-teal" strokeWidth={1.7} />
+                      <div>
+                        <p className="text-[13px] font-medium text-ink">The ServiceHub guarantee</p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                          Every booking is backed by our service guarantee. If the work isn’t right,
+                          we’ll arrange for it to be put right.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'Reviews' && (
+                <div className="pt-6">
+                  <div className="flex items-center gap-6 rounded-md border border-hairline bg-surface-soft/50 p-5">
+                    <div className="text-center">
+                      <p className="font-display text-4xl leading-none text-ink">
+                        {service.rating.toFixed(1)}
+                      </p>
+                      <div className="mt-1.5 flex justify-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Star
+                            key={n}
+                            size={11}
+                            className={n <= Math.round(service.rating) ? 'fill-accent-amber text-accent-amber' : 'text-hairline'}
+                          />
+                        ))}
+                      </div>
+                      <p className="mt-1.5 text-[10px] text-muted-foreground">
+                        {service.reviewCount.toLocaleString()} reviews
+                      </p>
+                    </div>
+                    <div className="flex-1 space-y-1.5">
+                      {[5, 4, 3, 2, 1].map((star) => (
+                        <div key={star} className="flex items-center gap-2">
+                          <span className="w-2 text-[10px] text-muted-foreground">{star}</span>
+                          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-hairline">
+                            <div
+                              className="h-full rounded-full bg-accent-amber"
+                              style={{ width: `${star === 5 ? 76 : star === 4 ? 18 : star === 3 ? 4 : 1}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="mt-5 text-xs text-muted-foreground">
+                    Reviews from verified bookings will appear here once this service has been
+                    completed.
+                  </p>
+                </div>
+              )}
+
+              {activeTab === 'Gallery' && (
+                <div className="pt-6">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {[service.image, service.image, service.image].map((src, index) => (
+                      <div
+                        key={index}
+                        className={cn(
+                          'overflow-hidden rounded-md bg-surface-soft',
+                          index === 0 ? 'col-span-2 aspect-[16/10] sm:col-span-2' : 'aspect-square'
+                        )}
+                      >
+                        <img src={src} alt="" className="h-full w-full object-cover opacity-90" />
                       </div>
                     ))}
                   </div>
+                  <p className="mt-4 text-xs text-muted-foreground">
+                    A closer look at the work and the people behind it.
+                  </p>
                 </div>
-
-                {/* Calendar Date Availability Widget matching Reference Image 4 */}
-                <div className="pt-4 border-t border-border">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-base font-bold text-foreground">Select Date</h3>
-                    <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                      <ChevronLeft size={16} className="cursor-pointer hover:text-foreground" />
-                      <span>June 2025</span>
-                      <ChevronRight size={16} className="cursor-pointer hover:text-foreground" />
-                    </div>
-                  </div>
-
-                  {/* Mock Calendar Grid */}
-                  <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                      <div key={day} className="text-muted-foreground text-[11px] py-1">{day}</div>
-                    ))}
-                    {[25, 26, 27, 28, 29, 30, 31, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 1, 2, 3, 4, 5].slice(0, 35).map((num, index) => {
-                      const isSelected = num === 8;
-                      const isAvailable = num >= 8 && num <= 28;
-                      return (
-                        <button
-                          key={index}
-                          onClick={() => isAvailable && setSelectedDate(`${num} June 2025`)}
-                          disabled={!isAvailable}
-                          className={`py-2 rounded-xl text-xs font-bold transition-all ${
-                            isSelected
-                              ? 'bg-primary text-primary-foreground shadow-sm'
-                              : isAvailable
-                              ? 'bg-muted hover:bg-accent text-foreground'
-                              : 'text-muted-foreground/40 cursor-not-allowed'
-                          }`}
-                        >
-                          {num}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Legend */}
-                  <div className="flex items-center justify-center gap-6 mt-4 text-xs font-semibold text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-foreground"></span> Available
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-muted-foreground/40"></span> Unavailable
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
-          {/* Similar Services Carousel / Section matching Reference Image 4 */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">Similar Services You May Like</h3>
-              <div className="flex items-center gap-2 text-xs font-bold text-purple-600">
-                <span>View All</span>
-                <ChevronRight size={14} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {similarServices.map((sim) => (
-                <div
-                  key={sim.id}
-                  onClick={() => navigate(`/services/${sim.id}`)}
-                  className="sh-card p-3 cursor-pointer hover:border-purple-200 transition-all bg-white"
+          {similarServices.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-[1.6rem] text-ink">You may also like</h3>
+                <Link
+                  to="/services"
+                  className="flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
                 >
-                  <img
-                    src={sim.image}
-                    alt={sim.title}
-                    className="h-28 w-full object-cover rounded-xl mb-2"
-                  />
-                  <h4 className="font-bold text-xs text-slate-800 truncate">{sim.title}</h4>
-                  <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 mt-1">
-                    <Star size={12} className="fill-amber-400 text-amber-400" />
-                    <span>{sim.rating} ({sim.reviews})</span>
-                  </div>
-                  <div className="mt-2 text-xs font-extrabold text-purple-700">₹{sim.price} onwards</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Sticky Booking Panel (4 cols) matching Reference Image 4 */}
-        <div className="lg:col-span-4 self-start">
-          <div className="sh-card p-6 border border-border shadow-lg space-y-5">
-            <h3 className="text-lg font-extrabold text-foreground pb-3 border-b border-border">
-              Book This Service
-            </h3>
-
-            {/* Select Date */}
-            <div>
-              <label className="text-xs font-bold text-foreground block mb-1.5 flex items-center justify-between">
-                <span>Select Date</span>
-                <CalendarIcon size={14} className="text-foreground" />
-              </label>
-              <div className="p-3 bg-muted border border-border rounded-xl text-xs font-bold text-foreground flex items-center justify-between">
-                <span>{selectedDate}</span>
-                <ChevronRight size={14} className="text-slate-400 rotate-90" />
+                  View all <ChevronRight size={13} />
+                </Link>
               </div>
-            </div>
-
-            {/* Select Time Slot */}
-            <div>
-              <label className="text-xs font-bold text-foreground block mb-2 flex items-center justify-between">
-                <span>Select Time Slot</span>
-                <Clock size={14} className="text-foreground" />
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {timeSlots.map((slot) => (
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {similarServices.map((sim) => (
                   <button
-                    key={slot}
-                    onClick={() => setSelectedSlot(slot)}
-                    className={`py-2 px-1 rounded-xl text-xs font-bold transition-all border ${
-                      selectedSlot === slot
-                        ? 'bg-primary border-primary text-primary-foreground shadow-sm'
-                        : 'bg-card border-border text-foreground hover:bg-muted'
-                    }`}
+                    key={sim.id}
+                    onClick={() => navigate(`/services/${sim.id}`)}
+                    className="group overflow-hidden rounded-lg border border-hairline bg-card text-left transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)]"
                   >
-                    {slot}
+                    <img src={sim.image} alt={sim.title} className="h-28 w-full object-cover" />
+                    <div className="p-3.5">
+                      <h4 className="truncate text-xs font-medium text-ink">{sim.title}</h4>
+                      <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <Star size={10} className="fill-accent-amber text-accent-amber" />
+                        <span>{sim.rating} ({sim.reviews})</span>
+                      </div>
+                      <p className="mt-2 text-xs font-medium text-primary">₹{sim.price} onwards</p>
+                    </div>
                   </button>
                 ))}
               </div>
             </div>
+          )}
+        </div>
 
-            {/* Address Selector & GPS Auto-Detection */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-foreground">Service Address</label>
-                <button
-                  type="button"
-                  onClick={detectExactLocation}
-                  disabled={detectingLocation}
-                  className="text-[11px] font-bold text-foreground hover:text-muted-foreground flex items-center gap-1 bg-muted hover:bg-accent px-2 py-0.5 rounded-md transition-colors"
-                  title="Ask browser permission to detect exact current GPS location"
-                >
-                  {detectingLocation ? (
-                    <Loader2 size={12} className="animate-spin text-foreground" />
-                  ) : (
-                    <Crosshair size={12} className="text-foreground" />
-                  )}
-                  {detectingLocation ? "Detecting..." : "Auto-Detect GPS"}
-                </button>
-              </div>
-
-              <div className="p-3 bg-muted/60 border border-border rounded-xl space-y-2">
-                <div className="flex items-start gap-2">
-                  <MapPin size={16} className="text-foreground shrink-0 mt-1" />
-                  <input
-                    type="text"
-                    value={locationAddress}
-                    onChange={(e) => setLocationAddress(e.target.value)}
-                    placeholder="Enter street address or apartment"
-                    className="w-full bg-card border border-border rounded-lg p-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20"
-                  />
-                </div>
-                {locationStatus && (
-                  <div className="text-[10px] font-semibold text-purple-700 pl-6 flex items-center gap-1">
-                    <span>{locationStatus}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Quantity Stepper */}
-            <div className="flex items-center justify-between py-2 border-y border-border">
-              <span className="text-xs font-bold text-foreground">Quantity</span>
-              <div className="flex items-center gap-3 bg-muted p-1 rounded-xl">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-7 h-7 bg-card rounded-lg flex items-center justify-center text-foreground font-bold shadow-sm hover:bg-accent"
-                >
-                  <Minus size={14} />
-                </button>
-                <span className="text-xs font-bold text-foreground px-1">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-7 h-7 bg-card rounded-lg flex items-center justify-center text-foreground font-bold shadow-sm hover:bg-accent"
-                >
-                  <Plus size={14} />
-                </button>
-              </div>
-            </div>
-
-            {/* Total Price & Book Now Button */}
-            <div className="space-y-4 pt-2">
+        {/* Booking panel */}
+        <aside className="self-start lg:col-span-4 lg:sticky lg:top-24">
+          <div className="overflow-hidden rounded-lg border border-hairline bg-card shadow-[var(--shadow-soft)]">
+            <div className="border-b border-hairline bg-surface-soft/60 px-5 py-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-foreground">Total Price</span>
-                <span className="text-2xl font-black text-foreground">
-                  ₹{(service.price * quantity).toLocaleString()}
-                </span>
+                <h3 className="font-display text-[1.35rem] text-ink">Book this service</h3>
+                <Badge variant="success" className="gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent-teal" />
+                  Available
+                </Badge>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Choose a time, confirm your address, and we’ll handle the rest.
+              </p>
+            </div>
+
+            <div className="space-y-5 p-5">
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                    Select date
+                  </span>
+                  <CalendarIcon size={13} className="text-muted-foreground" />
+                </div>
+                <div className="scrollbar-none flex gap-1.5 overflow-x-auto pb-1">
+                  {dates.map((date) => {
+                    const active = selectedDate === date.label;
+                    return (
+                      <button
+                        key={date.key}
+                        type="button"
+                        onClick={() => setSelectedDate(date.label)}
+                        className={cn(
+                          'flex min-w-[50px] flex-col items-center rounded-md border px-2 py-2 transition-all',
+                          active
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-hairline bg-canvas text-body hover:border-ink/20'
+                        )}
+                      >
+                        <span className={cn('text-[9px] uppercase tracking-[0.08em]', active ? 'text-white/70' : 'text-muted-foreground')}>
+                          {date.weekday}
+                        </span>
+                        <span className="mt-0.5 text-sm font-medium tabular-nums">{date.day}</span>
+                        <span className={cn('text-[9px]', active ? 'text-white/70' : 'text-muted-foreground')}>
+                          {date.month}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                    Time slot
+                  </span>
+                  <Clock size={13} className="text-muted-foreground" />
+                </div>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {timeSlots.map((slot) => (
+                    <button
+                      key={slot}
+                      onClick={() => setSelectedSlot(slot)}
+                      className={cn(
+                        'rounded-sm border py-2 text-[11px] font-medium transition-all',
+                        selectedSlot === slot
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-hairline bg-canvas text-body hover:border-ink/20'
+                      )}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                    Service address
+                  </span>
+                  <button
+                    type="button"
+                    onClick={detectExactLocation}
+                    disabled={detectingLocation}
+                    className="flex items-center gap-1 rounded-sm text-[10px] font-medium text-primary transition-colors hover:text-primary-active disabled:opacity-60"
+                    title="Detect current GPS location"
+                  >
+                    {detectingLocation ? (
+                      <Loader2 size={11} className="animate-spin" />
+                    ) : (
+                      <Crosshair size={11} />
+                    )}
+                    {detectingLocation ? 'Detecting…' : 'Use my location'}
+                  </button>
+                </div>
+                <div className="rounded-md border border-hairline bg-surface-soft/50 p-2.5">
+                  <div className="flex items-start gap-2">
+                    <MapPin size={14} className="mt-1 shrink-0 text-primary" />
+                    <input
+                      type="text"
+                      value={locationAddress}
+                      onChange={(e) => setLocationAddress(e.target.value)}
+                      placeholder="Enter street address or apartment"
+                      className="w-full rounded-xs border-0 bg-transparent p-1 text-[11px] text-ink outline-hidden placeholder:text-muted-foreground focus:ring-0"
+                    />
+                  </div>
+                  {locationStatus && (
+                    <p className="mt-1 pl-6 text-[10px] text-accent-teal">{locationStatus}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-y border-hairline py-3">
+                <span className="text-[11px] font-medium text-body">Quantity</span>
+                <div className="flex items-center gap-3 rounded-md border border-hairline bg-surface-soft p-0.5">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="flex h-7 w-7 items-center justify-center rounded-xs bg-canvas text-ink transition-colors hover:bg-surface-cream-strong"
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus size={12} />
+                  </button>
+                  <span className="min-w-[12px] text-center text-xs font-medium tabular-nums text-ink">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="flex h-7 w-7 items-center justify-center rounded-xs bg-canvas text-ink transition-colors hover:bg-surface-cream-strong"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus size={12} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Total</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    ₹{Number(service.price).toLocaleString('en-IN')} × {quantity}
+                  </p>
+                </div>
+                <p className="font-display text-[2rem] leading-none text-ink">
+                  ₹{(service.price * quantity).toLocaleString('en-IN')}
+                </p>
               </div>
 
               {bookingSuccess ? (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold text-center">
-                  🎉 Booking Confirmed! Redirecting...
+                <div className="rounded-md border border-accent-teal/25 bg-accent-teal/10 p-3 text-center text-xs font-medium text-accent-teal">
+                  Booking confirmed. Redirecting…
                 </div>
               ) : (
-                <Button
-                  onClick={handleBookNow}
-                  fullWidth
-                  loading={loadingBooking}
-                  size="lg"
-                >
-                  Book Now →
+                <Button onClick={handleBookNow} fullWidth loading={loadingBooking} size="lg">
+                  Continue to booking
                 </Button>
               )}
-            </div>
 
-            {/* Secure Payment Badge */}
-            <div className="flex items-center justify-center gap-2 pt-2 text-[11px] text-slate-500 font-semibold">
-              <Shield size={14} className="text-emerald-600" />
-              <span>Your payment is encrypted and secure.</span>
+              <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
+                <Shield size={12} className="text-accent-teal" />
+                Encrypted payment · Free cancellation up to 24h
+              </div>
             </div>
           </div>
-        </div>
+
+          <div className="mt-3 flex items-center gap-2 rounded-md border border-dashed border-hairline px-3 py-2.5">
+            <Sparkles size={13} className="shrink-0 text-primary" />
+            <p className="text-[10px] leading-relaxed text-muted-foreground">
+              New here? Your first booking is covered by our satisfaction guarantee.
+            </p>
+          </div>
+        </aside>
       </div>
     </div>
   );
 };
+
+const BadgeCheckIcon = () => (
+  <span title="Verified" className="inline-flex text-accent-teal">
+    <ShieldCheck size={13} strokeWidth={1.9} />
+  </span>
+);

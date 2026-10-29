@@ -29,27 +29,33 @@ export const AddMoneyModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add Money to Wallet">
+    <Modal isOpen={isOpen} onClose={onClose} title="Add money to wallet">
       {success ? (
-        <div className="text-center py-6">
-          <CheckCircle2 size={48} className="text-emerald-500 mx-auto mb-3 animate-bounce" />
-          <h3 className="text-lg font-bold text-foreground">Money Added Successfully!</h3>
-          <p className="text-sm text-muted-foreground mt-1">₹{amount} added to your ServiceHub Wallet.</p>
+        <div className="py-6 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-accent-teal/25 bg-accent-teal/10 text-accent-teal">
+            <CheckCircle2 size={26} strokeWidth={1.7} className="animate-bounce" />
+          </div>
+          <h3 className="font-display text-[1.6rem] leading-tight text-ink">Money added</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            ₹{Number(amount).toLocaleString('en-IN')} is now available in your ServiceHub wallet.
+          </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label className="text-xs font-semibold">Enter Amount (₹)</Label>
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              Amount (₹)
+            </Label>
             <div className="relative flex items-center">
-              <div className="absolute left-3 text-muted-foreground pointer-events-none">
-                <Wallet size={16} />
+              <div className="pointer-events-none absolute left-3.5 text-muted-foreground">
+                <Wallet size={15} />
               </div>
               <Input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="e.g. 1000"
-                className="pl-9 h-11 rounded-xl"
+                className="h-11 pl-10"
                 required
               />
             </div>
@@ -61,7 +67,7 @@ export const AddMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                   variant={amount === preset ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setAmount(preset)}
-                  className="flex-1 rounded-lg text-xs"
+                  className="flex-1 text-[11px]"
                 >
                   +₹{preset}
                 </Button>
@@ -70,16 +76,26 @@ export const AddMoneyModal = ({ isOpen, onClose, onSuccess }) => {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-semibold block">Payment Method</Label>
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-primary/40 bg-primary/5 cursor-pointer">
-              <input type="radio" name="payment" defaultChecked className="accent-primary" />
-              <CreditCard size={18} className="text-primary" />
-              <span className="text-sm font-medium text-foreground">UPI / Cards / NetBanking</span>
+            <Label className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              Payment method
+            </Label>
+            <div className="flex cursor-pointer items-center gap-3 rounded-md border border-primary/35 bg-primary/5 p-3.5">
+              <input
+                type="radio"
+                name="payment"
+                defaultChecked
+                className="h-3.5 w-3.5 accent-primary"
+              />
+              <CreditCard size={17} className="text-primary" />
+              <span className="text-xs font-medium text-ink">UPI / Cards / Net banking</span>
             </div>
+            <p className="text-[10px] leading-relaxed text-muted-foreground">
+              Payments are processed securely. Wallet balance never expires.
+            </p>
           </div>
 
-          <Button type="submit" loading={loading} className="w-full h-11 rounded-xl text-sm font-semibold">
-            Proceed to Pay ₹{amount || 0}
+          <Button type="submit" loading={loading} className="h-11 w-full text-xs">
+            Proceed to pay ₹{amount ? Number(amount).toLocaleString('en-IN') : 0}
           </Button>
         </form>
       )}

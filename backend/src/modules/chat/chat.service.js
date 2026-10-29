@@ -1,4 +1,6 @@
 const prisma = require("../../config/prisma");
+const ApiError = require("../../utils/errors");
+
 let socketConfig;
 try {
     socketConfig = require("../../config/socket");
@@ -18,7 +20,11 @@ const getOrCreateConversation = async (userId, role, targetProviderId, bookingId
         }
         customerId = customer.id;
 
-        let pId = parseInt(targetProviderId);
+        const pId = parseInt(targetProviderId);
+        if (isNaN(pId)) {
+            throw ApiError.badRequest("Invalid provider ID");
+        }
+
         let providerExists = await prisma.serviceProvider.findUnique({
             where: { id: pId },
             include: { user: { select: { id: true, name: true, email: true } } }
@@ -32,12 +38,8 @@ const getOrCreateConversation = async (userId, role, targetProviderId, bookingId
         }
 
         if (!providerExists) {
-            providerExists = await prisma.serviceProvider.findFirst({
-                include: { user: { select: { id: true, name: true, email: true } } }
-            });
+            throw ApiError.notFound("Service provider not found");
         }
-
-        if (!providerExists) throw new Error("Service provider not found");
         providerId = providerExists.id;
     } else if (role === "PROVIDER") {
         let provider = await prisma.serviceProvider.findUnique({ where: { userId } });
@@ -48,14 +50,17 @@ const getOrCreateConversation = async (userId, role, targetProviderId, bookingId
                     userId,
                     categoryId: firstCategory ? firstCategory.id : 1,
                     bio: "Verified Service Provider",
-                    experience: "3+ years",
                     verified: true
                 }
             });
         }
         providerId = provider.id;
 
-        let cId = parseInt(targetProviderId);
+        const cId = parseInt(targetProviderId);
+        if (isNaN(cId)) {
+            throw ApiError.badRequest("Invalid customer ID");
+        }
+
         let customerExists = await prisma.customer.findUnique({
             where: { id: cId },
             include: { user: { select: { id: true, name: true, email: true } } }
@@ -67,14 +72,11 @@ const getOrCreateConversation = async (userId, role, targetProviderId, bookingId
             });
         }
         if (!customerExists) {
-            customerExists = await prisma.customer.findFirst({
-                include: { user: { select: { id: true, name: true, email: true } } }
-            });
+            throw ApiError.notFound("Customer not found");
         }
-        if (!customerExists) throw new Error("Customer not found");
         customerId = customerExists.id;
     } else {
-        throw new Error("Only customers or providers can initiate conversations");
+        throw ApiError.forbidden("Only customers or providers can initiate conversations");
     }
 
     // Verify booking if provided
@@ -139,7 +141,7 @@ const getUserConversations = async (userId, role) => {
         if (!provider) return [];
         whereClause = { providerId: provider.id };
     } else if (role === "ADMIN") {
-        whereClause = {}; // Admin can view all
+        whereClause = {};
     } else {
         return [];
     }
@@ -166,13 +168,10 @@ const getUserConversations = async (userId, role) => {
         orderBy: { updatedAt: "desc" }
     });
 
-    // Compute unread message count for each conversation in a single grouped query
-    // This avoids the N+1 pattern where we counted per conversation.
     const convIds = conversations.map((c) => c.id);
 
     let unreadGroups = [];
     if (convIds.length > 0) {
-        // Group counts by conversationId where sender is not the current user and message is unread
         unreadGroups = await prisma.chatMessage.groupBy({
             by: ["conversationId"],
             where: {
@@ -201,6 +200,9 @@ const getUserConversations = async (userId, role) => {
 // 3. Fetch paginated messages for a conversation
 const getConversationMessages = async (conversationId, userId, role, page = 1, limit = 50, skipCount = false) => {
     const convId = parseInt(conversationId);
+    if (isNaN(convId)) {
+        throw ApiError.badRequest("Invalid conversation ID");
+    }
 
     const conversation = await prisma.conversation.findUnique({
         where: { id: convId },
@@ -211,34 +213,28 @@ const getConversationMessages = async (conversationId, userId, role, page = 1, l
     });
 
     if (!conversation) {
-        throw new Error("Conversation not found");
+        throw ApiError.notFound("Conversation not found");
     }
 
-    // Access control: User must be participant or Admin
     if (role !== "ADMIN") {
         const userIdInt = parseInt(userId);
         const isCustomer = conversation.customer?.userId === userIdInt;
         const isProvider = conversation.provider?.userId === userIdInt;
 
         if (!isCustomer && !isProvider) {
-            throw new Error("Access denied: You are not a participant in this conversation");
+            throw ApiError.forbidden("Access denied: You are not a participant in this conversation");
         }
     }
 
-    const skip = (page - 1) * limit;
-
-    // If skipCount is requested, avoid performing the expensive COUNT() query.
-    // To preserve API semantics for existing callers, when skipCount=true we
-    // OMIT the `totalMessages` and `totalPages` fields entirely rather than
-    // returning an incorrect or approximate value. Callers that need those
-    // fields must call without skipCount (default behavior).
-    let messages = [];
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.max(1, parseInt(limit) || 50);
+    const skip = (pageNum - 1) * limitNum;
 
     if (skipCount) {
-        messages = await prisma.chatMessage.findMany({
+        const messages = await prisma.chatMessage.findMany({
             where: { conversationId: convId },
             skip,
-            take: limit,
+            take: limitNum,
             orderBy: { createdAt: "asc" },
             include: {
                 sender: {
@@ -247,23 +243,20 @@ const getConversationMessages = async (conversationId, userId, role, page = 1, l
             }
         });
 
-        const result = {
+        return {
             conversationId: convId,
-            page,
-            limit,
+            page: pageNum,
+            limit: limitNum,
             messages
         };
-
-        return result;
     }
 
-    // Default behavior: run COUNT() and return exact totals
     const [total, msgs] = await Promise.all([
         prisma.chatMessage.count({ where: { conversationId: convId } }),
         prisma.chatMessage.findMany({
             where: { conversationId: convId },
             skip,
-            take: limit,
+            take: limitNum,
             orderBy: { createdAt: "asc" },
             include: {
                 sender: {
@@ -276,16 +269,19 @@ const getConversationMessages = async (conversationId, userId, role, page = 1, l
     return {
         conversationId: convId,
         totalMessages: total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
         messages: msgs
     };
 };
 
-// 4. Send a new message (REST endpoint fallback or direct call)
+// 4. Send a new message
 const sendMessage = async (conversationId, senderId, senderRole, messageText, messageType = "TEXT") => {
     const convId = parseInt(conversationId);
+    if (isNaN(convId)) {
+        throw ApiError.badRequest("Invalid conversation ID");
+    }
 
     const conversation = await prisma.conversation.findUnique({
         where: { id: convId },
@@ -296,7 +292,7 @@ const sendMessage = async (conversationId, senderId, senderRole, messageText, me
     });
 
     if (!conversation) {
-        throw new Error("Conversation not found");
+        throw ApiError.notFound("Conversation not found");
     }
 
     if (senderRole !== "ADMIN") {
@@ -305,7 +301,7 @@ const sendMessage = async (conversationId, senderId, senderRole, messageText, me
         const isProvider = conversation.provider?.userId === senderIdInt;
 
         if (!isCustomer && !isProvider) {
-            throw new Error("Access denied: You cannot message in this conversation");
+            throw ApiError.forbidden("Access denied: You cannot message in this conversation");
         }
     }
 
@@ -324,7 +320,7 @@ const sendMessage = async (conversationId, senderId, senderRole, messageText, me
         }
     });
 
-    // Update conversation last message timestamp
+    // Update conversation snippet
     await prisma.conversation.update({
         where: { id: convId },
         data: {
@@ -339,16 +335,16 @@ const sendMessage = async (conversationId, senderId, senderRole, messageText, me
             const io = socketConfig.getIO();
             io.to(`conversation_${convId}`).emit("new_message", chatMessage);
 
-            const recipientUserId =
-                senderRole === "CUSTOMER"
-                    ? conversation.provider?.userId
-                    : conversation.customer?.userId;
+            const customerUserId = conversation.customer?.userId;
+            const providerUserId = conversation.provider?.userId;
 
-            if (recipientUserId && recipientUserId !== senderId) {
-                io.to(`user_${recipientUserId}`).emit("message_notification", {
-                    conversationId: convId,
-                    message: chatMessage
-                });
+            if (senderRole === "ADMIN") {
+                if (customerUserId) io.to(`user_${customerUserId}`).emit("message_notification", { conversationId: convId, message: chatMessage });
+                if (providerUserId) io.to(`user_${providerUserId}`).emit("message_notification", { conversationId: convId, message: chatMessage });
+            } else if (senderRole === "CUSTOMER" && providerUserId) {
+                io.to(`user_${providerUserId}`).emit("message_notification", { conversationId: convId, message: chatMessage });
+            } else if (senderRole === "PROVIDER" && customerUserId) {
+                io.to(`user_${customerUserId}`).emit("message_notification", { conversationId: convId, message: chatMessage });
             }
 
             io.to("admin_monitoring").emit("admin_new_message", {
@@ -357,8 +353,7 @@ const sendMessage = async (conversationId, senderId, senderRole, messageText, me
             });
         }
     } catch (socketErr) {
-        // Socket emission failure shouldn't fail HTTP transaction
-        console.warn("Socket broadcast notice:", socketErr.message);
+        // Socket emission non-blocking
     }
 
     return chatMessage;
@@ -403,4 +398,3 @@ module.exports = {
     sendMessage,
     markConversationRead
 };
-

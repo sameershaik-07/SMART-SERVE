@@ -1,7 +1,11 @@
 import React from 'react';
-import { Heart, Star, CheckCircle2 } from 'lucide-react';
+import { Heart, Star, BadgeCheck, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFavorites } from '@/context/FavoritesContext';
+import { cn } from '@/lib/utils';
+
+const fallbackImage =
+  'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80';
 
 export const ServiceCard = ({ service, onFavoriteToggle }) => {
   const navigate = useNavigate();
@@ -19,88 +23,77 @@ export const ServiceCard = ({ service, onFavoriteToggle }) => {
   };
 
   return (
-    <div
+    <article
       onClick={handleCardClick}
-      className="sh-card sh-card-hover overflow-hidden flex flex-col cursor-pointer group"
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-lg border border-hairline bg-card transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] hover:-translate-y-1 hover:border-ink/15 hover:shadow-[var(--shadow-soft)]"
     >
-      {/* Service Image Header */}
-      <div className="relative h-40 w-full bg-muted overflow-hidden">
+      <div className="relative h-44 w-full overflow-hidden bg-surface-soft">
         <img
-          src={service.image || service.images?.[0] || 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80'}
+          src={service.image || service.images?.[0] || fallbackImage}
           alt={service.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.04]"
         />
-        {/* Category Badge */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#141413]/45 via-transparent to-transparent" />
+
         {service.category && (
-          <span className={`absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider border ${
-            service.category.toLowerCase() === 'beauty' || service.category.toLowerCase() === 'salon'
-              ? 'bg-pink-50/95 text-pink-700 border-pink-200'
-              : service.category.toLowerCase() === 'repairs' || service.category.toLowerCase() === 'repair'
-              ? 'bg-amber-50/95 text-amber-700 border-amber-200'
-              : service.category.toLowerCase() === 'home services' || service.category.toLowerCase() === 'home cleaning'
-              ? 'bg-blue-50/95 text-blue-700 border-blue-200'
-              : service.category.toLowerCase() === 'automotive'
-              ? 'bg-cyan-50/95 text-cyan-700 border-cyan-200'
-              : service.category.toLowerCase() === 'tutors' || service.category.toLowerCase() === 'tutoring'
-              ? 'bg-violet-50/95 text-violet-700 border-violet-200'
-              : 'bg-slate-100/95 text-slate-600 border-slate-200'
-          }`}>
+          <span className="absolute bottom-3 left-3 rounded-pill border border-white/15 bg-[#141413]/55 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-white backdrop-blur-md">
             {service.category}
           </span>
         )}
-        {/* Favorite Heart Button */}
+
         <button
           onClick={handleFavoriteClick}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-card/95 backdrop-blur-xs flex items-center justify-center text-muted-foreground hover:text-rose-500 transition-all shadow-sm"
+          aria-label={favorite ? 'Remove from favourites' : 'Save to favourites'}
+          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-[#141413]/40 text-white/90 backdrop-blur-md transition-all hover:bg-[#141413]/65 hover:text-white"
         >
-          <Heart size={16} className={favorite ? 'fill-rose-500 text-rose-500' : ''} />
+          <Heart size={14} className={cn(favorite && 'fill-coral text-coral')} strokeWidth={1.8} />
         </button>
       </div>
 
-      {/* Card Content Body */}
-      <div className="p-3.5 flex-1 flex flex-col justify-between space-y-3">
+      <div className="flex flex-1 flex-col justify-between p-4.5">
         <div>
-          <h3 className="font-bold text-foreground text-sm group-hover:text-muted-foreground transition-colors line-clamp-1">
+          <h3 className="font-display text-[1.3rem] leading-tight tracking-[-0.02em] text-ink transition-colors group-hover:text-primary">
             {service.title}
           </h3>
 
-          {/* Rating & Review Count */}
-          <div className="flex items-center gap-1.5 mt-1">
-            <Star size={14} className="fill-amber-400 text-amber-400" />
-            <span className="text-xs font-bold text-foreground">
-              {service.rating || 4.8}
+          <div className="mt-2 flex items-center gap-1.5">
+            <Star size={12} className="fill-accent-amber text-accent-amber" />
+            <span className="text-xs font-medium tabular-nums text-ink">
+              {Number(service.rating || 4.8).toFixed(1)}
             </span>
-            <span className="text-xs text-muted-foreground font-medium">
+            <span className="text-[11px] text-muted-foreground">
               ({service.reviewCount || service.reviews?.length || 320})
             </span>
           </div>
 
-          {/* Provider Name + Verified Badge */}
-          <div className="flex items-center gap-1.5 mt-2">
-            <span className="text-xs font-semibold text-muted-foreground truncate">
-              {service.providerName || service.provider?.user?.name || 'Verified Service Provider'}
+          <div className="mt-3 flex items-center gap-1.5 border-t border-hairline-soft pt-3">
+            <span className="truncate text-[11px] text-muted-foreground">
+              {service.providerName || service.provider?.user?.name || 'Verified professional'}
             </span>
-            <CheckCircle2 size={14} className="text-blue-500 fill-blue-500 stroke-white shrink-0" />
+            <BadgeCheck size={13} className="shrink-0 text-accent-teal" strokeWidth={1.8} />
           </div>
         </div>
 
-        {/* Pricing & Book Now Button */}
-        <div className="pt-2 border-t border-border">
-          <div className="mb-2 flex items-end gap-1">
-            <span className="text-[11px] text-muted-foreground font-medium">From</span>
-            <span className="text-base leading-none font-extrabold text-foreground">₹{service.price}</span>
+        <div className="mt-4 flex items-end justify-between">
+          <div>
+            <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">From</span>
+            <p className="font-display text-[1.45rem] leading-none text-ink">
+              ₹{Number(service.price || 0).toLocaleString('en-IN')}
+            </p>
           </div>
           <button
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/services/${service.id}`);
             }}
-            className="h-10 w-full whitespace-nowrap bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-xl shadow-sm transition-all active:scale-[.98]"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-canvas text-ink transition-all duration-200 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground"
+            aria-label={`View ${service.title}`}
           >
-            Book Now
+            <ArrowUpRight size={15} strokeWidth={1.9} />
           </button>
         </div>
       </div>
-    </div>
+    </article>
   );
 };

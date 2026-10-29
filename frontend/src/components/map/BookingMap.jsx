@@ -194,11 +194,11 @@ export const BookingMap = ({ trackingData, loading, error, onLocationUpdated }) 
       className: 'custom-map-pin',
       html: `
         <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-          <div style="background-color: #059669; color: white; padding: 5px 9px; border-radius: 9999px; font-weight: 700; font-size: 11px; box-shadow: 0 8px 16px rgba(0,0,0,0.25); border: 2px solid white; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+          <div style="background-color: #b85c3e; color: white; padding: 5px 9px; border-radius: 9999px; font-weight: 600; font-size: 11px; box-shadow: 0 8px 16px rgba(20,20,19,0.28); border: 2px solid #faf9f5; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
             <span>📍 Destination</span>
           </div>
-          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid #059669;"></div>
-          <div style="width: 8px; height: 8px; background: #059669; border-radius: 50%; opacity: 0.6; margin-top: 1px;"></div>
+          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid #b85c3e;"></div>
+          <div style="width: 8px; height: 8px; background: #b85c3e; border-radius: 50%; opacity: 0.6; margin-top: 1px;"></div>
         </div>
       `,
       iconSize: [0, 0],
@@ -209,12 +209,12 @@ export const BookingMap = ({ trackingData, loading, error, onLocationUpdated }) 
       className: 'custom-map-pin',
       html: `
         <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-          <div style="background-color: #4f46e5; color: white; padding: 5px 9px; border-radius: 9999px; font-weight: 700; font-size: 11px; box-shadow: 0 8px 16px rgba(79,70,229,0.4); border: 2px solid white; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
-            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #34d399;"></span>
+          <div style="background-color: #3f8c7e; color: white; padding: 5px 9px; border-radius: 9999px; font-weight: 600; font-size: 11px; box-shadow: 0 8px 16px rgba(20,20,19,0.28); border: 2px solid #faf9f5; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #faf9f5;"></span>
             <span>🛠️ Technician</span>
           </div>
-          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid #4f46e5;"></div>
-          <div style="width: 8px; height: 8px; background: #4f46e5; border-radius: 50%; opacity: 0.6; margin-top: 1px;"></div>
+          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid #3f8c7e;"></div>
+          <div style="width: 8px; height: 8px; background: #3f8c7e; border-radius: 50%; opacity: 0.6; margin-top: 1px;"></div>
         </div>
       `,
       iconSize: [0, 0],
@@ -225,9 +225,9 @@ export const BookingMap = ({ trackingData, loading, error, onLocationUpdated }) 
     custMarkerRef.current = custMarker;
     custMarker.bindPopup(`
       <div style="padding: 4px; font-family: sans-serif;">
-        <strong style="color: #059669; font-size: 13px;">Service Destination</strong>
-        <p style="margin: 4px 0 2px; font-weight: 600; font-size: 12px; color: #1e293b;">${activeData.customer?.name || 'Customer'}</p>
-        <p style="margin: 0; font-size: 11px; color: #64748b;">${activeData.customer?.address || 'Current Location'}</p>
+        <strong style="color: #b85c3e; font-size: 13px;">Service destination</strong>
+        <p style="margin: 4px 0 2px; font-weight: 600; font-size: 12px; color: #141413;">${activeData.customer?.name || 'Customer'}</p>
+        <p style="margin: 0; font-size: 11px; color: #6c6a64;">${activeData.customer?.address || 'Current Location'}</p>
       </div>
     `);
 
@@ -248,15 +248,15 @@ export const BookingMap = ({ trackingData, loading, error, onLocationUpdated }) 
     provMarkerRef.current = provMarker;
     provMarker.bindPopup(`
       <div style="padding: 4px; font-family: sans-serif;">
-        <strong style="color: #4f46e5; font-size: 13px;">Live Technician In-Transit</strong>
-        <p style="margin: 4px 0 2px; font-weight: 600; font-size: 12px; color: #1e293b;">${activeData.provider?.name || 'Assigned Technician'}</p>
-        <p style="margin: 0; font-size: 11px; color: #64748b;">${activeData.provider?.category || 'Service Partner'}</p>
+        <strong style="color: #3f8c7e; font-size: 13px;">Live technician in transit</strong>
+        <p style="margin: 4px 0 2px; font-weight: 600; font-size: 12px; color: #141413;">${activeData.provider?.name || 'Assigned Technician'}</p>
+        <p style="margin: 0; font-size: 11px; color: #6c6a64;">${activeData.provider?.category || 'Service Partner'}</p>
       </div>
     `);
 
     // Draw route line inside the application
     const polyline = L.polyline([[techLat, techLng], [custLat, custLng]], {
-      color: '#6366f1',
+      color: '#b85c3e',
       weight: 4,
       opacity: 0.85,
       dashArray: '8, 8',
@@ -322,9 +322,9 @@ export const BookingMap = ({ trackingData, loading, error, onLocationUpdated }) 
       custMarkerRef.current.setLatLng([lat, lng]);
       custMarkerRef.current.bindPopup(`
         <div style="padding: 4px; font-family: sans-serif;">
-          <strong style="color: #059669; font-size: 13px;">📍 Service Destination (Updated)</strong>
-          <p style="margin: 4px 0 2px; font-weight: 600; font-size: 12px; color: #1e293b;">${activeData.customer?.name || 'Customer'}</p>
-          <p style="margin: 0; font-size: 11px; color: #64748b;">${addressLabel}</p>
+          <strong style="color: #b85c3e; font-size: 13px;">📍 Service destination (updated)</strong>
+          <p style="margin: 4px 0 2px; font-weight: 600; font-size: 12px; color: #141413;">${activeData.customer?.name || 'Customer'}</p>
+          <p style="margin: 0; font-size: 11px; color: #6c6a64;">${addressLabel}</p>
         </div>
       `).openPopup();
     }
@@ -400,249 +400,259 @@ export const BookingMap = ({ trackingData, loading, error, onLocationUpdated }) 
   const { customer, provider } = activeData;
 
   return (
-    <div className="sh-card bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden space-y-0">
-      {/* In-App Live Map Header with HUD metrics */}
-      <div className="p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 text-white flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
-              Live In-App GPS Map & Tracking
-            </span>
-            {accuracyInfo && (
-              <span className="text-[10px] bg-white/10 text-emerald-200 px-2 py-0.5 rounded-full font-mono">
-                {accuracyInfo}
+    <div className="overflow-hidden rounded-lg border border-hairline bg-card">
+      {/* Live map header */}
+      <div className="sh-dark-panel relative border-0">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-coral/18 blur-[90px]" />
+        <div className="sh-ruled-grid pointer-events-none absolute inset-0 opacity-[0.1]" />
+        <div className="relative flex flex-wrap items-center justify-between gap-5 p-5 sm:px-6">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-teal opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-teal" />
               </span>
-            )}
-          </div>
-          <h3 className="text-lg font-black text-white flex items-center gap-2">
-            Technician Route & Real-Time Location
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/10 text-slate-200">
-              Booking #{activeData.bookingId}
-            </span>
-          </h3>
-        </div>
-
-        {/* Dynamic In-App Route Metrics */}
-        <div className="flex items-center gap-3">
-          <div className="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 flex items-center gap-2">
-            <Compass size={16} className="text-purple-300" />
-            <div>
-              <div className="text-[10px] text-slate-300 uppercase font-semibold">Distance Remaining</div>
-              <div className="text-xs font-black text-white">{liveRouteMetrics.formattedDistance}</div>
+              <span className="text-[9px] font-medium uppercase tracking-[0.16em] text-accent-teal">
+                Live GPS tracking
+              </span>
+              {accuracyInfo && (
+                <span className="rounded-pill border border-white/10 bg-white/[0.05] px-2 py-0.5 font-mono text-[9px] text-on-dark-soft">
+                  {accuracyInfo}
+                </span>
+              )}
             </div>
+            <h3 className="mt-2 flex flex-wrap items-center gap-2 font-display text-[1.5rem] leading-tight text-on-dark">
+              Technician route
+              <span className="rounded-pill border border-white/10 bg-white/[0.05] px-2 py-0.5 font-sans text-[9px] font-normal tracking-[0.06em] text-on-dark-soft">
+                Booking #{activeData.bookingId}
+              </span>
+            </h3>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 flex items-center gap-2">
-            <Clock size={16} className="text-emerald-300" />
-            <div>
-              <div className="text-[10px] text-slate-300 uppercase font-semibold">Est. Arrival</div>
-              <div className="text-xs font-black text-emerald-300">~{liveRouteMetrics.formattedDuration}</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 backdrop-blur-md">
+              <Compass size={14} className="text-coral" />
+              <div>
+                <div className="text-[8px] uppercase tracking-[0.12em] text-on-dark-soft">
+                  Remaining
+                </div>
+                <div className="text-[11px] font-medium tabular-nums text-on-dark">
+                  {liveRouteMetrics.formattedDistance}
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* In-App Route Focus Button */}
-          <button
-            type="button"
-            onClick={handleFitBounds}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-            title="Focus the full route inside the app"
-          >
-            <Navigation size={14} />
-            Focus In-App Route
-          </button>
+            <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 backdrop-blur-md">
+              <Clock size={14} className="text-accent-teal" />
+              <div>
+                <div className="text-[8px] uppercase tracking-[0.12em] text-on-dark-soft">
+                  Arrival
+                </div>
+                <div className="text-[11px] font-medium tabular-nums text-on-dark">
+                  ~{liveRouteMetrics.formattedDuration}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleFitBounds}
+              className="flex items-center gap-1.5 rounded-md bg-coral px-3 py-2 text-[10px] font-medium text-[#141413] transition-all hover:bg-[#d98a6f] active:scale-[0.98]"
+              title="Focus the full route inside the app"
+            >
+              <Navigation size={13} />
+              Focus route
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Interactive Map Canvas (100% In-App) */}
-      <div 
-        className="relative w-full bg-slate-100 z-0 overflow-hidden" 
+      {/* Interactive map canvas */}
+      <div
+        className="relative z-0 w-full overflow-hidden bg-surface-soft"
         style={{ height: '420px', minHeight: '420px', width: '100%' }}
       >
-        <div 
-          ref={mapContainerRef} 
-          style={{ height: '420px', minHeight: '420px', width: '100%' }} 
+        <div
+          ref={mapContainerRef}
+          style={{ height: '420px', minHeight: '420px', width: '100%' }}
         />
 
-        {/* Top-Left In-App Camera Focus Shortcuts (Cleanly placed, NO zoom button overlap) */}
-        <div className="absolute top-3 left-3 z-[1000] flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-xl shadow-md border border-slate-200">
+        {/* Camera focus shortcuts */}
+        <div className="absolute left-3 top-3 z-[1000] flex items-center gap-1 rounded-md border border-hairline bg-canvas/95 p-1 shadow-[var(--shadow-soft)] backdrop-blur-md">
           <button
             type="button"
             onClick={handleCenterCustomer}
-            className="px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+            className="rounded-sm px-2.5 py-1 text-[10px] font-medium text-body transition-colors hover:bg-primary/6 hover:text-primary"
             title="Pan map to destination"
           >
-            📍 My Destination
+            📍 Destination
           </button>
-          <span className="text-slate-300">|</span>
+          <span className="text-hairline">|</span>
           <button
             type="button"
             onClick={handleCenterTech}
-            className="px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+            className="rounded-sm px-2.5 py-1 text-[10px] font-medium text-body transition-colors hover:bg-accent-teal/8 hover:text-accent-teal"
             title="Pan map to live technician"
           >
             🛠️ Technician
           </button>
-          <span className="text-slate-300">|</span>
+          <span className="text-hairline">|</span>
           <button
             type="button"
             onClick={handleFitBounds}
-            className="px-2 py-1 text-[11px] font-bold text-slate-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+            className="rounded-sm px-2 py-1 text-muted-foreground transition-colors hover:bg-surface-soft hover:text-ink"
             title="Fit full route view"
           >
             <Maximize2 size={12} />
           </button>
         </div>
 
-        {/* Top-Right GPS, Macherla Quick Pin & Radar Controls */}
-        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-2">
+        {/* GPS, quick pin, and radar controls */}
+        <div className="absolute right-3 top-3 z-[1000] flex flex-wrap items-center justify-end gap-2">
           {locateMsg && (
-            <span className="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-md border border-slate-200 text-[11px] font-bold text-sky-700 animate-fade-in flex items-center gap-1.5 max-w-xs truncate">
-              <Crosshair size={12} className="animate-spin text-sky-600 shrink-0" />
+            <span className="flex max-w-xs animate-fade-in items-center gap-1.5 truncate rounded-md border border-hairline bg-canvas/95 px-3 py-1.5 text-[10px] font-medium text-primary shadow-[var(--shadow-soft)] backdrop-blur-md">
+              <Crosshair size={11} className="shrink-0 animate-spin text-primary" />
               <span className="truncate">{locateMsg}</span>
             </span>
           )}
 
-          {/* Quick Macherla Button */}
           <button
             type="button"
             onClick={handleSetMacherla}
-            className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-xl shadow-sm text-xs font-bold transition-all flex items-center gap-1 active:scale-95 cursor-pointer"
+            className="flex items-center gap-1 rounded-md border border-hairline bg-canvas/95 px-2.5 py-1.5 text-[10px] font-medium text-body shadow-[var(--shadow-soft)] transition-all hover:border-primary/30 hover:text-primary active:scale-95"
             title="Quick set destination to Macherla, Andhra Pradesh"
           >
-            <MapPin size={13} className="text-purple-600" />
-            <span className="text-[11px]">Macherla</span>
+            <MapPin size={12} className="text-primary" />
+            <span>Macherla</span>
           </button>
 
-          {/* Live Radar Toggle */}
           <button
             type="button"
             onClick={() => setLiveTrackingActive(!liveTrackingActive)}
-            className={`px-3 py-1.5 rounded-xl shadow-md border text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer ${
+            className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[10px] font-medium shadow-[var(--shadow-soft)] transition-all active:scale-95 ${
               liveTrackingActive
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                : 'bg-white text-slate-600 border-slate-200'
+                ? 'border-accent-teal/30 bg-accent-teal/10 text-accent-teal'
+                : 'border-hairline bg-canvas/95 text-muted-foreground'
             }`}
             title="Toggle live technician radar tracking"
           >
-            <Radio size={13} className={liveTrackingActive ? 'text-emerald-600 animate-pulse' : 'text-slate-400'} />
-            <span className="text-[11px] hidden sm:inline">
-              {liveTrackingActive ? 'Radar Active' : 'Radar Paused'}
+            <Radio
+              size={12}
+              className={liveTrackingActive ? 'animate-pulse text-accent-teal' : 'text-muted-foreground'}
+            />
+            <span className="hidden sm:inline">
+              {liveTrackingActive ? 'Radar active' : 'Radar paused'}
             </span>
           </button>
 
-          {/* Locate Me Button */}
           <button
             type="button"
             onClick={handleLocateMe}
             disabled={locatingUser}
-            className="bg-white hover:bg-slate-50 text-slate-800 hover:text-sky-600 px-3.5 py-1.5 rounded-xl shadow-md border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-md border border-hairline bg-canvas/95 px-3 py-1.5 text-[10px] font-medium text-body shadow-[var(--shadow-soft)] transition-all hover:border-primary/30 hover:text-primary active:scale-95 disabled:opacity-60"
             title="Detect your exact live GPS location"
           >
             {locatingUser ? (
-              <Loader2 size={14} className="animate-spin text-sky-600" />
+              <Loader2 size={13} className="animate-spin text-primary" />
             ) : (
-              <Crosshair size={14} className="text-sky-600" />
+              <Crosshair size={13} className="text-primary" />
             )}
-            <span className="text-[11px] font-extrabold text-slate-700">My Live GPS</span>
+            <span>My live GPS</span>
           </button>
         </div>
 
-        {/* Map Legend */}
-        <div className="absolute bottom-3 right-3 z-[1000] bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-md border border-slate-200 text-[11px] font-semibold text-slate-600 flex items-center gap-3">
+        {/* Map legend */}
+        <div className="absolute bottom-3 right-3 z-[1000] flex items-center gap-3 rounded-md border border-hairline bg-canvas/95 px-3 py-1.5 text-[10px] font-medium text-muted-foreground shadow-[var(--shadow-soft)] backdrop-blur-md">
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block shadow-xs"></span>
+            <span className="inline-block h-2 w-2 rounded-full bg-accent-teal shadow-xs" />
             Technician
           </span>
-          <span className="text-slate-300">|</span>
+          <span className="text-hairline">|</span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block shadow-xs"></span>
+            <span className="inline-block h-2 w-2 rounded-full bg-primary shadow-xs" />
             Destination
           </span>
         </div>
       </div>
 
-      {/* Side-by-Side Location & Contact Cards */}
-      <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/70 border-t border-slate-100">
-        {/* Provider Hub Details */}
-        <div className="p-4 bg-white rounded-xl border border-indigo-100 shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-xs">
-                <Briefcase size={16} />
+      {/* Location and contact cards */}
+      <div className="grid grid-cols-1 gap-3 border-t border-hairline bg-surface-soft/40 p-5 md:grid-cols-2">
+        {/* Provider details */}
+        <div className="space-y-2 rounded-md border border-hairline bg-card p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md border border-accent-teal/20 bg-accent-teal/8 text-accent-teal">
+                <Briefcase size={15} strokeWidth={1.8} />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider block">
-                  Service Partner
+                <span className="block text-[8px] uppercase tracking-[0.14em] text-accent-teal">
+                  Service partner
                 </span>
-                <h4 className="text-xs font-bold text-slate-900">{provider?.name}</h4>
+                <h4 className="mt-0.5 text-[12px] font-medium text-ink">{provider?.name}</h4>
               </div>
             </div>
-            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+            <span className="rounded-xs border border-hairline bg-surface-soft px-2 py-0.5 text-[9px] font-medium text-muted-foreground">
               {provider?.category}
             </span>
           </div>
 
-          <div className="text-xs text-slate-600 space-y-1 pt-1">
+          <div className="space-y-1 pt-1 text-[11px]">
             <div className="flex items-start gap-1.5">
-              <MapPin size={14} className="text-indigo-500 shrink-0 mt-0.5" />
-              <span className="line-clamp-2 text-[11px] font-medium text-slate-700">{provider?.address}</span>
+              <MapPin size={13} className="mt-0.5 shrink-0 text-accent-teal" />
+              <span className="line-clamp-2 font-medium text-body">{provider?.address}</span>
             </div>
             {provider?.phone && (
               <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                  <Phone size={12} className="text-slate-400" /> {provider.phone}
+                <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <Phone size={11} /> {provider.phone}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleCopy(provider.phone)}
-                  className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer"
+                  className="text-[9px] font-medium text-accent-teal transition-colors hover:text-primary"
                 >
-                  {copiedPhone === provider.phone ? 'Copied!' : 'Copy Phone'}
+                  {copiedPhone === provider.phone ? 'Copied' : 'Copy phone'}
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Customer Destination Details */}
-        <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-xs">
-                <User size={16} />
+        {/* Customer destination */}
+        <div className="space-y-2 rounded-md border border-hairline bg-card p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md border border-primary/20 bg-primary/6 text-primary">
+                <User size={15} strokeWidth={1.8} />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-emerald-600 tracking-wider block">
-                  Service Destination
+                <span className="block text-[8px] uppercase tracking-[0.14em] text-primary">
+                  Service destination
                 </span>
-                <h4 className="text-xs font-bold text-slate-900">{customer?.name}</h4>
+                <h4 className="mt-0.5 text-[12px] font-medium text-ink">{customer?.name}</h4>
               </div>
             </div>
-            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md flex items-center gap-1">
-              <CheckCircle2 size={12} /> Target Pin
+            <span className="flex items-center gap-1 rounded-xs border border-primary/20 bg-primary/6 px-2 py-0.5 text-[9px] font-medium text-primary">
+              <CheckCircle2 size={10} /> Target pin
             </span>
           </div>
 
-          <div className="text-xs text-slate-600 space-y-1 pt-1">
+          <div className="space-y-1 pt-1 text-[11px]">
             <div className="flex items-start gap-1.5">
-              <MapPin size={14} className="text-emerald-500 shrink-0 mt-0.5" />
-              <span className="line-clamp-2 text-[11px] font-medium text-slate-700">{customer?.address}</span>
+              <MapPin size={13} className="mt-0.5 shrink-0 text-primary" />
+              <span className="line-clamp-2 font-medium text-body">{customer?.address}</span>
             </div>
             {customer?.phone && (
               <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                  <Phone size={12} className="text-slate-400" /> {customer.phone}
+                <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <Phone size={11} /> {customer.phone}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleCopy(customer.phone)}
-                  className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 transition-colors cursor-pointer"
+                  className="text-[9px] font-medium text-primary transition-colors hover:text-primary-active"
                 >
-                  {copiedPhone === customer.phone ? 'Copied!' : 'Copy Phone'}
+                  {copiedPhone === customer.phone ? 'Copied' : 'Copy phone'}
                 </button>
               </div>
             )}

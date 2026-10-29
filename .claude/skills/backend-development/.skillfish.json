@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "backend-development",
+  "owner": "ggprompts",
+  "repo": "my-plugins",
+  "path": "plugins/backend/backend-development/skills/backend-development",
+  "branch": "main",
+  "sha": "3d6d16b6ee98e8ebb472ebd03d73a978b8000082",
+  "source": "manual"
+}

@@ -1,4 +1,5 @@
 const prisma = require("../../config/prisma");
+const ApiError = require("../../utils/errors");
 
 const createBooking = async (userId, bookingData) => {
     const customer = await prisma.customer.findUnique({
@@ -6,36 +7,43 @@ const createBooking = async (userId, bookingData) => {
     });
 
     if (!customer) {
-        throw new Error("Customer profile not found. Only registered customers can make bookings.");
+        throw ApiError.badRequest("Customer profile not found. Only registered customers can make bookings.");
     }
 
     const { providerId, serviceId, slotId, serviceDate, location, latitude, longitude } = bookingData;
 
-    // Verify provider exists and is verified
+    // Verify provider exists
     const provider = await prisma.serviceProvider.findUnique({
         where: { id: providerId },
         include: { user: true }
     });
 
     if (!provider) {
-        throw new Error("Provider not found");
+        throw ApiError.notFound("Provider not found");
     }
 
     let totalPrice = 0;
     if (serviceId) {
         const service = await prisma.service.findUnique({ where: { id: serviceId } });
-        if (service) {
-            totalPrice = service.price;
+        if (!service) {
+            throw ApiError.notFound("Service not found");
         }
+        if (service.providerId !== provider.id) {
+            throw ApiError.badRequest("The selected service does not belong to this service provider");
+        }
+        totalPrice = service.price;
     }
 
     const dateObj = new Date(serviceDate);
+    if (isNaN(dateObj.getTime())) {
+        throw ApiError.badRequest("Invalid service date");
+    }
 
     // Prevent double booking on slot if slotId provided
     if (slotId) {
         const slot = await prisma.availabilitySlot.findUnique({ where: { id: slotId } });
-        if (!slot || slot.isBooked) {
-            throw new Error("Selected time slot is unavailable or already booked.");
+        if (!slot || slot.isBooked || slot.providerId !== provider.id) {
+            throw ApiError.conflict("Selected time slot is unavailable or already booked.");
         }
     }
 
@@ -63,7 +71,7 @@ const createBooking = async (userId, bookingData) => {
             },
             include: {
                 provider: {
-                    include: { user: { select: { name: true, phone: true } } }
+                    include: { user: { select: { name: true, phone: true } }, category: true }
                 },
                 service: true
             }
@@ -73,7 +81,7 @@ const createBooking = async (userId, bookingData) => {
         await tx.notification.create({
             data: {
                 bookingId: booking.id,
-                message: `New booking request from ${customer.id} for service on ${dateObj.toLocaleDateString()}`,
+                message: `New booking request from customer #${customer.id} on ${dateObj.toLocaleDateString()}`,
                 type: "BOOKING_CREATED"
             }
         });
@@ -86,7 +94,7 @@ const getCustomerBookings = async (userId) => {
     const customer = await prisma.customer.findUnique({ where: { userId } });
 
     if (!customer) {
-        throw new Error("Customer profile not found");
+        throw ApiError.notFound("Customer profile not found");
     }
 
     return prisma.booking.findMany({
@@ -109,7 +117,7 @@ const getProviderBookings = async (userId) => {
     const provider = await prisma.serviceProvider.findUnique({ where: { userId } });
 
     if (!provider) {
-        throw new Error("Provider profile not found");
+        throw ApiError.notFound("Provider profile not found");
     }
 
     return prisma.booking.findMany({
@@ -129,6 +137,10 @@ const getProviderBookings = async (userId) => {
 
 const getBookingById = async (user, bookingId) => {
     const id = parseInt(bookingId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid booking ID");
+    }
+
     const booking = await prisma.booking.findUnique({
         where: { id },
         include: {
@@ -140,15 +152,15 @@ const getBookingById = async (user, bookingId) => {
     });
 
     if (!booking) {
-        throw new Error("Booking not found");
+        throw ApiError.notFound("Booking not found");
     }
 
     // Role-based authorization check
     if (user.role === "CUSTOMER" && booking.customer.userId !== user.userId) {
-        throw new Error("Unauthorized to view this booking");
+        throw ApiError.forbidden("Unauthorized to view this booking");
     }
     if (user.role === "PROVIDER" && booking.provider.userId !== user.userId) {
-        throw new Error("Unauthorized to view this booking");
+        throw ApiError.forbidden("Unauthorized to view this booking");
     }
 
     let tracking = null;
@@ -167,6 +179,10 @@ const getBookingById = async (user, bookingId) => {
 
 const updateBookingStatus = async (user, bookingId, status) => {
     const id = parseInt(bookingId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid booking ID");
+    }
+
     const booking = await prisma.booking.findUnique({
         where: { id },
         include: {
@@ -176,23 +192,39 @@ const updateBookingStatus = async (user, bookingId, status) => {
     });
 
     if (!booking) {
-        throw new Error("Booking not found");
+        throw ApiError.notFound("Booking not found");
     }
 
-    // State machine & permission checks
+    // Role authorization check
     if (user.role === "PROVIDER" && booking.provider.userId !== user.userId) {
-        throw new Error("Unauthorized to modify this booking");
+        throw ApiError.forbidden("Unauthorized to modify this booking");
     }
 
     if (user.role === "CUSTOMER" && booking.customer.userId !== user.userId) {
-        throw new Error("Unauthorized to modify this booking");
+        throw ApiError.forbidden("Unauthorized to modify this booking");
     }
 
-    // Cancellation policy check for customer (24 hour window recommendation)
-    if (status === "CANCELLED" && user.role === "CUSTOMER") {
+    // Immutable terminal states
+    if (booking.status === "COMPLETED" || booking.status === "CANCELLED" || booking.status === "REJECTED") {
+        throw ApiError.badRequest(`Cannot modify booking in terminal status: ${booking.status}`);
+    }
+
+    // Role-specific permitted transitions
+    if (user.role === "CUSTOMER") {
+        if (status !== "CANCELLED") {
+            throw ApiError.forbidden("Customers can only cancel bookings.");
+        }
         const hoursDiff = (new Date(booking.serviceDate) - new Date()) / (1000 * 60 * 60);
         if (hoursDiff < 2) {
-            throw new Error("Bookings cannot be cancelled less than 2 hours before scheduled service date.");
+            throw ApiError.badRequest("Bookings cannot be cancelled less than 2 hours before scheduled service date.");
+        }
+    } else if (user.role === "PROVIDER") {
+        const allowed = ["ACCEPTED", "REJECTED", "COMPLETED"];
+        if (!allowed.includes(status)) {
+            throw ApiError.badRequest(`Providers cannot transition booking to ${status}`);
+        }
+        if (booking.status === "PENDING" && status === "COMPLETED") {
+            throw ApiError.badRequest("Booking must be accepted before it can be marked completed.");
         }
     }
 
@@ -210,7 +242,9 @@ const updateBookingStatus = async (user, bookingId, status) => {
             data: { status },
             include: {
                 service: true,
-                payment: true
+                payment: true,
+                provider: { include: { user: true } },
+                customer: { include: { user: true } }
             }
         });
 
@@ -228,17 +262,25 @@ const updateBookingStatus = async (user, bookingId, status) => {
 
 const updateBookingLocation = async (user, bookingId, locationData) => {
     const id = parseInt(bookingId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid booking ID");
+    }
+
     const booking = await prisma.booking.findUnique({
         where: { id },
         include: { customer: true }
     });
 
     if (!booking) {
-        throw new Error("Booking not found");
+        throw ApiError.notFound("Booking not found");
     }
 
     if (user.role === "CUSTOMER" && booking.customer.userId !== user.userId) {
-        throw new Error("Unauthorized to modify this booking's location");
+        throw ApiError.forbidden("Unauthorized to modify this booking's location");
+    }
+
+    if (user.role === "PROVIDER") {
+        throw ApiError.forbidden("Providers cannot modify the customer's delivery destination");
     }
 
     const { location, latitude, longitude } = locationData;

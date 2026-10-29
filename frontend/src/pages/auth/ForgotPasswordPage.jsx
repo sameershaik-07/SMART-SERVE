@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { forgotPasswordApi } from '../../api/auth';
@@ -26,64 +26,78 @@ export const ForgotPasswordPage = () => {
     }
   };
 
-  return (
-    <div className="w-full max-w-md mx-auto space-y-6 animate-fade-in">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-600/30">
-          <Shield size={24} className="fill-white stroke-purple-600" />
+  if (submitted) {
+    return (
+      <div className="w-full space-y-7">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-accent-teal/25 bg-accent-teal/10 text-accent-teal">
+          <CheckCircle2 size={26} strokeWidth={1.6} />
         </div>
-        <span className="text-2xl font-black text-slate-900 tracking-tight">ServiceHub</span>
+        <div>
+          <p className="sh-eyebrow">Reset link sent</p>
+          <h1 className="mt-2 font-display text-[2.6rem] leading-[1.02] tracking-[-0.035em] text-ink">
+            Check your inbox.
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            We’ve sent password reset instructions to{' '}
+            <strong className="font-medium text-ink">{email}</strong>. The link is valid for a
+            short while, so use it soon.
+          </p>
+        </div>
+        <div className="rounded-md border border-hairline bg-surface-soft/60 p-4 text-xs leading-relaxed text-muted-foreground">
+          Didn’t get it? Check spam, or try again with a different address.
+        </div>
+        <Button onClick={() => setSubmitted(false)} variant="outline" className="w-full">
+          Try another email
+        </Button>
+        <p className="border-t border-hairline pt-5 text-center text-xs text-muted-foreground">
+          <Link to="/login" className="inline-flex items-center gap-1.5 font-medium text-ink hover:text-primary">
+            <ArrowLeft size={13} /> Back to sign in
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full space-y-6">
+      <div>
+        <p className="sh-eyebrow">Account recovery</p>
+        <h1 className="mt-2 font-display text-[2.6rem] leading-[1.02] tracking-[-0.035em] text-ink">
+          Find your way back.
+        </h1>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          Enter the email address on your account and we’ll send you a secure reset link.
+        </p>
       </div>
 
-      {submitted ? (
-        <div className="text-center py-4 space-y-4">
-          <div className="w-16 h-16 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle size={32} />
-          </div>
-          <h2 className="text-2xl font-extrabold text-slate-900">Check Your Email</h2>
-          <p className="text-sm text-slate-600 max-w-sm mx-auto">
-            We have sent password reset instructions to <strong>{email}</strong>.
-          </p>
-          <Link to="/login" className="inline-block mt-4 text-sm font-bold text-purple-600 hover:text-purple-800">
-            ← Back to Login
-          </Link>
+      {error && (
+        <div className="flex items-start gap-2.5 rounded-md border border-destructive/20 bg-destructive/6 p-3.5 text-xs leading-relaxed text-destructive">
+          <AlertCircle size={15} className="mt-0.5 shrink-0" />
+          <span>{error}</span>
         </div>
-      ) : (
-        <>
-          <div>
-            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Forgot Password?</h2>
-            <p className="text-sm text-slate-500 mt-1">Enter your registered email address to receive reset instructions.</p>
-          </div>
-
-          {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Email Address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              icon={Mail}
-              required
-            />
-
-            <Button type="submit" fullWidth loading={loading} size="lg">
-              Send Reset Link
-            </Button>
-          </form>
-
-          <p className="text-center text-xs text-slate-500 font-medium">
-            <Link to="/login" className="inline-flex items-center gap-1 font-bold text-purple-600 hover:text-purple-800">
-              <ArrowLeft size={14} /> Back to Login
-            </Link>
-          </p>
-        </>
       )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Email address"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          icon={Mail}
+          autoComplete="email"
+          required
+        />
+        <Button type="submit" fullWidth loading={loading} size="lg">
+          Send reset link
+        </Button>
+      </form>
+
+      <p className="border-t border-hairline pt-5 text-center text-xs text-muted-foreground">
+        <Link to="/login" className="inline-flex items-center gap-1.5 font-medium text-ink hover:text-primary">
+          <ArrowLeft size={13} /> Back to sign in
+        </Link>
+      </p>
     </div>
   );
 };

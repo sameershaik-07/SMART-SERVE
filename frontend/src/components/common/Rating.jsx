@@ -1,19 +1,18 @@
 import React from 'react'
 import { Star } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-export const Rating = ({ value = 0, count, size = 16, showNumber = true }) => {
+export const Rating = ({ value = 0, count, size = 14, showNumber = true, className }) => {
   return (
-    <div className="flex items-center gap-1.5">
-      <Star size={size} className="fill-amber-400 text-amber-400" />
+    <div className={cn('flex items-center gap-1.5', className)}>
+      <Star size={size} className="fill-accent-amber text-accent-amber" strokeWidth={1.5} />
       {showNumber && (
-        <span className="text-sm font-semibold text-foreground">
+        <span className="text-sm font-medium tabular-nums text-ink">
           {Number(value).toFixed(1)}
         </span>
       )}
       {count !== undefined && (
-        <span className="text-xs text-muted-foreground font-normal">
-          ({count})
-        </span>
+        <span className="text-xs font-normal text-muted-foreground">({count})</span>
       )}
     </div>
   )

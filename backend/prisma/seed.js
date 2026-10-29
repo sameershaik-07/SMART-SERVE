@@ -7,7 +7,7 @@ async function main() {
 
     const hashedPassword = await bcrypt.hash("Password123!", 10);
 
-    // 1. Seed Service Categories (ensure the marketplace defaults exist)
+    // 1. Seed Service Categories (the 8 marketplace categories)
     console.log("--> Seeding Categories...");
     const defaultCategories = [
         { categoryName: "Home Services", description: "Deep cleaning, plumbing, painting & home maintenance" },
@@ -29,19 +29,20 @@ async function main() {
         });
         createdCategories[cat.categoryName] = record;
     }
-    // pick a sensible default category for provider seeding
-    const cleaningCategory = createdCategories['Home Services'];
+
+    const homeServicesCat = createdCategories["Home Services"];
+    const repairsCat = createdCategories["Repairs"];
 
     // 2. Seed Admin User
     console.log("--> Seeding Admin User...");
-    const adminUser = await prisma.user.upsert({
+    await prisma.user.upsert({
         where: { email: "admin@smartserve.com" },
         update: {},
         create: {
             name: "Super Admin",
             email: "admin@smartserve.com",
             password: hashedPassword,
-            phone: "+1999888777",
+            phone: "+91 99988 87770",
             role: "ADMIN",
             isEmailVerified: true,
             admin: {
@@ -50,8 +51,99 @@ async function main() {
         }
     });
 
-    // 3. Skip demo provider seeding to prevent fake services in the marketplace.
-    // Real providers must be created by signing up or through admin approval.
+    // 3. Seed Verified Service Provider User
+    console.log("--> Seeding Verified Service Provider User...");
+    const providerUser = await prisma.user.upsert({
+        where: { email: "provider@smartserve.com" },
+        update: {},
+        create: {
+            name: "CoolTech Certified Pro",
+            email: "provider@smartserve.com",
+            password: hashedPassword,
+            phone: "+91 98765 43210",
+            role: "PROVIDER",
+            isEmailVerified: true,
+            provider: {
+                create: {
+                    categoryId: repairsCat.id,
+                    verified: true,
+                    rating: 4.9,
+                    availability: true,
+                    address: "ServiceHub Hub, Market Road, Macherla, Andhra Pradesh 522426",
+                    bio: "Certified HVAC & home appliance maintenance specialist with 8+ years experience."
+                }
+            }
+        },
+        include: { provider: true }
+    });
+
+    // Seed Services for this provider if none exist
+    const existingServices = await prisma.service.findMany({
+        where: { providerId: providerUser.provider.id }
+    });
+
+    if (existingServices.length === 0) {
+        console.log("--> Seeding Provider Services...");
+        await prisma.service.createMany({
+            data: [
+                {
+                    providerId: providerUser.provider.id,
+                    title: "AC Repair & Deep Cleaning Service",
+                    description: "Complete indoor and outdoor unit jet-cleaning, gas pressure check, cooling coil inspection and thorough antibacterial sanitization.",
+                    price: 599.0,
+                    durationMinutes: 60,
+                    images: ["https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80"],
+                    isActive: true
+                },
+                {
+                    providerId: providerUser.provider.id,
+                    title: "Refrigerator Inspection & Gas Refill",
+                    description: "Comprehensive compressor diagnostic, thermostat temperature regulation, seal check, and eco-friendly gas recharging.",
+                    price: 799.0,
+                    durationMinutes: 90,
+                    images: ["https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80"],
+                    isActive: true
+                }
+            ]
+        });
+    }
+
+    // Seed Availability Slots for the provider (upcoming dates)
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const slotTimes = [
+        { startTime: "09:00 AM", endTime: "10:30 AM" },
+        { startTime: "10:30 AM", endTime: "12:00 PM" },
+        { startTime: "02:00 PM", endTime: "03:30 PM" },
+        { startTime: "04:00 PM", endTime: "05:30 PM" }
+    ];
+
+    for (const slot of slotTimes) {
+        const slotDate = new Date(tomorrow);
+        slotDate.setHours(0, 0, 0, 0);
+
+        const exists = await prisma.availabilitySlot.findFirst({
+            where: {
+                providerId: providerUser.provider.id,
+                date: slotDate,
+                startTime: slot.startTime
+            }
+        });
+
+        if (!exists) {
+            await prisma.availabilitySlot.create({
+                data: {
+                    providerId: providerUser.provider.id,
+                    date: slotDate,
+                    startTime: slot.startTime,
+                    endTime: slot.endTime,
+                    isBooked: false
+                }
+            });
+        }
+    }
 
     // 4. Seed Customer User
     console.log("--> Seeding Customer User...");
@@ -62,12 +154,12 @@ async function main() {
             name: "John Customer",
             email: "customer@smartserve.com",
             password: hashedPassword,
-            phone: "+1222333444",
+            phone: "+91 91234 56789",
             role: "CUSTOMER",
             isEmailVerified: true,
             customer: {
                 create: {
-                    address: "123 Main Street, Suite 400",
+                    address: "123 Main Street, Suite 400, Macherla, Andhra Pradesh 522426",
                     walletBalance: 2500.0
                 }
             }

@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const prisma = require("../../config/prisma");
+const ApiError = require("../../utils/errors");
 
 const getUserProfile = async (userId) => {
     const user = await prisma.user.findUnique({
@@ -16,7 +17,7 @@ const getUserProfile = async (userId) => {
     });
 
     if (!user) {
-        throw new Error("User profile not found");
+        throw ApiError.notFound("User profile not found");
     }
 
     const { password, ...userWithoutPassword } = user;
@@ -29,8 +30,8 @@ const updateUserProfile = async (userId, data) => {
     const user = await prisma.user.update({
         where: { id: userId },
         data: {
-            ...(name && { name }),
-            ...(phone && { phone })
+            ...(name !== undefined && { name }),
+            ...(phone !== undefined && { phone })
         },
         include: {
             customer: true,
@@ -38,14 +39,14 @@ const updateUserProfile = async (userId, data) => {
         }
     });
 
-    if (address && user.role === "CUSTOMER" && user.customer) {
+    if (address !== undefined && user.role === "CUSTOMER" && user.customer) {
         await prisma.customer.update({
             where: { userId },
             data: { address }
         });
     }
 
-    if (address && user.role === "PROVIDER" && user.provider) {
+    if (address !== undefined && user.role === "PROVIDER" && user.provider) {
         await prisma.serviceProvider.update({
             where: { userId },
             data: { address }
@@ -59,12 +60,12 @@ const changePassword = async (userId, currentPassword, newPassword) => {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
-        throw new Error("User not found");
+        throw ApiError.notFound("User not found");
     }
 
     const isValid = await bcrypt.compare(currentPassword, user.password);
     if (!isValid) {
-        throw new Error("Current password is incorrect");
+        throw ApiError.badRequest("Current password is incorrect");
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);

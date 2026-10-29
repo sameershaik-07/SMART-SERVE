@@ -8,20 +8,23 @@ import {
   AlertCircle,
   Sparkles,
   RefreshCw,
-  Sun,
-  Moon,
-  Check,
   X,
-  ChevronLeft,
-  ChevronRight,
-  ShieldCheck
+  ShieldCheck,
 } from 'lucide-react';
-import {
-  getMySlotsApi,
-  createSlotApi,
-  deleteSlotApi
-} from '../../api/availability';
+import { getMySlotsApi, createSlotApi, deleteSlotApi } from '../../api/availability';
 import { getProviderDashboardApi, updateProviderProfileApi } from '../../api/providers';
+import { Reveal } from '@/components/motion/Reveal';
+import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
+import { cn } from '@/lib/utils';
+
+const fieldClass =
+  'h-10 w-full rounded-md border border-input bg-canvas px-3.5 text-xs text-ink outline-hidden transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-3 focus:ring-primary/15';
+
+const labelClass =
+  'mb-2 block text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground';
+
+const sectionIcon =
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-hairline bg-surface-soft text-primary';
 
 export const ProviderAvailabilityPage = () => {
   const [slots, setSlots] = useState([]);
@@ -124,7 +127,10 @@ export const ProviderAvailabilityPage = () => {
 
       const newSlot = res.slot || res;
       setSlots((prev) => [...prev, newSlot]);
-      setFeedback({ type: 'success', msg: `Slot added for ${selectedDate} (${startTime} - ${endTime})!` });
+      setFeedback({
+        type: 'success',
+        msg: `Slot added for ${selectedDate} (${startTime} - ${endTime})!`,
+      });
       setTimeout(() => setFeedback({ type: '', msg: '' }), 3000);
     } catch (err) {
       setFeedback({ type: 'error', msg: err.message || 'Slot already exists or failed to create.' });
@@ -209,345 +215,421 @@ export const ProviderAvailabilityPage = () => {
   const availableSlotsCount = slots.filter((s) => !s.isBooked).length;
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-16">
-      {/* Header & Master Availability */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/80 border border-slate-700/80 p-6 rounded-3xl backdrop-blur-md">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs uppercase font-extrabold text-emerald-400 tracking-wider">
-              Working Hours & Slots
-            </span>
-            <span className="inline-flex items-center gap-1 bg-indigo-500/20 text-indigo-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-indigo-500/30">
-              <CalendarIcon size={12} /> Live Booking Calendar
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-            Availability & Appointment Slots
-          </h1>
-          <p className="text-xs md:text-sm text-slate-400 mt-0.5">
-            Configure your operating schedule and publish time slots so customers can book you easily.
-          </p>
-        </div>
+    <div className="mx-auto max-w-[1180px] animate-fade-in space-y-6 pb-16">
+      {/* Espresso header with master availability */}
+      <Reveal>
+        <section className="sh-dark-panel relative overflow-hidden rounded-xl">
+          <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-coral/20 blur-[100px]" />
+          <div className="sh-ruled-grid pointer-events-none absolute inset-0 opacity-[0.1]" />
+          <div className="relative flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-xl">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-coral">
+                  Working hours & slots
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-pill border border-white/10 bg-white/[0.05] px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.08em] text-on-dark-soft">
+                  <CalendarIcon size={10} /> Live booking calendar
+                </span>
+              </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3 bg-slate-900/90 border border-slate-700/80 px-4 py-2.5 rounded-2xl">
-            <div className="flex flex-col text-right">
-              <span className="text-xs font-bold text-white">
-                {isAvailable ? 'Currently Open' : 'Paused / Offline'}
-              </span>
-              <span className="text-[10px] text-slate-400">Master Service Status</span>
+              <h1 className="mt-3 font-display text-[clamp(2.1rem,4.4vw,3rem)] leading-[1] tracking-[-0.035em] text-on-dark">
+                Availability & appointment slots
+              </h1>
+              <p className="mt-3 text-[12px] leading-relaxed text-on-dark-soft">
+                Publish the hours you can work and let customers book the moments that suit you
+                both.
+              </p>
             </div>
-            <button
-              onClick={handleMasterToggle}
-              disabled={togglingLive}
-              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
-                isAvailable ? 'bg-emerald-500' : 'bg-slate-700'
-              }`}
-            >
-              <span
-                className={`block w-4 h-4 rounded-full bg-white shadow-sm transition-transform absolute top-1 ${
-                  isAvailable ? 'left-7' : 'left-1'
-                }`}
-              />
-            </button>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex items-center gap-4 rounded-lg border border-white/10 bg-white/[0.05] px-4 py-3 backdrop-blur-md">
+                <div className="text-right">
+                  <span className="block text-[11px] font-medium text-on-dark">
+                    {isAvailable ? 'Currently open' : 'Paused / offline'}
+                  </span>
+                  <span className="mt-0.5 block text-[9px] text-on-dark-soft">
+                    Master service status
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleMasterToggle}
+                  disabled={togglingLive}
+                  aria-pressed={isAvailable}
+                  aria-label="Toggle master availability"
+                  className={cn(
+                    'relative h-6 w-11 shrink-0 rounded-full transition-colors duration-300',
+                    isAvailable ? 'bg-coral' : 'bg-white/15',
+                    togglingLive && 'opacity-60'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'absolute top-1 block h-4 w-4 rounded-full bg-canvas shadow-xs transition-transform duration-300',
+                      isAvailable ? 'translate-x-6' : 'translate-x-1'
+                    )}
+                  />
+                </button>
+              </div>
+
+              <button
+                onClick={fetchAvailabilityData}
+                title="Refresh availability"
+                className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] text-on-dark-soft backdrop-blur-md transition-colors hover:text-on-dark"
+              >
+                <RefreshCw size={17} className={loading ? 'animate-spin' : ''} />
+              </button>
+            </div>
           </div>
+        </section>
+      </Reveal>
 
-          <button
-            onClick={fetchAvailabilityData}
-            title="Refresh"
-            className="w-11 h-11 rounded-2xl bg-slate-900/90 border border-slate-700/80 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
-        </div>
-      </div>
-
-      {/* Inline Feedback Banner */}
+      {/* Feedback */}
       {feedback.msg && (
         <div
-          className={`p-4 rounded-2xl text-xs font-bold flex items-center justify-between animate-fade-in ${
+          className={cn(
+            'flex animate-fade-in items-center justify-between gap-3 rounded-md border px-4 py-3 text-xs font-medium',
             feedback.type === 'error'
-              ? 'bg-rose-950/80 border border-rose-500/50 text-rose-300'
-              : 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300'
-          }`}
+              ? 'border-destructive/25 bg-destructive/8 text-destructive'
+              : 'border-accent-teal/25 bg-accent-teal/8 text-accent-teal'
+          )}
         >
-          <span>{feedback.msg}</span>
-          <button onClick={() => setFeedback({ type: '', msg: '' })}>
+          <span className="flex items-center gap-2">
+            {feedback.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
+            {feedback.msg}
+          </span>
+          <button
+            onClick={() => setFeedback({ type: '', msg: '' })}
+            className="transition-opacity hover:opacity-70"
+            aria-label="Dismiss message"
+          >
             <X size={14} />
           </button>
         </div>
       )}
 
-      {/* Overview Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 bg-slate-800/60 border border-slate-700/80 rounded-2xl flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-            <CheckCircle2 size={18} />
-          </div>
-          <div>
-            <div className="text-xs text-slate-400 font-bold uppercase">Available Slots</div>
-            <div className="text-xl font-black text-emerald-400">{availableSlotsCount} Open</div>
-          </div>
-        </div>
-
-        <div className="p-4 bg-slate-800/60 border border-slate-700/80 rounded-2xl flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
-            <Clock size={18} />
-          </div>
-          <div>
-            <div className="text-xs text-slate-400 font-bold uppercase">Booked Appointments</div>
-            <div className="text-xl font-black text-purple-300">{bookedSlotsCount} Reserved</div>
-          </div>
-        </div>
-
-        <div className="p-4 bg-slate-800/60 border border-slate-700/80 rounded-2xl flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-            <CalendarIcon size={18} />
-          </div>
-          <div>
-            <div className="text-xs text-slate-400 font-bold uppercase">Total Published</div>
-            <div className="text-xl font-black text-white">{slots.length} Slots</div>
-          </div>
-        </div>
+      {/* Metrics */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {[
+          {
+            label: 'Available slots',
+            value: availableSlotsCount,
+            suffix: 'open',
+            icon: CheckCircle2,
+            tone: 'border-accent-teal/20 bg-accent-teal/8 text-accent-teal',
+          },
+          {
+            label: 'Booked appointments',
+            value: bookedSlotsCount,
+            suffix: 'reserved',
+            icon: Clock,
+            tone: 'border-accent-amber/25 bg-accent-amber/8 text-accent-amber',
+          },
+          {
+            label: 'Total published',
+            value: slots.length,
+            suffix: 'slots',
+            icon: CalendarIcon,
+            tone: 'border-primary/20 bg-primary/8 text-primary',
+          },
+        ].map(({ label, value, suffix, icon: Icon, tone }, index) => (
+          <Reveal key={label} delay={0.04 + Math.min(index * 0.04, 0.1)}>
+            <div className="flex h-full items-center gap-3.5 rounded-lg border border-hairline bg-card p-4">
+              <span
+                className={cn(
+                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border',
+                  tone
+                )}
+              >
+                <Icon size={17} strokeWidth={1.8} />
+              </span>
+              <div>
+                <div className="text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  {label}
+                </div>
+                <div className="mt-1 flex items-baseline gap-1.5">
+                  <span className="font-display text-[1.5rem] leading-none tracking-[-0.02em] text-ink">
+                    <AnimatedNumber value={value} />
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{suffix}</span>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        ))}
       </div>
 
-      {/* Main Two-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (5 Cols): Recurring Schedule & Bulk Slot Generator */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Schedule Generator Card */}
-          <div className="bg-slate-800/60 border border-slate-700/80 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                <Sparkles size={16} />
+      {/* Main two-column layout */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        {/* Left: schedule */}
+        <div className="space-y-5 lg:col-span-5">
+          <Reveal delay={0.08}>
+            <section className="overflow-hidden rounded-lg border border-hairline bg-card">
+              <div className="flex items-start gap-3 border-b border-hairline px-5 py-4">
+                <span className={cn(sectionIcon, 'text-accent-amber')}>
+                  <Sparkles size={16} strokeWidth={1.8} />
+                </span>
+                <div>
+                  <h2 className="font-display text-[1.4rem] leading-tight tracking-[-0.02em] text-ink">
+                    Weekly shift setup
+                  </h2>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    Generate recurring slots for the week ahead.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-black text-white">Weekly Shift Setup</h3>
-                <p className="text-[11px] text-slate-400">Generate recurring slots for the week ahead</p>
-              </div>
-            </div>
 
-            {/* Days of Week Selection */}
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-2">
-                Active Working Days
-              </label>
-              <div className="grid grid-cols-7 gap-1.5">
-                {Object.keys(activeDays).map((day) => (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() =>
-                      setActiveDays((prev) => ({ ...prev, [day]: !prev[day] }))
-                    }
-                    className={`py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      activeDays[day]
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-card text-muted-foreground border border-border hover:text-foreground'
-                    }`}
+              <div className="space-y-5 p-5">
+                <div>
+                  <label className={labelClass}>Active working days</label>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {Object.keys(activeDays).map((day) => (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => setActiveDays((prev) => ({ ...prev, [day]: !prev[day] }))}
+                        className={cn(
+                          'rounded-sm border py-2 text-[10px] font-medium transition-all',
+                          activeDays[day]
+                            ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                            : 'border-hairline bg-canvas text-muted-foreground hover:border-ink/20 hover:text-ink'
+                        )}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Start shift</label>
+                    <input
+                      type="time"
+                      value={shiftStart}
+                      onChange={(e) => setShiftStart(e.target.value)}
+                      className={fieldClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>End shift</label>
+                    <input
+                      type="time"
+                      value={shiftEnd}
+                      onChange={(e) => setShiftEnd(e.target.value)}
+                      className={fieldClass}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Slot duration</label>
+                  <select
+                    value={slotDurationHours}
+                    onChange={(e) => setSlotDurationHours(parseInt(e.target.value))}
+                    className={cn(fieldClass, 'cursor-pointer')}
                   >
-                    {day}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Shift Range & Slot Duration */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                  Start Shift
-                </label>
-                <input
-                  type="time"
-                  value={shiftStart}
-                  onChange={(e) => setShiftStart(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                  End Shift
-                </label>
-                <input
-                  type="time"
-                  value={shiftEnd}
-                  onChange={(e) => setShiftEnd(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                Slot Duration
-              </label>
-              <select
-                value={slotDurationHours}
-                onChange={(e) => setSlotDurationHours(parseInt(e.target.value))}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-              >
-                <option value={1}>1 Hour per appointment</option>
-                <option value={2}>2 Hours per appointment</option>
-                <option value={3}>3 Hours per appointment</option>
-              </select>
-            </div>
-
-            <button
-              onClick={handleBulkGenerate}
-              disabled={generatingBulk}
-              className="w-full py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-            >
-              <Plus size={16} />
-              {generatingBulk ? 'Generating Slots...' : 'Publish Weekly Working Slots'}
-            </button>
-          </div>
-
-          {/* Quick Single Slot Add Card */}
-          <div className="bg-slate-800/60 border border-slate-700/80 rounded-3xl p-6 space-y-4">
-            <h3 className="text-sm font-black text-white flex items-center gap-2">
-              <Plus size={16} className="text-emerald-400" />
-              Add Custom Single Slot
-            </h3>
-
-            <form onSubmit={handleAddSlot} className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                  Appointment Date
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                    Start (HH:MM)
-                  </label>
-                  <input
-                    type="time"
-                    required
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
+                    <option value={1}>1 hour per appointment</option>
+                    <option value={2}>2 hours per appointment</option>
+                    <option value={3}>3 hours per appointment</option>
+                  </select>
                 </div>
+
+                <button
+                  onClick={handleBulkGenerate}
+                  disabled={generatingBulk}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-md bg-primary py-2.5 text-[11px] font-medium text-primary-foreground transition-all hover:bg-primary-active active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+                >
+                  {generatingBulk ? (
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  ) : (
+                    <Plus size={13} />
+                  )}
+                  {generatingBulk ? 'Generating slots…' : 'Publish weekly working slots'}
+                </button>
+
+                <p className="text-[10px] leading-relaxed text-muted-foreground">
+                  Existing slots are skipped, so it’s safe to run this again when your week changes.
+                </p>
+              </div>
+            </section>
+          </Reveal>
+
+          <Reveal delay={0.12}>
+            <section className="overflow-hidden rounded-lg border border-hairline bg-card">
+              <div className="flex items-center gap-3 border-b border-hairline px-5 py-4">
+                <span className={sectionIcon}>
+                  <Plus size={16} strokeWidth={1.8} />
+                </span>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">
-                    End (HH:MM)
-                  </label>
-                  <input
-                    type="time"
-                    required
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
+                  <h2 className="font-display text-[1.4rem] leading-tight tracking-[-0.02em] text-ink">
+                    Add a single slot
+                  </h2>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    Open a specific window outside your usual pattern.
+                  </p>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={addingSlot}
-                className="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-              >
-                {addingSlot ? 'Adding...' : 'Add Slot'}
-              </button>
-            </form>
-          </div>
+              <form onSubmit={handleAddSlot} className="space-y-4 p-5">
+                <div>
+                  <label className={labelClass}>Appointment date</label>
+                  <input
+                    type="date"
+                    required
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className={fieldClass}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Start (HH:MM)</label>
+                    <input
+                      type="time"
+                      required
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      className={fieldClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>End (HH:MM)</label>
+                    <input
+                      type="time"
+                      required
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      className={fieldClass}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={addingSlot}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-md border border-hairline bg-canvas py-2.5 text-[11px] font-medium text-body transition-all hover:border-primary/30 hover:text-primary active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+                >
+                  {addingSlot ? (
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  ) : (
+                    <Plus size={13} />
+                  )}
+                  {addingSlot ? 'Adding…' : 'Add slot'}
+                </button>
+              </form>
+            </section>
+          </Reveal>
         </div>
 
-        {/* Right Column (7 Cols): Active Slots for Selected Date */}
-        <div className="lg:col-span-7 bg-slate-800/60 border border-slate-700/80 rounded-3xl p-6 space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-700/60">
-            <div>
-              <h2 className="text-base font-black text-white flex items-center gap-2">
-                <CalendarIcon size={18} className="text-emerald-400" />
-                Slots on {new Date(selectedDate).toLocaleDateString('en-IN', {
-                  weekday: 'short',
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                {slotsForSelectedDate.length} total slots configured for this date
-              </p>
+        {/* Right: slots for date */}
+        <Reveal delay={0.1} className="lg:col-span-7">
+          <section className="h-full overflow-hidden rounded-lg border border-hairline bg-card">
+            <div className="flex flex-col gap-3 border-b border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className={cn(sectionIcon, 'text-accent-teal')}>
+                  <CalendarIcon size={16} strokeWidth={1.8} />
+                </span>
+                <div>
+                  <h2 className="font-display text-[1.4rem] leading-tight tracking-[-0.02em] text-ink">
+                    Slots on{' '}
+                    {new Date(selectedDate).toLocaleDateString('en-IN', {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </h2>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    {slotsForSelectedDate.length} slots configured for this date.
+                  </p>
+                </div>
+              </div>
+
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="h-9 rounded-md border border-input bg-canvas px-2.5 text-[10px] text-ink outline-hidden transition-all focus:border-primary focus:ring-3 focus:ring-primary/15"
+              />
             </div>
 
-            {/* Date Selector input */}
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-slate-900 border border-slate-700 text-xs text-white px-3 py-1.5 rounded-xl focus:outline-none focus:border-emerald-500"
-            />
-          </div>
+            <div className="p-5">
+              {slotsForSelectedDate.length === 0 ? (
+                <div className="px-6 py-16 text-center">
+                  <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-hairline bg-surface-soft text-muted-foreground">
+                    <Clock size={22} strokeWidth={1.7} />
+                  </span>
+                  <h3 className="mt-3 text-[13px] font-medium text-ink">No slots for this date</h3>
+                  <p className="mx-auto mt-1 max-w-xs text-[11px] leading-relaxed text-muted-foreground">
+                    Use the weekly generator or add a custom slot to open appointments for this
+                    day.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  {slotsForSelectedDate.map((slot) => {
+                    const isBooked = slot.isBooked;
+                    return (
+                      <div
+                        key={slot.id}
+                        className={cn(
+                          'flex items-center justify-between gap-3 rounded-md border p-3.5 transition-all',
+                          isBooked
+                            ? 'border-accent-amber/25 bg-accent-amber/5'
+                            : 'border-hairline bg-surface-soft/40 hover:border-accent-teal/30'
+                        )}
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-[12px] font-medium tabular-nums text-ink">
+                            <Clock
+                              size={13}
+                              className={isBooked ? 'text-accent-amber' : 'text-accent-teal'}
+                            />
+                            <span>
+                              {slot.startTime} – {slot.endTime}
+                            </span>
+                          </div>
+                          <div className="text-[9px] font-medium uppercase tracking-[0.06em]">
+                            {isBooked ? (
+                              <span className="flex items-center gap-1.5 text-accent-amber">
+                                <span className="h-1 w-1 rounded-full bg-accent-amber" />
+                                Reserved by customer
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5 text-accent-teal">
+                                <span className="h-1 w-1 rounded-full bg-accent-teal" />
+                                Available for booking
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
-          {/* Slot Cards List */}
-          {slotsForSelectedDate.length === 0 ? (
-            <div className="py-20 text-center space-y-3 bg-slate-900/40 rounded-2xl border border-slate-800">
-              <Clock size={36} className="mx-auto text-slate-600" />
-              <h4 className="text-sm font-bold text-white">No Slots for this Date</h4>
-              <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                Use the generator on the left or add a custom slot to open appointments for this day.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {slotsForSelectedDate.map((slot) => {
-                const isBooked = slot.isBooked;
-                return (
-                  <div
-                    key={slot.id}
-                    className={`p-4 rounded-2xl border flex items-center justify-between transition-all ${
-                      isBooked
-                        ? 'bg-purple-950/20 border-purple-500/40 text-purple-200'
-                        : 'bg-slate-900/80 border-slate-700/80 text-white hover:border-slate-600'
-                    }`}
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 font-black text-sm">
-                        <Clock size={14} className={isBooked ? 'text-purple-400' : 'text-emerald-400'} />
-                        <span>
-                          {slot.startTime} - {slot.endTime}
-                        </span>
-                      </div>
-                      <div className="text-[11px] font-semibold">
-                        {isBooked ? (
-                          <span className="text-purple-300 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
-                            Reserved by Customer
-                          </span>
-                        ) : (
-                          <span className="text-emerald-400 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                            Available for Booking
-                          </span>
+                        {!isBooked && (
+                          <button
+                            onClick={() => handleDeleteSlot(slot.id)}
+                            className="rounded-sm p-1.5 text-muted-foreground transition-colors hover:bg-destructive/8 hover:text-destructive"
+                            title="Delete slot"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         )}
                       </div>
-                    </div>
-
-                    {!isBooked && (
-                      <button
-                        onClick={() => handleDeleteSlot(slot.id)}
-                        className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer"
-                        title="Delete Slot"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
+            <div className="border-t border-hairline bg-surface-soft/30 px-5 py-3">
+              <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <ShieldCheck size={11} className="text-accent-teal" />
+                Reserved slots can’t be removed while a customer booking is active.
+              </p>
+            </div>
+          </section>
+        </Reveal>
       </div>
     </div>
   );

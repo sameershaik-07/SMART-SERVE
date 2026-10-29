@@ -45,7 +45,7 @@ const verifyProvider = async (req, res, next) => {
 const rejectProvider = async (req, res, next) => {
     try {
         const userId = req.user.userId;
-        const { reason } = rejectProviderSchema.parse(req.body);
+        const { reason } = rejectProviderSchema.parse(req.body || {});
         const result = await adminService.rejectProvider(userId, req.params.id, reason);
 
         return res.status(200).json({

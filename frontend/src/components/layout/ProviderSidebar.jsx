@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import {
-  Shield,
   LayoutDashboard,
   CalendarCheck,
   Briefcase,
@@ -11,14 +10,24 @@ import {
   MessageSquare,
   LogOut,
   CheckCircle2,
-  Sparkles
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { updateProviderProfileApi } from '@/api/providers';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
+import { BrandLockup } from '@/components/brand/BrandMark';
+
+const navItems = [
+  { label: 'Dashboard', path: '/provider/dashboard', icon: LayoutDashboard },
+  { label: 'Job requests', path: '/provider/bookings', icon: CalendarCheck },
+  { label: 'My services', path: '/provider/services', icon: Briefcase },
+  { label: 'Availability', path: '/provider/availability', icon: Clock },
+  { label: 'Earnings', path: '/provider/earnings', icon: Wallet },
+  { label: 'Profile & KYC', path: '/provider/profile', icon: UserCheck },
+  { label: 'Messages', path: '/provider/messages', icon: MessageSquare },
+];
 
 export const ProviderSidebar = ({ className, availability, onAvailabilityToggle, onItemClick }) => {
   const { user, logout } = useAuth();
@@ -32,49 +41,36 @@ export const ProviderSidebar = ({ className, availability, onAvailabilityToggle,
       setIsOnline(nextStatus);
       await updateProviderProfileApi({ availability: nextStatus });
       if (onAvailabilityToggle) onAvailabilityToggle(nextStatus);
-    } catch (err) {
-      console.error('Failed to update availability:', err);
+    } catch (error) {
+      console.error('Failed to update availability:', error);
       setIsOnline(isOnline);
     } finally {
       setToggling(false);
     }
   };
 
-  const navItems = [
-    { label: 'Dashboard', path: '/provider/dashboard', icon: LayoutDashboard },
-    { label: 'Job Requests', path: '/provider/bookings', icon: CalendarCheck },
-    { label: 'My Services', path: '/provider/services', icon: Briefcase },
-    { label: 'Availability', path: '/provider/availability', icon: Clock },
-    { label: 'Earnings', path: '/provider/earnings', icon: Wallet },
-    { label: 'Profile & KYC', path: '/provider/profile', icon: UserCheck },
-    { label: 'Messages', path: '/provider/messages', icon: MessageSquare },
-  ];
-
   return (
-    <aside className={cn("w-[248px] bg-sidebar text-sidebar-foreground flex flex-col h-full border-r border-sidebar-border select-none transition-colors", className)}>
-      {/* Brand Header */}
+    <aside
+      className={cn(
+        'flex h-full w-[264px] select-none flex-col border-r border-white/8 bg-surface-dark text-on-dark',
+        className
+      )}
+    >
       <Link
         to="/provider/dashboard"
         onClick={onItemClick}
-        className="h-[76px] flex items-center gap-3 px-5 border-b border-sidebar-border hover:bg-sidebar-accent/50 transition-colors"
+        className="flex h-20 items-center border-b border-white/8 px-5 transition-colors hover:bg-white/[0.035]"
       >
-        <div className="w-10 h-10 bg-sidebar-primary rounded-xl flex items-center justify-center text-sidebar-primary-foreground shadow-sm">
-          <Shield size={22} className="fill-current" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-lg font-bold tracking-tight text-sidebar-foreground">ServiceHub</span>
-          <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
-            <Sparkles size={10} /> Partner Portal
-          </span>
-        </div>
+        <BrandLockup size={32} inverted showTagline />
       </Link>
 
-      {/* Real-time Availability Switch */}
-      <div className="px-4 py-3 mx-3 my-3 rounded-xl bg-sidebar-accent/40 border border-sidebar-border flex items-center justify-between">
+      <div className="mx-3 mt-4 flex items-center justify-between rounded-md border border-white/8 bg-surface-dark-elevated px-3 py-2.5">
         <div className="flex items-center gap-2">
-          <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-muted-foreground/40'}`}></span>
-          <span className="text-xs font-semibold text-sidebar-foreground">
-            {isOnline ? 'Accepting Jobs' : 'Offline'}
+          <span
+            className={`h-2 w-2 rounded-full ${isOnline ? 'bg-accent-teal animate-pulse' : 'bg-on-dark-soft/40'}`}
+          />
+          <span className="text-[11px] font-medium text-on-dark">
+            {isOnline ? 'Accepting jobs' : 'Offline'}
           </span>
         </div>
         <Switch
@@ -85,8 +81,10 @@ export const ProviderSidebar = ({ className, availability, onAvailabilityToggle,
         />
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        <p className="px-3 pb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-on-dark-soft">
+          Operations
+        </p>
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -96,48 +94,56 @@ export const ProviderSidebar = ({ className, availability, onAvailabilityToggle,
               onClick={onItemClick}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all",
+                  'relative flex items-center gap-3 rounded-md px-3.5 py-2.5 text-[13px] font-medium transition-colors',
                   isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-semibold"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    ? 'text-primary-foreground'
+                    : 'text-on-dark-soft hover:bg-white/5 hover:text-on-dark'
                 )
               }
             >
-              <div className="flex items-center gap-3">
-                <Icon size={18} />
-                <span>{item.label}</span>
-              </div>
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <motion.span
+                      layoutId="provider-nav-active"
+                      className="absolute inset-0 rounded-md bg-primary"
+                      transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+                    />
+                  )}
+                  <Icon size={17} strokeWidth={isActive ? 2 : 1.75} className="relative z-10" />
+                  <span className="relative z-10">{item.label}</span>
+                </>
+              )}
             </NavLink>
           );
         })}
       </nav>
 
-      {/* Provider Profile Footer */}
-      <div className="p-3 border-t border-sidebar-border bg-sidebar-accent/20">
-        <div className="flex items-center justify-between p-2 rounded-xl bg-sidebar-accent/40 border border-sidebar-border">
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center shrink-0">
-              {user?.name ? user.name.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'P')}
+      <div className="border-t border-white/8 p-3">
+        <div className="flex items-center justify-between rounded-md border border-white/8 bg-surface-dark-elevated p-2.5">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-coral/20 text-sm font-medium text-coral">
+              {user?.name ? user.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || 'P'}
             </div>
-            <div className="flex flex-col text-left truncate">
-              <span className="text-xs font-semibold text-sidebar-foreground truncate">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-medium text-on-dark">
                 {user?.name || user?.email?.split('@')[0] || 'Partner'}
-              </span>
-              <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1 truncate">
-                <CheckCircle2 size={10} /> Verified Pro
-              </span>
+              </p>
+              <p className="flex items-center gap-1 text-[10px] text-accent-teal">
+                <CheckCircle2 size={10} /> Verified pro
+              </p>
             </div>
           </div>
           <Button
             variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.preventDefault();
+            size="icon-sm"
+            onClick={(event) => {
+              event.preventDefault();
               logout();
             }}
-            title="Sign Out"
-            className="h-8 w-8 text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded-lg shrink-0"
+            title="Sign out"
             aria-label="Sign out"
+            className="shrink-0 text-on-dark-soft hover:bg-white/10 hover:text-on-dark"
           >
             <LogOut size={15} />
           </Button>

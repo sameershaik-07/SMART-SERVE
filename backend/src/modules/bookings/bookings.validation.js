@@ -2,12 +2,12 @@ const { z } = require("zod");
 
 const createBookingSchema = z.object({
     providerId: z.number().int().positive("Provider ID is required"),
-    serviceId: z.number().int().positive().optional(),
-    slotId: z.number().int().positive().optional(),
+    serviceId: z.number().int().positive().optional().nullable(),
+    slotId: z.number().int().positive().optional().nullable(),
     serviceDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid service date" }),
     location: z.string().trim().min(3, "Location address must be at least 3 characters"),
-    latitude: z.number().optional(),
-    longitude: z.number().optional()
+    latitude: z.number().optional().nullable(),
+    longitude: z.number().optional().nullable()
 });
 
 const updateBookingStatusSchema = z.object({

@@ -14,30 +14,29 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+const cities = ['Bengaluru', 'Hyderabad', 'Mumbai', 'Delhi NCR', 'Chennai', 'Pune'];
+
 export const TopHeader = ({ onMenuClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [location, setLocation] = useState('Hyderabad');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/services?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  const cities = ['Bengaluru', 'Hyderabad', 'Mumbai', 'Delhi NCR', 'Chennai', 'Pune'];
-
   return (
-    <header className="h-16 md:h-[76px] bg-card/95 backdrop-blur border-b border-border px-4 md:px-8 flex items-center justify-between sticky top-0 z-20 transition-colors">
-      {/* Mobile Menu Trigger + Search */}
-      <div className="flex items-center gap-2 md:gap-4 flex-1 max-w-2xl">
+    <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-hairline bg-canvas/88 px-4 backdrop-blur-xl md:h-[76px] md:px-8">
+      <div className="flex max-w-2xl flex-1 items-center gap-2 md:gap-3">
         {onMenuClick && (
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden shrink-0"
+            className="shrink-0 md:hidden"
             onClick={onMenuClick}
             aria-label="Open navigation menu"
           >
@@ -46,36 +45,40 @@ export const TopHeader = ({ onMenuClick }) => {
         )}
 
         <form onSubmit={handleSearchSubmit} className="relative flex-1">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" strokeWidth={1.8} />
           <Input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for services..."
-            className="pl-10 h-10 md:h-11 rounded-xl bg-muted/55 border-transparent focus-visible:bg-card focus-visible:border-input"
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search for a service..."
+            className="h-10 rounded-md border-transparent bg-surface-soft pl-10 focus-visible:bg-canvas md:h-11"
           />
+          <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-xs border border-hairline bg-canvas px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:block">
+            ⌘ K
+          </kbd>
         </form>
 
-        {/* Location Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="hidden sm:inline-flex items-center gap-2 rounded-xl h-10 md:h-11 px-3 text-xs md:text-sm font-semibold"
+              className="hidden h-10 items-center gap-2 rounded-md px-3 text-xs font-medium sm:inline-flex md:h-11"
             >
-              <MapPin size={15} className="text-primary" />
+              <MapPin size={14} className="text-primary" strokeWidth={1.8} />
               <span>{location}</span>
-              <ChevronDown size={14} className="text-muted-foreground" />
+              <ChevronDown size={13} className="text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-44 rounded-xl">
-            <DropdownMenuLabel className="text-xs">Select City</DropdownMenuLabel>
+          <DropdownMenuContent align="start" className="w-44 rounded-md border-hairline">
+            <DropdownMenuLabel className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              Select city
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {cities.map((city) => (
               <DropdownMenuItem
                 key={city}
                 onClick={() => setLocation(city)}
-                className={`cursor-pointer ${location === city ? 'font-bold text-primary bg-primary/10' : ''}`}
+                className={`cursor-pointer rounded-sm text-sm ${location === city ? 'font-medium text-primary' : ''}`}
               >
                 {city}
               </DropdownMenuItem>
@@ -84,80 +87,68 @@ export const TopHeader = ({ onMenuClick }) => {
         </DropdownMenu>
       </div>
 
-      {/* Right Controls: ThemeToggle, Notifications, Help, User Avatar Menu */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <ThemeToggle />
 
         <Button
           variant="outline"
           size="icon"
           onClick={() => navigate('/notifications')}
-          className="relative rounded-xl"
+          className="relative"
           title="Notifications"
           aria-label="Notifications"
         >
-          <Bell size={18} />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full ring-2 ring-background"></span>
+          <Bell size={17} strokeWidth={1.8} />
+          <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-primary ring-2 ring-canvas" />
         </Button>
 
         <Button
           variant="outline"
           size="icon"
           onClick={() => navigate('/help')}
-          className="hidden sm:inline-flex rounded-xl"
-          title="Help & Support"
-          aria-label="Help & Support"
+          className="hidden sm:inline-flex"
+          title="Help and support"
+          aria-label="Help and support"
         >
-          <HelpCircle size={18} />
+          <HelpCircle size={17} strokeWidth={1.8} />
         </Button>
 
-        {/* User Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-xl hover:bg-muted"
-            >
-              <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-primary text-primary-foreground font-bold text-xs md:text-sm flex items-center justify-center shadow-xs">
-                {user?.name ? user.name.charAt(0).toUpperCase() : (user?.email?.charAt(0).toUpperCase() || 'U')}
+            <Button variant="ghost" className="flex items-center gap-2 rounded-md px-1.5 py-1.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground md:h-9 md:w-9">
+                {user?.name ? user.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <div className="hidden lg:flex flex-col text-left">
-                <span className="text-xs md:text-sm font-semibold text-foreground leading-tight">
+              <div className="hidden text-left lg:flex lg:flex-col">
+                <span className="text-xs font-medium leading-tight text-ink">
                   {user?.name || user?.email?.split('@')[0] || 'User'}
                 </span>
-                <span className="text-[11px] text-muted-foreground capitalize">
+                <span className="text-[10px] capitalize text-muted-foreground">
                   {user?.role?.toLowerCase() || 'Customer'}
                 </span>
               </div>
-              <ChevronDown size={14} className="text-muted-foreground hidden sm:block" />
+              <ChevronDown size={13} className="hidden text-muted-foreground sm:block" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52 rounded-xl">
+          <DropdownMenuContent align="end" className="w-56 rounded-md border-hairline">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-semibold text-foreground leading-none">
-                  {user?.name || 'User'}
-                </p>
-                <p className="text-xs text-muted-foreground leading-none">
-                  {user?.email || ''}
-                </p>
+                <p className="text-sm font-medium text-ink">{user?.name || 'User'}</p>
+                <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => navigate('/profile')}
-              className="cursor-pointer gap-2"
-            >
+            <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer gap-2">
               <User size={15} />
-              <span>Profile Details</span>
+              <span>Profile details</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => logout()}
-              className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 gap-2"
+              className="cursor-pointer gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
             >
               <LogOut size={15} />
-              <span>Sign Out</span>
+              <span>Sign out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

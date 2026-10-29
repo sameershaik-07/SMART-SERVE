@@ -18,25 +18,27 @@ export const Input = ({
   const isPassword = type === 'password'
 
   return (
-    <div className={cn("flex flex-col gap-1.5 w-full", className)}>
+    <div className={cn('flex w-full flex-col gap-2', className)}>
       {label && (
-        <Label className="text-xs font-semibold tracking-wide flex items-center gap-1">
-          {label} {required && <span className="text-destructive">*</span>}
+        <Label className="flex items-center gap-1.5 text-[11px] normal-case tracking-[0.08em] text-body">
+          {label}
+          {required && <span className="text-primary">*</span>}
         </Label>
       )}
       <div className="relative flex items-center">
         {Icon && (
-          <div className="absolute left-3 text-muted-foreground pointer-events-none z-10">
-            <Icon size={16} />
+          <div className="pointer-events-none absolute left-3.5 z-10 text-muted-foreground">
+            <Icon size={15} strokeWidth={1.8} />
           </div>
         )}
         <ShadcnInput
           type={isPassword ? (showPassword ? 'text' : 'password') : type}
           placeholder={placeholder}
+          aria-invalid={error ? true : undefined}
           className={cn(
-            Icon && "pl-9",
-            isPassword && "pr-10",
-            error && "border-destructive focus-visible:ring-destructive"
+            Icon && 'pl-10',
+            isPassword && 'pr-10',
+            error && 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/15'
           )}
           {...props}
         />
@@ -44,14 +46,14 @@ export const Input = ({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            className="absolute right-3 rounded-xs p-1 text-muted-foreground transition-colors hover:text-ink focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
         )}
       </div>
-      {error && <span className="text-xs text-destructive font-medium">{error}</span>}
+      {error && <span className="text-xs font-medium text-destructive">{error}</span>}
     </div>
   )
 }

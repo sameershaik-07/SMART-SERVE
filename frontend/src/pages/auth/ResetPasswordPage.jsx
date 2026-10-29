@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { Shield, Lock, CheckCircle } from 'lucide-react';
+import { Lock, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { resetPasswordApi } from '../../api/auth';
@@ -37,72 +37,78 @@ export const ResetPasswordPage = () => {
     }
   };
 
-  return (
-    <div className="w-full max-w-md mx-auto space-y-6 animate-fade-in">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-600/30">
-          <Shield size={24} className="fill-white stroke-purple-600" />
+  if (success) {
+    return (
+      <div className="w-full space-y-7">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-accent-teal/25 bg-accent-teal/10 text-accent-teal">
+          <CheckCircle2 size={26} strokeWidth={1.6} />
         </div>
-        <span className="text-2xl font-black text-slate-900 tracking-tight">ServiceHub</span>
+        <div>
+          <p className="sh-eyebrow">All set</p>
+          <h1 className="mt-2 font-display text-[2.6rem] leading-[1.02] tracking-[-0.035em] text-ink">
+            Password updated.
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Your new password is active. Sign in to pick up where you left off.
+          </p>
+        </div>
+        <Button onClick={() => navigate('/login')} fullWidth size="lg">
+          Go to sign in
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full space-y-6">
+      <div>
+        <p className="sh-eyebrow">Set a new password</p>
+        <h1 className="mt-2 font-display text-[2.6rem] leading-[1.02] tracking-[-0.035em] text-ink">
+          A fresh start.
+        </h1>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          Choose a strong password you don’t use anywhere else.
+        </p>
       </div>
 
-      {success ? (
-        <div className="text-center py-4 space-y-4">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle size={32} />
-          </div>
-          <h2 className="text-2xl font-extrabold text-slate-900">Password Reset Successful!</h2>
-          <p className="text-sm text-slate-600">Your password has been updated. You can now login.</p>
-          <Button onClick={() => navigate('/login')} fullWidth size="lg">
-            Go to Login
-          </Button>
+      {error && (
+        <div className="flex items-start gap-2.5 rounded-md border border-destructive/20 bg-destructive/6 p-3.5 text-xs leading-relaxed text-destructive">
+          <AlertCircle size={15} className="mt-0.5 shrink-0" />
+          <span>{error}</span>
         </div>
-      ) : (
-        <>
-          <div>
-            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Reset Password</h2>
-            <p className="text-sm text-slate-500 mt-1">Set a new strong password for your ServiceHub account.</p>
-          </div>
-
-          {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="New Password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter new password"
-              icon={Lock}
-              required
-            />
-
-            <Input
-              label="Confirm New Password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
-              icon={Lock}
-              required
-            />
-
-            <Button type="submit" fullWidth loading={loading} size="lg">
-              Reset Password
-            </Button>
-          </form>
-
-          <p className="text-center text-xs text-slate-500 font-medium">
-            <Link to="/login" className="font-bold text-purple-600 hover:text-purple-800">
-              ← Back to Login
-            </Link>
-          </p>
-        </>
       )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="New password"
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          placeholder="At least 8 characters"
+          icon={Lock}
+          autoComplete="new-password"
+          required
+        />
+        <Input
+          label="Confirm new password"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Repeat your new password"
+          icon={Lock}
+          autoComplete="new-password"
+          required
+        />
+        <Button type="submit" fullWidth loading={loading} size="lg">
+          Update password
+        </Button>
+      </form>
+
+      <p className="border-t border-hairline pt-5 text-center text-xs text-muted-foreground">
+        <Link to="/login" className="inline-flex items-center gap-1.5 font-medium text-ink hover:text-primary">
+          <ArrowLeft size={13} /> Back to sign in
+        </Link>
+      </p>
     </div>
   );
 };

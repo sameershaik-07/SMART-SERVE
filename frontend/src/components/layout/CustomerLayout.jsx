@@ -9,15 +9,15 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 export const CustomerLayout = ({ showRightPanel = true }) => {
   const { user, loading } = useAuth();
-  const [walletBalance, setWalletBalance] = useState(2450.00);
+  const [walletBalance, setWalletBalance] = useState(2450.0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isMessagesPage = location.pathname.startsWith('/messages');
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex min-h-screen items-center justify-center bg-canvas">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
   }
@@ -27,33 +27,39 @@ export const CustomerLayout = ({ showRightPanel = true }) => {
   }
 
   return (
-    <div className={`flex ${isMessagesPage ? 'h-screen overflow-hidden' : 'min-h-screen'} bg-background text-foreground transition-colors`}>
-      {/* Desktop Sidebar (hidden on md and below) */}
-      <div className="hidden md:flex h-screen sticky top-0 shrink-0">
+    <div
+      className={`flex ${
+        isMessagesPage ? 'h-screen overflow-hidden' : 'min-h-screen'
+      } bg-canvas text-foreground`}
+    >
+      <div className="sticky top-0 hidden h-screen shrink-0 md:flex">
         <Sidebar />
       </div>
 
-      {/* Mobile Drawer (Sheet) */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="p-0 w-64 border-r border-sidebar-border">
+        <SheetContent side="left" className="w-[280px] border-r border-sidebar-border p-0">
           <Sidebar onItemClick={() => setMobileMenuOpen(false)} />
         </SheetContent>
       </Sheet>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col">
         <TopHeader onMenuClick={() => setMobileMenuOpen(true)} />
 
-        <div className="flex-1 flex min-w-0 overflow-hidden">
-          <main className={`flex-1 min-h-0 ${isMessagesPage ? 'overflow-hidden p-0 max-w-full' : 'overflow-y-auto p-5 md:p-8 2xl:p-10'}`}>
+        <div className="flex min-w-0 flex-1 overflow-hidden">
+          <main
+            className={`min-h-0 flex-1 ${
+              isMessagesPage
+                ? 'max-w-full overflow-hidden p-0'
+                : 'overflow-y-auto px-4 py-6 sm:px-6 md:px-8 md:py-8 2xl:px-10'
+            }`}
+          >
             <ErrorBoundary>
               <Outlet />
             </ErrorBoundary>
           </main>
 
-          {/* Right Wallet Panel (hidden on mobile and messages page) */}
           {showRightPanel && !isMessagesPage && (
-            <div className="hidden xl:block shrink-0">
+            <div className="hidden shrink-0 xl:block">
               <RightWalletPanel
                 balance={walletBalance}
                 onAddMoneySuccess={(amount) => setWalletBalance((prev) => prev + amount)}

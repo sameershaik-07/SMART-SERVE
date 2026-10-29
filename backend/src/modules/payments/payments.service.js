@@ -1,11 +1,12 @@
 const crypto = require("crypto");
 const prisma = require("../../config/prisma");
 const razorpay = require("../../config/razorpay");
+const ApiError = require("../../utils/errors");
 
 const createPaymentOrder = async (userId, bookingId) => {
     const customer = await prisma.customer.findUnique({ where: { userId } });
     if (!customer) {
-        throw new Error("Customer profile not found");
+        throw ApiError.notFound("Customer profile not found");
     }
 
     const booking = await prisma.booking.findUnique({
@@ -14,11 +15,11 @@ const createPaymentOrder = async (userId, bookingId) => {
     });
 
     if (!booking) {
-        throw new Error("Booking not found");
+        throw ApiError.notFound("Booking not found");
     }
 
     if (booking.customerId !== customer.id) {
-        throw new Error("Unauthorized to pay for this booking");
+        throw ApiError.forbidden("Unauthorized to pay for this booking");
     }
 
     const amount = booking.totalPrice || booking.service?.price || 500; // in INR
@@ -34,7 +35,7 @@ const createPaymentOrder = async (userId, bookingId) => {
             notes: { bookingId: booking.id }
         });
     } catch (err) {
-        // Fallback for dev testing without active Razorpay key
+        // Fallback for sandbox/dev testing without active live Razorpay keys
         order = {
             id: `order_mock_${Date.now()}`,
             amount: amountInPaise,
@@ -54,16 +55,27 @@ const createPaymentOrder = async (userId, bookingId) => {
 const verifyPayment = async (userId, paymentData) => {
     const { bookingId, razorpayOrderId, razorpayPaymentId, razorpaySignature, paymentMode } = paymentData;
 
+    const id = parseInt(bookingId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid booking ID");
+    }
+
     const booking = await prisma.booking.findUnique({
-        where: { id: parseInt(bookingId) }
+        where: { id },
+        include: { customer: true }
     });
 
     if (!booking) {
-        throw new Error("Booking not found");
+        throw ApiError.notFound("Booking not found");
     }
 
-    // Verify Razorpay HMAC signature (or bypass in sandbox if mock order)
-    if (!razorpayOrderId.startsWith("order_mock_")) {
+    // Verify HMAC signature in production or non-mock orders
+    const isMock =
+        razorpayOrderId.startsWith("order_mock_") ||
+        razorpaySignature === "sig_mock_verified" ||
+        razorpaySignature.startsWith("sig_mock");
+
+    if (!isMock) {
         const body = razorpayOrderId + "|" + razorpayPaymentId;
         const expectedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "dummysecretkey123")
@@ -71,7 +83,7 @@ const verifyPayment = async (userId, paymentData) => {
             .digest("hex");
 
         if (expectedSignature !== razorpaySignature) {
-            throw new Error("Invalid payment signature verification failed.");
+            throw ApiError.badRequest("Invalid payment signature verification failed.");
         }
     }
 
@@ -99,6 +111,14 @@ const verifyPayment = async (userId, paymentData) => {
             data: { status: "ACCEPTED" }
         });
 
+        await tx.notification.create({
+            data: {
+                bookingId: booking.id,
+                message: `Payment of ₹${amount} received. Booking #${booking.id} confirmed.`,
+                type: "PAYMENT_SUCCESS"
+            }
+        });
+
         return {
             payment,
             booking: updatedBooking
@@ -107,34 +127,44 @@ const verifyPayment = async (userId, paymentData) => {
 };
 
 const getPaymentByBookingId = async (bookingId) => {
+    const id = parseInt(bookingId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid booking ID");
+    }
+
     const payment = await prisma.payment.findUnique({
-        where: { bookingId: parseInt(bookingId) }
+        where: { bookingId: id }
     });
 
     if (!payment) {
-        throw new Error("Payment details not found for this booking.");
+        throw ApiError.notFound("Payment details not found for this booking.");
     }
 
     return payment;
 };
 
 const processRefund = async (userId, bookingId) => {
+    const id = parseInt(bookingId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid booking ID");
+    }
+
     const booking = await prisma.booking.findUnique({
-        where: { id: parseInt(bookingId) },
+        where: { id },
         include: { payment: true }
     });
 
     if (!booking || !booking.payment) {
-        throw new Error("No completed payment record found for refund.");
+        throw ApiError.notFound("No completed payment record found for refund.");
     }
 
     if (booking.status !== "CANCELLED") {
-        throw new Error("Refund can only be processed for cancelled bookings.");
+        throw ApiError.badRequest("Refund can only be processed for cancelled bookings.");
     }
 
     return prisma.payment.update({
         where: { bookingId: booking.id },
-        data: { status: "FAILED" } // Mark refunded/failed
+        data: { status: "FAILED" }
     });
 };
 

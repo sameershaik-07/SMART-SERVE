@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -11,62 +11,158 @@ import { ProviderLayout } from './components/layout/ProviderLayout';
 import { AuthLayout } from './components/layout/AuthLayout';
 
 // Auth Pages
-import { LoginPage } from './pages/auth/LoginPage';
-import { RegisterPage } from './pages/auth/RegisterPage';
-import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
-import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
-import { VerifyEmailPage } from './pages/auth/VerifyEmailPage';
+const LoginPage = lazy(() =>
+  import('./pages/auth/LoginPage').then((m) => ({ default: m.LoginPage }))
+);
+const RegisterPage = lazy(() =>
+  import('./pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage }))
+);
+const ForgotPasswordPage = lazy(() =>
+  import('./pages/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
+);
+const ResetPasswordPage = lazy(() =>
+  import('./pages/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage }))
+);
+const VerifyEmailPage = lazy(() =>
+  import('./pages/auth/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
+);
 
 // Customer Pages
-import { LandingPage } from './pages/customer/LandingPage';
-import { BrowseServicesPage } from './pages/customer/BrowseServicesPage';
-import { ServiceDetailsPage } from './pages/customer/ServiceDetailsPage';
-import { MyBookingsPage } from './pages/customer/MyBookingsPage';
-import { BookingDetailsPage } from './pages/customer/BookingDetailsPage';
-import { ProvidersPage } from './pages/customer/ProvidersPage';
-import { ProviderDetailsPage } from './pages/customer/ProviderDetailsPage';
-import { MessagesPage } from './pages/customer/MessagesPage';
-import { WalletPage } from './pages/customer/WalletPage';
-import { ReviewsPage } from './pages/customer/ReviewsPage';
-import { FavoritesPage } from './pages/customer/FavoritesPage';
-import { ProfilePage } from './pages/customer/ProfilePage';
-import { SettingsPage } from './pages/customer/SettingsPage';
-import { NotificationsPage } from './pages/customer/NotificationsPage';
-import { HelpSupportPage } from './pages/customer/HelpSupportPage';
-import { CheckoutPage } from './pages/customer/CheckoutPage';
+const LandingPage = lazy(() =>
+  import('./pages/customer/LandingPage').then((m) => ({ default: m.LandingPage }))
+);
+const BrowseServicesPage = lazy(() =>
+  import('./pages/customer/BrowseServicesPage').then((m) => ({ default: m.BrowseServicesPage }))
+);
+const ServiceDetailsPage = lazy(() =>
+  import('./pages/customer/ServiceDetailsPage').then((m) => ({ default: m.ServiceDetailsPage }))
+);
+const MyBookingsPage = lazy(() =>
+  import('./pages/customer/MyBookingsPage').then((m) => ({ default: m.MyBookingsPage }))
+);
+const BookingDetailsPage = lazy(() =>
+  import('./pages/customer/BookingDetailsPage').then((m) => ({ default: m.BookingDetailsPage }))
+);
+const ProvidersPage = lazy(() =>
+  import('./pages/customer/ProvidersPage').then((m) => ({ default: m.ProvidersPage }))
+);
+const ProviderDetailsPage = lazy(() =>
+  import('./pages/customer/ProviderDetailsPage').then((m) => ({ default: m.ProviderDetailsPage }))
+);
+const MessagesPage = lazy(() =>
+  import('./pages/customer/MessagesPage').then((m) => ({ default: m.MessagesPage }))
+);
+const WalletPage = lazy(() =>
+  import('./pages/customer/WalletPage').then((m) => ({ default: m.WalletPage }))
+);
+const ReviewsPage = lazy(() =>
+  import('./pages/customer/ReviewsPage').then((m) => ({ default: m.ReviewsPage }))
+);
+const FavoritesPage = lazy(() =>
+  import('./pages/customer/FavoritesPage').then((m) => ({ default: m.FavoritesPage }))
+);
+const ProfilePage = lazy(() =>
+  import('./pages/customer/ProfilePage').then((m) => ({ default: m.ProfilePage }))
+);
+const SettingsPage = lazy(() =>
+  import('./pages/customer/SettingsPage').then((m) => ({ default: m.SettingsPage }))
+);
+const NotificationsPage = lazy(() =>
+  import('./pages/customer/NotificationsPage').then((m) => ({ default: m.NotificationsPage }))
+);
+const HelpSupportPage = lazy(() =>
+  import('./pages/customer/HelpSupportPage').then((m) => ({ default: m.HelpSupportPage }))
+);
+const CheckoutPage = lazy(() =>
+  import('./pages/customer/CheckoutPage').then((m) => ({ default: m.CheckoutPage }))
+);
 
 // Provider Pages
-import { ProviderDashboardPage } from './pages/provider/ProviderDashboardPage';
-import { ProviderBookingsPage } from './pages/provider/ProviderBookingsPage';
-import { ProviderServicesPage } from './pages/provider/ProviderServicesPage';
-import { ProviderAvailabilityPage } from './pages/provider/ProviderAvailabilityPage';
-import { ProviderEarningsPage } from './pages/provider/ProviderEarningsPage';
-import { ProviderProfilePage } from './pages/provider/ProviderProfilePage';
-import { ProviderMessagesPage } from './pages/provider/ProviderMessagesPage';
+const ProviderDashboardPage = lazy(() =>
+  import('./pages/provider/ProviderDashboardPage').then((m) => ({
+    default: m.ProviderDashboardPage,
+  }))
+);
+const ProviderBookingsPage = lazy(() =>
+  import('./pages/provider/ProviderBookingsPage').then((m) => ({
+    default: m.ProviderBookingsPage,
+  }))
+);
+const ProviderServicesPage = lazy(() =>
+  import('./pages/provider/ProviderServicesPage').then((m) => ({
+    default: m.ProviderServicesPage,
+  }))
+);
+const ProviderAvailabilityPage = lazy(() =>
+  import('./pages/provider/ProviderAvailabilityPage').then((m) => ({
+    default: m.ProviderAvailabilityPage,
+  }))
+);
+const ProviderEarningsPage = lazy(() =>
+  import('./pages/provider/ProviderEarningsPage').then((m) => ({
+    default: m.ProviderEarningsPage,
+  }))
+);
+const ProviderProfilePage = lazy(() =>
+  import('./pages/provider/ProviderProfilePage').then((m) => ({
+    default: m.ProviderProfilePage,
+  }))
+);
+const ProviderMessagesPage = lazy(() =>
+  import('./pages/provider/ProviderMessagesPage').then((m) => ({
+    default: m.ProviderMessagesPage,
+  }))
+);
 
 // Admin Pages
-import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
-import { AdminBookingsPage } from './pages/admin/AdminBookingsPage';
-import { AdminUsersPage } from './pages/admin/AdminUsersPage';
-import { AdminProvidersPage } from './pages/admin/AdminProvidersPage';
-import { AdminAnalyticsPage } from './pages/admin/AdminAnalyticsPage';
-import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
-import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
-import { AdminChatAuditPage } from './pages/admin/AdminChatAuditPage';
+const AdminDashboardPage = lazy(() =>
+  import('./pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage }))
+);
+const AdminBookingsPage = lazy(() =>
+  import('./pages/admin/AdminBookingsPage').then((m) => ({ default: m.AdminBookingsPage }))
+);
+const AdminUsersPage = lazy(() =>
+  import('./pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage }))
+);
+const AdminProvidersPage = lazy(() =>
+  import('./pages/admin/AdminProvidersPage').then((m) => ({ default: m.AdminProvidersPage }))
+);
+const AdminAnalyticsPage = lazy(() =>
+  import('./pages/admin/AdminAnalyticsPage').then((m) => ({ default: m.AdminAnalyticsPage }))
+);
+const AdminCategoriesPage = lazy(() =>
+  import('./pages/admin/AdminCategoriesPage').then((m) => ({ default: m.AdminCategoriesPage }))
+);
+const AdminSettingsPage = lazy(() =>
+  import('./pages/admin/AdminSettingsPage').then((m) => ({ default: m.AdminSettingsPage }))
+);
+const AdminChatAuditPage = lazy(() =>
+  import('./pages/admin/AdminChatAuditPage').then((m) => ({ default: m.AdminChatAuditPage }))
+);
 
 // Common
 import { NotFoundPage } from './pages/NotFoundPage';
+
+// Brand
+import { BrandMark } from './components/brand/BrandMark';
+
+const AppLoading = () => (
+  <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-canvas">
+    <div className="relative flex h-12 w-12 items-center justify-center">
+      <span className="absolute inset-0 animate-ping rounded-full bg-primary/10" />
+      <BrandMark size={38} className="relative text-primary" />
+    </div>
+    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Preparing your space</p>
+  </div>
+);
+
 
 // Protected Route Guard
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <AppLoading />;
   }
 
   if (!user && allowedRole) {
@@ -84,11 +180,7 @@ const ProtectedRoute = ({ children, allowedRole }) => {
 const RootHandler = () => {
   const { user, loading } = useAuth();
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <AppLoading />;
   }
   if (user) {
     if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
@@ -104,6 +196,7 @@ export function App() {
       <AuthProvider>
       <FavoritesProvider>
         <BrowserRouter>
+        <Suspense fallback={<AppLoading />}>
         <Routes>
           {/* Public Landing Page (Login / Sign Up options only; redirect if authenticated) */}
           <Route path="/" element={<RootHandler />} />
@@ -164,6 +257,7 @@ export function App() {
           {/* 404 Catch All */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
       </FavoritesProvider>
       </AuthProvider>

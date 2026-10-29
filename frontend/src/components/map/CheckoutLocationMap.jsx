@@ -56,16 +56,16 @@ export const CheckoutLocationMap = ({ coords, address, onLocationChange }) => {
       }
     }, 150);
 
-    // Custom Draggable Emerald Pin
+    // Custom draggable coral pin
     const pinIcon = L.divIcon({
       className: 'custom-map-pin',
       html: `
         <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-          <div style="background-color: #059669; color: white; padding: 5px 9px; border-radius: 9999px; font-weight: 700; font-size: 11px; box-shadow: 0 8px 16px rgba(0,0,0,0.25); border: 2px solid white; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
-            <span>📍 Service Pin</span>
+          <div style="background-color: #b85c3e; color: white; padding: 5px 9px; border-radius: 9999px; font-weight: 600; font-size: 11px; box-shadow: 0 8px 16px rgba(20,20,19,0.28); border: 2px solid #faf9f5; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+            <span>📍 Service pin</span>
           </div>
-          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid #059669;"></div>
-          <div style="width: 8px; height: 8px; background: #059669; border-radius: 50%; opacity: 0.6; margin-top: 1px;"></div>
+          <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid #b85c3e;"></div>
+          <div style="width: 8px; height: 8px; background: #b85c3e; border-radius: 50%; opacity: 0.6; margin-top: 1px;"></div>
         </div>
       `,
       iconSize: [0, 0],
@@ -176,17 +176,19 @@ export const CheckoutLocationMap = ({ coords, address, onLocationChange }) => {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-          <MapPin size={14} className="text-emerald-600" />
-          <span>In-App Service Location Pin</span>
-          <span className="text-[10px] font-normal text-slate-500">(Click or drag pin to adjust)</span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-[10px] font-medium text-body">
+          <MapPin size={13} className="text-primary" />
+          <span>Service location pin</span>
+          <span className="hidden text-[9px] font-normal text-muted-foreground sm:inline">
+            (click or drag to adjust)
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {statusMsg && (
-            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md animate-fade-in flex items-center gap-1">
-              <CheckCircle2 size={11} />
+            <span className="flex animate-fade-in items-center gap-1 rounded-xs border border-accent-teal/20 bg-accent-teal/8 px-2 py-0.5 text-[9px] font-medium text-accent-teal">
+              <CheckCircle2 size={10} />
               {statusMsg}
             </span>
           )}
@@ -194,10 +196,10 @@ export const CheckoutLocationMap = ({ coords, address, onLocationChange }) => {
           <button
             type="button"
             onClick={handleSetMacherla}
-            className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-bold flex items-center gap-1 border border-purple-200 cursor-pointer transition-colors active:scale-95"
+            className="flex items-center gap-1 rounded-xs border border-hairline bg-canvas px-2 py-1 text-[9px] font-medium text-body transition-colors hover:border-primary/30 hover:text-primary active:scale-95"
             title="Quickly set location to Macherla, Palnadu District, AP"
           >
-            <MapPin size={12} className="text-purple-600" />
+            <MapPin size={10} className="text-primary" />
             <span>Macherla</span>
           </button>
 
@@ -205,24 +207,27 @@ export const CheckoutLocationMap = ({ coords, address, onLocationChange }) => {
             type="button"
             onClick={handleDetectGPS}
             disabled={detecting}
-            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-emerald-200 cursor-pointer transition-colors active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-1 rounded-xs border border-primary/25 bg-primary/6 px-2 py-1 text-[9px] font-medium text-primary transition-colors hover:bg-primary/10 active:scale-95 disabled:opacity-50"
           >
             {detecting ? (
-              <Loader2 size={12} className="animate-spin text-emerald-600" />
+              <Loader2 size={10} className="animate-spin" />
             ) : (
-              <Crosshair size={12} className="text-emerald-600" />
+              <Crosshair size={10} />
             )}
-            <span>{detecting ? 'Detecting...' : 'My Live GPS'}</span>
+            <span>{detecting ? 'Detecting…' : 'My live GPS'}</span>
           </button>
         </div>
       </div>
 
-      {/* In-App Map Canvas */}
-      <div 
-        className="relative w-full bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-xs z-0"
+      {/* In-app map canvas */}
+      <div
+        className="relative z-0 w-full overflow-hidden rounded-md border border-hairline bg-surface-soft shadow-xs"
         style={{ height: '260px', minHeight: '260px', width: '100%' }}
       >
-        <div ref={mapContainerRef} style={{ height: '260px', minHeight: '260px', width: '100%' }} />
+        <div
+          ref={mapContainerRef}
+          style={{ height: '260px', minHeight: '260px', width: '100%' }}
+        />
       </div>
     </div>
   );

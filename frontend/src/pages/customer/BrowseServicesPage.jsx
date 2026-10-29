@@ -10,15 +10,17 @@ import {
   Camera,
   Dog,
   SlidersHorizontal,
-  ChevronDown,
-  Search
+  Search,
+  X,
 } from 'lucide-react';
 import { CategoryCard } from '../../components/service/CategoryCard';
 import { ServiceCard } from '../../components/service/ServiceCard';
+import { EmptyState } from '../../components/common/EmptyState';
 import { getServicesApi } from '../../api/services';
-import { Skeleton } from '../../components/common/Skeleton';
 import { marketplaceCategories } from '../../constants/marketplaceCategories';
 import { getCategoriesApi } from '../../api/admin';
+import { Reveal, Stagger, StaggerItem } from '@/components/motion/Reveal';
+import { Button } from '@/components/ui/button';
 
 export const BrowseServicesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -36,8 +38,6 @@ export const BrowseServicesPage = () => {
   const categories = marketplaceCategories.map((category, index) => ({
     ...category,
     icon: categoryIcons[index],
-    colorBg: 'hsl(var(--muted))',
-    colorText: 'hsl(var(--foreground))',
   }));
 
   const categoryPills = ['All', 'Home Services', 'Repairs', 'Beauty', 'Automotive', 'Tutors'];
@@ -57,7 +57,6 @@ export const BrowseServicesPage = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    // load categories to map names -> ids
     (async () => {
       try {
         const cats = await getCategoriesApi();
@@ -73,9 +72,8 @@ export const BrowseServicesPage = () => {
       try {
         setLoading(true);
         const params = {};
-        // If a category tab is active and not 'All', attempt to resolve its id and request server-side filtering
         if (activeCategoryTab && activeCategoryTab !== 'All') {
-          const matched = categoriesFromApi.find(c => c.categoryName === activeCategoryTab);
+          const matched = categoriesFromApi.find((c) => c.categoryName === activeCategoryTab);
           if (matched) params.categoryId = matched.id;
         }
 
@@ -84,9 +82,13 @@ export const BrowseServicesPage = () => {
         if (Array.isArray(apiServices) && apiServices.length > 0) {
           const normalizedApi = apiServices.map((s) => ({
             ...s,
-            category: s.provider?.category?.categoryName || s.provider?.category?.name || 'Home Services',
+            category:
+              s.provider?.category?.categoryName || s.provider?.category?.name || 'Home Services',
             providerName: s.providerName || s.provider?.user?.name || 'Verified Specialist',
-            image: s.image || s.images?.[0] || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80',
+            image:
+              s.image ||
+              s.images?.[0] ||
+              'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80',
             rating: Number(s.rating || 4.8),
             reviewCount: Number(s.reviewCount || 150),
           }));
@@ -103,7 +105,6 @@ export const BrowseServicesPage = () => {
       }
     };
     fetchServices();
-    // re-run when activeCategoryTab or categoriesFromApi are updated
   }, [activeCategoryTab, categoriesFromApi]);
 
   const handleTabChange = (cat) => {
@@ -122,7 +123,6 @@ export const BrowseServicesPage = () => {
     const sCat = serviceCat.trim().toLowerCase();
     const tab = activeTab.trim().toLowerCase();
 
-    // Strict per-category matching — each bucket is mutually exclusive
     if (tab === 'beauty') {
       return sCat === 'beauty' || sCat === 'beauty & salon' || sCat === 'salon';
     }
@@ -130,7 +130,12 @@ export const BrowseServicesPage = () => {
       return sCat === 'repairs' || sCat === 'repair';
     }
     if (tab === 'home services') {
-      return sCat === 'home services' || sCat === 'home cleaning' || sCat === 'cleaning' || sCat === 'plumbing';
+      return (
+        sCat === 'home services' ||
+        sCat === 'home cleaning' ||
+        sCat === 'cleaning' ||
+        sCat === 'plumbing'
+      );
     }
     if (tab === 'automotive') {
       return sCat === 'automotive';
@@ -141,7 +146,6 @@ export const BrowseServicesPage = () => {
     if (tab === 'health & wellness') {
       return sCat === 'health & wellness' || sCat === 'health' || sCat === 'wellness';
     }
-    // Generic fallback for any other tabs
     return sCat === tab;
   };
 
@@ -156,7 +160,7 @@ export const BrowseServicesPage = () => {
         const category = (s.category || '').toLowerCase();
         const provider = (s.providerName || '').toLowerCase();
 
-        const matches = 
+        const matches =
           title.includes(term) ||
           compactTitle.includes(compactTerm) ||
           category.includes(term) ||
@@ -174,143 +178,172 @@ export const BrowseServicesPage = () => {
       return 0;
     });
 
-  return (
-    <div className="max-w-[1120px] space-y-6 animate-fade-in pb-10">
-      {/* Page Title Header */}
-      <div>
-        <h1 className="workspace-title">Book Services</h1>
-        <p className="workspace-subtitle">
-          {searchTerm ? `Showing results for "${searchTerm}"` : 'Find trusted professionals for every need and book in seconds'}
-        </p>
-      </div>
+  const hasFilters = searchTerm || activeCategoryTab !== 'All' || priceRange < 10000 || minRating > 0;
 
-      {/* Category Filter Tabs Pills matching Reference Image 3 */}
-      <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+  const resetFilters = () => {
+    setActiveCategoryTab('All');
+    setSearchTerm('');
+    setPriceRange(10000);
+    setMinRating(0);
+    setPriceSort('relevant');
+    searchParams.delete('search');
+    searchParams.delete('category');
+    setSearchParams(searchParams);
+  };
+
+  return (
+    <div className="mx-auto max-w-[1180px] pb-12">
+      {/* Header */}
+      <Reveal className="border-b border-hairline pb-6">
+        <p className="sh-eyebrow">The marketplace</p>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="workspace-title">
+              {searchTerm ? `Results for “${searchTerm}”` : 'What needs doing?'}
+            </h1>
+            <p className="workspace-subtitle">
+              {searchTerm
+                ? `${filteredServices.length} service${filteredServices.length === 1 ? '' : 's'} matched your search.`
+                : 'Verified professionals, upfront prices, and a booking that takes minutes.'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 rounded-md border border-hairline bg-surface-soft px-3 py-2 text-[11px] text-muted-foreground">
+            <Search size={13} className="text-primary" />
+            Hyderabad · 6 cities
+          </div>
+        </div>
+      </Reveal>
+
+      {/* Category pills */}
+      <div className="scrollbar-none mt-6 flex items-center gap-2 overflow-x-auto pb-1">
         {categoryPills.map((cat) => (
           <button
             key={cat}
             onClick={() => handleTabChange(cat)}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-2xs whitespace-nowrap ${
+            className={`whitespace-nowrap rounded-pill border px-4 py-2 text-xs font-medium transition-all duration-200 ${
               activeCategoryTab === cat
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card text-muted-foreground hover:bg-muted border border-border'
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-hairline bg-canvas text-body hover:border-ink/20 hover:text-ink'
             }`}
           >
             {cat}
           </button>
         ))}
+        {hasFilters && (
+          <button
+            onClick={resetFilters}
+            className="ml-auto flex shrink-0 items-center gap-1.5 rounded-pill px-3 py-2 text-[11px] font-medium text-muted-foreground transition-colors hover:text-ink"
+          >
+            <X size={12} /> Clear
+          </button>
+        )}
       </div>
 
-      {/* Category Cards Grid (2 rows x 4 cols) matching Reference Image 3 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {categories.map((cat) => (
+      {/* Category cards */}
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {categories.slice(0, 8).map((cat) => (
           <CategoryCard
             key={cat.title}
             title={cat.title}
             count={cat.count}
             icon={cat.icon}
-            colorBg={cat.colorBg}
-            colorText={cat.colorText}
             active={activeCategoryTab === cat.title}
             onClick={() => handleTabChange(cat.title)}
           />
         ))}
       </div>
 
-      {/* Filter Controls Bar matching Reference Image 3 */}
-      <div className="sh-card p-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-            <SlidersHorizontal size={14} /> Filter:
-          </div>
-
-          <select
-            value={priceSort}
-            onChange={(e) => setPriceSort(e.target.value)}
-            className="bg-muted/60 border border-border rounded-xl px-3 py-2 text-xs font-bold text-foreground outline-none cursor-pointer"
-          >
-            <option value="relevant">Sort by: Relevance</option>
-            <option value="low">Price: Low to High</option>
-            <option value="high">Price: High to Low</option>
-          </select>
-
-          <div className="flex items-center gap-2 bg-muted/60 border border-border rounded-xl px-3 py-2 text-xs font-bold text-foreground">
-            <span>Max Price: ₹{priceRange}</span>
-            <input
-              type="range"
-              min="200"
-              max="10000"
-              step="100"
-              value={priceRange}
-              onChange={(e) => setPriceRange(Number(e.target.value))}
-              className="w-24 accent-neutral-900 dark:accent-white cursor-pointer"
-            />
-          </div>
-
-          <select
-            value={minRating}
-            onChange={(e) => setMinRating(Number(e.target.value))}
-            className="bg-muted/60 border border-border rounded-xl px-3 py-2 text-xs font-bold text-foreground outline-none cursor-pointer"
-          >
-            <option value={0}>Minimum Rating: Any</option>
-            <option value={4.0}>⭐ 4.0+</option>
-            <option value={4.5}>⭐ 4.5+</option>
-            <option value={4.8}>⭐ 4.8+</option>
-          </select>
+      {/* Filter bar */}
+      <div className="mt-6 flex flex-wrap items-center gap-3 rounded-lg border border-hairline bg-surface-soft/60 p-3">
+        <div className="flex items-center gap-2 px-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          <SlidersHorizontal size={13} /> Refine
         </div>
 
-      </div>
-
-
-      {/* Popular Services Section Header */}
-      <div className="flex items-center justify-between pt-2">
-        <div>
-          <h2 className="text-xl font-extrabold text-foreground tracking-tight">
-            {searchTerm ? `Search Results (${filteredServices.length})` : 'Popular near you'}
-          </h2>
-          <p className="text-xs text-muted-foreground">Top rated services in Hyderabad right now.</p>
-        </div>
-        <button
-          onClick={() => {
-            setActiveCategoryTab('All');
-            setSearchTerm('');
-            searchParams.delete('search');
-            searchParams.delete('category');
-            setSearchParams(searchParams);
-          }}
-          className="text-xs font-bold text-foreground hover:text-muted-foreground flex items-center gap-1"
+        <select
+          value={priceSort}
+          onChange={(e) => setPriceSort(e.target.value)}
+          className="h-9 cursor-pointer rounded-sm border border-hairline bg-canvas px-2.5 text-xs text-body outline-hidden focus:border-primary"
         >
-          View all &gt;
-        </button>
+          <option value="relevant">Relevance</option>
+          <option value="low">Price: low to high</option>
+          <option value="high">Price: high to low</option>
+        </select>
+
+        <div className="flex h-9 items-center gap-2 rounded-sm border border-hairline bg-canvas px-2.5 text-xs text-body">
+          <span className="tabular-nums">Up to ₹{priceRange.toLocaleString('en-IN')}</span>
+          <input
+            type="range"
+            min="200"
+            max="10000"
+            step="100"
+            value={priceRange}
+            onChange={(e) => setPriceRange(Number(e.target.value))}
+            className="w-24 cursor-pointer accent-primary"
+            aria-label="Maximum price"
+          />
+        </div>
+
+        <select
+          value={minRating}
+          onChange={(e) => setMinRating(Number(e.target.value))}
+          className="h-9 cursor-pointer rounded-sm border border-hairline bg-canvas px-2.5 text-xs text-body outline-hidden focus:border-primary"
+        >
+          <option value={0}>Any rating</option>
+          <option value={4.0}>4.0 and up</option>
+          <option value={4.5}>4.5 and up</option>
+          <option value={4.8}>4.8 and up</option>
+        </select>
+
+        <span className="ml-auto px-1 text-[11px] tabular-nums text-muted-foreground">
+          {filteredServices.length} available
+        </span>
       </div>
 
-      {/* Services Grid (4 Columns) matching Reference Image 3 */}
+      {/* Results */}
+      <div className="mt-8 flex items-end justify-between gap-4">
+        <div>
+          <p className="sh-eyebrow">{activeCategoryTab === 'All' ? 'Popular near you' : activeCategoryTab}</p>
+          <h2 className="mt-1.5 font-display text-[1.85rem] leading-tight tracking-[-0.02em] text-ink">
+            {searchTerm ? 'Search results' : 'Considered choices'}
+          </h2>
+        </div>
+        <span className="hidden text-[11px] text-muted-foreground sm:block">
+          Sorted by {priceSort === 'low' ? 'price ascending' : priceSort === 'high' ? 'price descending' : 'relevance'}
+        </span>
+      </div>
+
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((n) => (
-            <div key={n} className="sh-card p-4 h-72 animate-pulse bg-muted"></div>
+        <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <div key={n} className="h-[360px] animate-pulse rounded-lg border border-hairline bg-surface-soft" />
           ))}
         </div>
       ) : filteredServices.length === 0 ? (
-        <div className="text-center py-12 bg-card rounded-2xl border border-border p-8">
-          <p className="text-base font-bold text-foreground">No services matched your filters.</p>
-          <p className="text-xs text-muted-foreground mt-1">Try resetting the search or category filters.</p>
-          <button
-            onClick={() => {
-              setActiveCategoryTab('All');
-              setSearchTerm('');
-              setPriceRange(10000);
-            }}
-            className="mt-4 px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl"
-          >
-            Reset All Filters
-          </button>
-        </div>
+        <EmptyState
+          icon={Search}
+          title="Nothing matched, yet"
+          description="Try widening the price range or clearing the category filter. There’s plenty more to explore."
+          actionLabel="Reset filters"
+          onAction={resetFilters}
+        />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Stagger fast once={false} className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {filteredServices.map((service) => (
-            <ServiceCard key={service.id} service={service} />
+            <StaggerItem key={service.id}>
+              <ServiceCard service={service} />
+            </StaggerItem>
           ))}
+        </Stagger>
+      )}
+
+      {!loading && filteredServices.length > 0 && (
+        <div className="mt-10 flex flex-col items-center justify-between gap-3 rounded-lg border border-dashed border-hairline px-6 py-5 text-center sm:flex-row sm:text-left">
+          <p className="text-xs text-muted-foreground">
+            Not sure what you need? Tell us the problem and we’ll point you in the right direction.
+          </p>
+          <Button variant="outline" size="sm" onClick={() => handleTabChange('All')}>
+            Browse everything
+          </Button>
         </div>
       )}
     </div>

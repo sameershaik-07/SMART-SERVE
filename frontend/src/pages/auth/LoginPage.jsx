@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { Shield, Mail, Lock, ArrowRight, ArrowLeft, AlertCircle, Wrench } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ArrowLeft, AlertCircle, Wrench, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
@@ -15,7 +15,6 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Detect if arriving from the "Provider Sign In" button
   const isProvider = searchParams.get('role') === 'provider';
 
   const handleFormSubmit = async (e) => {
@@ -51,55 +50,48 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-6 animate-fade-in">
-      <Link to="/" className="inline-flex items-center text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-        <ArrowLeft size={16} className="mr-1.5" /> Back to Home
+    <div className="w-full space-y-7">
+      <Link
+        to="/"
+        className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-ink"
+      >
+        <ArrowLeft size={13} /> Back to home
       </Link>
-      
-      {/* Brand Logo Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary text-primary-foreground shadow-sm">
-          {isProvider ? <Wrench size={22} /> : <Shield size={24} className="fill-current stroke-primary" />}
-        </div>
-        <span className="text-2xl font-extrabold text-foreground tracking-tight">ServiceHub</span>
-      </div>
 
-      {/* Provider context badge */}
       {isProvider && (
-        <div className="inline-flex items-center gap-2 bg-muted text-foreground border border-border px-3 py-1 rounded-full text-[11px] font-bold">
-          <Wrench size={12} /> Provider Portal
+        <div className="inline-flex items-center gap-2 rounded-pill border border-primary/20 bg-primary/6 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-primary">
+          <Wrench size={11} /> Provider portal
         </div>
       )}
 
-      {/* Heading */}
       <div>
-        <h2 className="text-2xl font-extrabold text-foreground tracking-tight">
-          {isProvider ? 'Provider Sign In' : 'Welcome back'}
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="sh-eyebrow">{isProvider ? 'Partner access' : 'Welcome back'}</p>
+        <h1 className="mt-2 font-display text-[2.6rem] leading-[1.02] tracking-[-0.035em] text-ink">
+          {isProvider ? 'Your work, in order.' : 'Good to see you again.'}
+        </h1>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           {isProvider
-            ? 'Sign in to your provider account to manage bookings and services.'
-            : 'Sign in with your verified account credentials.'}
+            ? 'Sign in to manage availability, job requests, and earnings.'
+            : 'Sign in to book services, track visits, and manage your home.'}
         </p>
       </div>
 
-      {/* Error Alert */}
       {error && (
-        <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-semibold flex items-center gap-2.5 animate-shake">
-          <AlertCircle size={16} className="shrink-0" />
+        <div className="flex items-start gap-2.5 rounded-md border border-destructive/20 bg-destructive/6 p-3.5 text-xs leading-relaxed text-destructive">
+          <AlertCircle size={15} className="mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Login Form */}
       <form onSubmit={handleFormSubmit} className="space-y-4">
         <Input
-          label="Email Address"
+          label="Email address"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="name@example.com"
           icon={Mail}
+          autoComplete="email"
           required
         />
 
@@ -109,14 +101,15 @@ export const LoginPage = () => {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your account password"
+            placeholder="Enter your password"
             icon={Lock}
+            autoComplete="current-password"
             required
           />
-          <div className="flex justify-end mt-1.5">
+          <div className="mt-2.5 flex justify-end">
             <Link
               to="/forgot-password"
-              className="text-xs font-bold text-foreground hover:text-muted-foreground transition-colors"
+              className="text-[11px] font-medium text-body underline-offset-4 transition-colors hover:text-primary hover:underline"
             >
               Forgot password?
             </Link>
@@ -130,34 +123,34 @@ export const LoginPage = () => {
           icon={ArrowRight}
           iconPosition="right"
           size="lg"
-          className="rounded-xl shadow-sm"
+          className="mt-2"
         >
-          {isProvider ? 'Sign In as Provider' : 'Sign In'}
+          {isProvider ? 'Sign in as provider' : 'Sign in'}
         </Button>
       </form>
 
-      {/* Footer */}
-      <p className="text-center text-xs text-muted-foreground font-medium pt-4 border-t border-border">
+      <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+        <ShieldCheck size={13} className="text-accent-teal" />
+        Secure sign-in · Your details stay private
+      </p>
+
+      <div className="border-t border-hairline pt-5 text-center text-xs text-muted-foreground">
         {isProvider ? (
           <>
             Not a provider yet?{' '}
-            <Link to="/register?role=provider" className="font-bold text-foreground hover:text-muted-foreground transition-colors">
-              Register as Provider
-            </Link>
-            {' · '}
-            <Link to="/" className="font-bold text-muted-foreground hover:text-foreground transition-colors">
-              Back to Home
+            <Link to="/register?role=provider" className="font-medium text-ink underline-offset-4 hover:text-primary hover:underline">
+              Join the network
             </Link>
           </>
         ) : (
           <>
-            Don't have an account yet?{' '}
-            <Link to="/register" className="font-bold text-foreground hover:text-muted-foreground transition-colors">
+            New to ServiceHub?{' '}
+            <Link to="/register" className="font-medium text-ink underline-offset-4 hover:text-primary hover:underline">
               Create an account
             </Link>
           </>
         )}
-      </p>
+      </div>
     </div>
   );
 };

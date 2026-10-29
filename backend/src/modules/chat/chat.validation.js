@@ -2,7 +2,7 @@ const { z } = require("zod");
 
 const createConversationSchema = z.object({
     providerId: z.number().int().positive("providerId must be a positive integer"),
-    bookingId: z.number().int().positive().optional()
+    bookingId: z.number().int().positive().optional().nullable()
 });
 
 const sendMessageSchema = z.object({
@@ -14,8 +14,7 @@ const getMessagesQuerySchema = z.object({
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().max(100).default(50)
 });
-// Allow optional skipCount to avoid an expensive COUNT() when the caller doesn't need it
-// Default is false to preserve existing behavior for callers that expect counts
+
 const getMessagesQuerySchemaWithSkip = getMessagesQuerySchema.extend({
     skipCount: z.coerce.boolean().optional().default(false)
 });
@@ -26,4 +25,3 @@ module.exports = {
     getMessagesQuerySchema,
     getMessagesQuerySchemaWithSkip
 };
-

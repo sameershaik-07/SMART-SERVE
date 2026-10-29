@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   Calendar,
   ChevronRight,
-  ArrowUpRight,
   Phone,
   MapPin,
   Check,
@@ -17,12 +16,22 @@ import {
   Play,
   Briefcase,
   Layers,
-  Sparkles,
-  RefreshCw
+  RefreshCw,
+  ArrowUpRight,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getProviderDashboardApi, updateProviderProfileApi } from '../../api/providers';
 import { getProviderBookingsApi, updateBookingStatusApi } from '../../api/bookings';
+import { Reveal } from '@/components/motion/Reveal';
+import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
+import { cn } from '@/lib/utils';
+
+const metricTones = {
+  coral: 'border-primary/20 bg-primary/8 text-primary',
+  amber: 'border-accent-amber/25 bg-accent-amber/8 text-accent-amber',
+  teal: 'border-accent-teal/20 bg-accent-teal/8 text-accent-teal',
+  neutral: 'border-hairline bg-surface-soft text-body',
+};
 
 export const ProviderDashboardPage = () => {
   const { user } = useAuth();
@@ -118,403 +127,524 @@ export const ProviderDashboardPage = () => {
 
   const pendingBookings = bookings.filter((b) => b.status === 'PENDING');
   const activeBookings = bookings.filter((b) => b.status === 'CONFIRMED' || b.status === 'IN_PROGRESS');
+  const isError = /failed|could not|error/i.test(feedbackMsg);
+
+  const metrics = [
+    {
+      key: 'revenue',
+      label: 'Total revenue',
+      icon: TrendingUp,
+      tone: 'coral',
+      value: (
+        <>
+          ₹<AnimatedNumber value={Number(stats.totalEarnings) || 0} />
+        </>
+      ),
+      note: (
+        <>
+          <span className="font-medium text-primary">100%</span> paid directly to your wallet.
+        </>
+      ),
+    },
+    {
+      key: 'requests',
+      label: 'New requests',
+      icon: Clock,
+      tone: stats.pendingBookings > 0 ? 'amber' : 'neutral',
+      value: (
+        <span className="flex items-baseline gap-2">
+          {stats.pendingBookings}
+          {stats.pendingBookings > 0 && (
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-amber" />
+          )}
+        </span>
+      ),
+      note:
+        stats.pendingBookings > 0
+          ? 'Action needed — review incoming jobs.'
+          : 'Everything responded to.',
+      onClick: () => navigate('/provider/bookings'),
+    },
+    {
+      key: 'completed',
+      label: 'Completed jobs',
+      icon: CheckCircle2,
+      tone: 'teal',
+      value: stats.completedBookings,
+      note: `Out of ${stats.totalBookings} bookings in total.`,
+    },
+    {
+      key: 'rating',
+      label: 'Customer rating',
+      icon: Star,
+      tone: 'amber',
+      value: (
+        <span className="flex items-baseline gap-1.5">
+          {Number(stats.averageRating || 4.8).toFixed(1)}
+          <span className="font-sans text-xs font-normal text-muted-foreground">/ 5.0</span>
+        </span>
+      ),
+      note: '★ Top 5% provider quality.',
+    },
+  ];
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-16">
-      {/* Top Banner & Online/Offline Switch */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/80 border border-slate-700/80 p-6 rounded-3xl backdrop-blur-md">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs uppercase font-extrabold text-emerald-400 tracking-wider">
-              Service Partner Dashboard
-            </span>
-            {stats.verified && (
-              <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
-                <ShieldCheck size={12} /> Verified
-              </span>
-            )}
-          </div>
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-            Hello, {user?.name || 'Partner'}!
-          </h1>
-          <p className="text-xs md:text-sm text-slate-400 mt-0.5">
-            Manage your service appointments, track earnings, and respond to customer requests in real-time.
-          </p>
-        </div>
+    <div className="mx-auto max-w-[1240px] animate-fade-in space-y-6 pb-16">
+      {/* Espresso hero with availability controls */}
+      <Reveal>
+        <section className="sh-dark-panel relative overflow-hidden rounded-xl">
+          <div className="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full bg-coral/20 blur-[110px]" />
+          <div className="sh-ruled-grid pointer-events-none absolute inset-0 opacity-[0.1]" />
+          <div className="relative flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-coral">
+                  <Briefcase size={12} /> Service partner dashboard
+                </span>
+                {stats.verified && (
+                  <span className="inline-flex items-center gap-1 rounded-pill border border-accent-teal/25 bg-accent-teal/10 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.08em] text-accent-teal">
+                    <ShieldCheck size={10} /> Verified
+                  </span>
+                )}
+              </div>
 
-        <div className="flex items-center gap-3">
-          {/* Availability Toggle */}
-          <div className="flex items-center gap-3 bg-slate-900/90 border border-slate-700/80 px-4 py-2.5 rounded-2xl">
-            <div className="flex flex-col text-right">
-              <span className="text-xs font-bold text-white">
-                {stats.availability ? 'Online & Available' : 'Offline / On Break'}
-              </span>
-              <span className="text-[10px] text-slate-400">
-                {stats.availability ? 'Receiving job alerts' : 'Not visible to new customers'}
-              </span>
+              <h1 className="mt-3 font-display text-[clamp(2.3rem,4.6vw,3.2rem)] leading-[0.98] tracking-[-0.035em] text-on-dark">
+                Hello, {user?.name || 'Partner'}.
+              </h1>
+              <p className="mt-3 max-w-xl text-[12.5px] leading-relaxed text-on-dark-soft">
+                Your day at a glance — pending requests, jobs underway, and the earnings they add up
+                to. Keep your availability current so the right work finds you.
+              </p>
+
+              <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] text-on-dark-soft">
+                <span className="flex items-center gap-1.5">
+                  <Star size={11} className="fill-coral text-coral" />
+                  {Number(stats.averageRating || 4.8).toFixed(1)} average rating
+                </span>
+                <span className="hidden h-3 w-px bg-white/12 sm:block" />
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 size={11} className="text-accent-teal" />
+                  {stats.completedBookings} jobs completed
+                </span>
+                <span className="hidden h-3 w-px bg-white/12 sm:block" />
+                <span className="flex items-center gap-1.5">
+                  <Clock size={11} className="text-coral" />
+                  {pendingBookings.length} awaiting a reply
+                </span>
+              </div>
             </div>
-            <button
-              onClick={handleToggleOnline}
-              className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
-                stats.availability ? 'bg-emerald-500' : 'bg-slate-700'
-              }`}
-            >
-              <span
-                className={`block w-4 h-4 rounded-full bg-white shadow-sm transition-transform absolute top-1 ${
-                  stats.availability ? 'left-7' : 'left-1'
-                }`}
-              />
-            </button>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex items-center gap-4 rounded-lg border border-white/10 bg-white/[0.05] px-4 py-3 backdrop-blur-md">
+                <div className="text-right">
+                  <span className="block text-[11px] font-medium text-on-dark">
+                    {stats.availability ? 'Online & available' : 'Offline / on break'}
+                  </span>
+                  <span className="mt-0.5 block text-[9px] text-on-dark-soft">
+                    {stats.availability ? 'Receiving job alerts' : 'Hidden from new customers'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleOnline}
+                  aria-pressed={stats.availability}
+                  aria-label="Toggle availability"
+                  className={cn(
+                    'relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-300',
+                    stats.availability ? 'bg-coral' : 'bg-white/15'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'absolute top-1 block h-4 w-4 rounded-full bg-canvas shadow-xs transition-transform duration-300',
+                      stats.availability ? 'translate-x-6' : 'translate-x-1'
+                    )}
+                  />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={loadDashboardData}
+                title="Refresh data"
+                aria-label="Refresh dashboard"
+                className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] text-on-dark-soft backdrop-blur-md transition-colors hover:text-on-dark"
+              >
+                <RefreshCw size={17} className={loading ? 'animate-spin' : ''} />
+              </button>
+            </div>
           </div>
+        </section>
+      </Reveal>
 
-          <button
-            onClick={loadDashboardData}
-            title="Refresh Data"
-            className="w-11 h-11 rounded-2xl bg-slate-900/90 border border-slate-700/80 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
-        </div>
-      </div>
-
-      {/* Inline Action Alert */}
+      {/* Inline action feedback */}
       {feedbackMsg && (
-        <div className="p-4 bg-emerald-950/80 border border-emerald-500/50 rounded-2xl text-emerald-300 text-xs font-bold flex items-center justify-between animate-fade-in">
-          <span>{feedbackMsg}</span>
-          <button onClick={() => setFeedbackMsg('')} className="text-emerald-400 hover:text-emerald-200">
+        <div
+          className={cn(
+            'flex animate-fade-in items-center justify-between gap-3 rounded-md border px-4 py-3 text-xs font-medium',
+            isError
+              ? 'border-destructive/25 bg-destructive/8 text-destructive'
+              : 'border-accent-teal/25 bg-accent-teal/8 text-accent-teal'
+          )}
+        >
+          <span className="flex items-center gap-2">
+            {isError ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
+            {feedbackMsg}
+          </span>
+          <button
+            onClick={() => setFeedbackMsg('')}
+            className="transition-opacity hover:opacity-70"
+            aria-label="Dismiss message"
+          >
             <X size={14} />
           </button>
         </div>
       )}
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Total Earnings */}
-        <div className="bg-slate-800/60 border border-slate-700/80 rounded-3xl p-6 relative overflow-hidden group hover:border-emerald-500/50 transition-all">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Revenue</span>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-              <TrendingUp size={20} />
-            </div>
-          </div>
-          <div className="text-3xl font-black text-white tracking-tight">
-            ₹{Number(stats.totalEarnings).toLocaleString('en-IN')}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-2 flex items-center gap-1">
-            <span className="text-emerald-400 font-bold">100%</span> direct payout to partner wallet
-          </p>
-        </div>
-
-        {/* Pending Requests */}
-        <div
-          onClick={() => navigate('/provider/bookings')}
-          className={`rounded-3xl p-6 relative overflow-hidden cursor-pointer transition-all border ${
-            stats.pendingBookings > 0
-              ? 'bg-amber-950/30 border-amber-500/50 hover:bg-amber-950/50'
-              : 'bg-slate-800/60 border-slate-700/80 hover:border-slate-600'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">New Requests</span>
+      {/* Metrics */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {metrics.map(({ key, label, icon: Icon, tone, value, note, onClick }, index) => (
+          <Reveal key={key} delay={Math.min(index * 0.05, 0.2)}>
             <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center border ${
-                stats.pendingBookings > 0
-                  ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                  : 'bg-slate-700/50 text-slate-400 border-slate-700'
-              }`}
+              onClick={onClick}
+              className={cn(
+                'group relative h-full overflow-hidden rounded-lg border border-hairline bg-card p-5 transition-all duration-300',
+                onClick && 'cursor-pointer hover:-translate-y-0.5',
+                'hover:border-ink/15 hover:shadow-[var(--shadow-soft)]'
+              )}
             >
-              <Clock size={20} />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <div className="text-3xl font-black text-white tracking-tight">{stats.pendingBookings}</div>
-            {stats.pendingBookings > 0 && (
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
-            )}
-          </div>
-          <p className="text-[11px] text-amber-300 font-semibold mt-2">
-            {stats.pendingBookings > 0 ? 'Action required: Review requests' : 'All requests responded'}
-          </p>
-        </div>
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-[9px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  {label}
+                </span>
+                <span
+                  className={cn(
+                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-md border',
+                    metricTones[tone]
+                  )}
+                >
+                  <Icon size={16} strokeWidth={1.8} />
+                </span>
+              </div>
 
-        {/* Completed Jobs */}
-        <div className="bg-slate-800/60 border border-slate-700/80 rounded-3xl p-6 hover:border-slate-600 transition-all">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Completed Jobs</span>
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-              <CheckCircle2 size={20} />
-            </div>
-          </div>
-          <div className="text-3xl font-black text-white tracking-tight">{stats.completedBookings}</div>
-          <p className="text-[11px] text-slate-400 mt-2">
-            Out of {stats.totalBookings} total bookings
-          </p>
-        </div>
+              <div className="mt-5 font-display text-[2.3rem] leading-none tracking-[-0.035em] text-ink">
+                {value}
+              </div>
 
-        {/* Average Rating */}
-        <div className="bg-slate-800/60 border border-slate-700/80 rounded-3xl p-6 hover:border-slate-600 transition-all">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Customer Rating</span>
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-              <Star size={20} className="fill-amber-400" />
+              <p className="mt-2.5 text-[10px] leading-relaxed text-muted-foreground">{note}</p>
+
+              {onClick && (
+                <ArrowUpRight
+                  size={13}
+                  className="absolute bottom-5 right-5 text-muted-foreground/50 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+                />
+              )}
             </div>
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <div className="text-3xl font-black text-white tracking-tight">
-              {Number(stats.averageRating || 4.8).toFixed(1)}
-            </div>
-            <span className="text-slate-400 text-xs font-bold">/ 5.0</span>
-          </div>
-          <p className="text-[11px] text-emerald-400 font-semibold mt-2">
-            ★ Top 5% Provider Quality
-          </p>
-        </div>
+          </Reveal>
+        ))}
       </div>
 
-      {/* Pending Job Requests Queue (Urgent Action) */}
-      <div className="bg-slate-800/50 border border-slate-700/80 rounded-3xl p-6 space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-              <AlertTriangle size={16} />
+      {/* Pending queue */}
+      <Reveal delay={0.08}>
+        <section className="overflow-hidden rounded-lg border border-hairline bg-card">
+          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-5 py-4 sm:px-6">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-md border border-accent-amber/25 bg-accent-amber/8 text-accent-amber">
+                <AlertTriangle size={16} strokeWidth={1.8} />
+              </span>
+              <div>
+                <h2 className="font-display text-[1.5rem] leading-tight tracking-[-0.02em] text-ink">
+                  Pending requests
+                </h2>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  Accept or decline incoming customer bookings.
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-base font-black text-white">Pending Job Inquiries</h2>
-              <p className="text-xs text-slate-400">Accept or decline incoming customer bookings</p>
+            <button
+              onClick={() => navigate('/provider/bookings')}
+              className="flex items-center gap-1 text-[10px] font-medium text-primary transition-colors hover:text-primary-active"
+            >
+              View all ({bookings.length}) <ChevronRight size={13} />
+            </button>
+          </header>
+
+          {pendingBookings.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-accent-teal/20 bg-accent-teal/8 text-accent-teal">
+                <CheckCircle2 size={22} strokeWidth={1.7} />
+              </span>
+              <h3 className="mt-3 text-[13px] font-medium text-ink">No pending requests</h3>
+              <p className="mx-auto mt-1 max-w-sm text-[11px] leading-relaxed text-muted-foreground">
+                You’re all caught up. Keep availability on to receive new job alerts.
+              </p>
             </div>
-          </div>
-          <button
-            onClick={() => navigate('/provider/bookings')}
-            className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
-          >
-            View All ({bookings.length}) <ChevronRight size={14} />
-          </button>
-        </div>
-
-        {pendingBookings.length === 0 ? (
-          <div className="py-8 text-center bg-slate-900/50 rounded-2xl border border-slate-800">
-            <CheckCircle2 size={32} className="mx-auto text-emerald-400 mb-2 opacity-80" />
-            <p className="text-xs font-bold text-slate-300">No pending booking requests!</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Ensure your availability is toggled ON to receive new orders.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {pendingBookings.map((b) => (
-              <div
-                key={b.id}
-                className="p-5 bg-slate-900/90 border border-slate-700/80 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-amber-500/40 transition-all"
-              >
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-white">
-                      {b.service?.title || 'Service Booking'}
-                    </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                      PENDING
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={13} className="text-slate-500" />
-                      {new Date(b.scheduledAt || b.createdAt).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin size={13} className="text-slate-500" />
-                      {b.location || b.customer?.address || 'Customer Location'}
-                    </span>
-                    {b.customer?.phone && (
-                      <span className="flex items-center gap-1">
-                        <Phone size={13} className="text-slate-500" />
-                        {b.customer.phone}
+          ) : (
+            <div className="divide-y divide-hairline-soft">
+              {pendingBookings.map((b) => (
+                <div
+                  key={b.id}
+                  className="flex flex-col gap-4 px-5 py-4 transition-colors hover:bg-surface-soft/30 sm:px-6 md:flex-row md:items-center md:justify-between"
+                >
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[13px] font-medium text-ink">
+                        {b.service?.title || 'Service booking'}
                       </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
-                  <div className="text-right">
-                    <div className="text-base font-black text-emerald-400">
-                      ₹{b.totalPrice || b.service?.price || 0}
+                      <span className="rounded-pill border border-accent-amber/25 bg-accent-amber/8 px-2 py-0.5 text-[8px] font-medium uppercase tracking-[0.08em] text-accent-amber">
+                        Pending
+                      </span>
+                      <span className="rounded-xs border border-hairline bg-surface-soft px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                        #{b.id}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-slate-400">Fixed Rate</span>
+
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar size={12} className="text-muted-foreground/70" />
+                        {new Date(b.scheduledAt || b.createdAt).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <MapPin size={12} className="shrink-0 text-muted-foreground/70" />
+                        <span className="truncate">
+                          {b.location || b.customer?.address || 'Customer location'}
+                        </span>
+                      </span>
+                      {b.customer?.phone && (
+                        <span className="flex items-center gap-1.5">
+                          <Phone size={12} className="text-muted-foreground/70" />
+                          {b.customer.phone}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleStatusChange(b.id, 'CONFIRMED')}
-                      disabled={actionLoading === b.id}
-                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-emerald-950/40 cursor-pointer disabled:opacity-50"
-                    >
-                      <Check size={14} /> Accept
-                    </button>
-                    <button
-                      onClick={() => handleStatusChange(b.id, 'CANCELLED')}
-                      disabled={actionLoading === b.id}
-                      className="px-3 py-2 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-slate-700 cursor-pointer disabled:opacity-50"
-                    >
-                      <X size={14} /> Decline
-                    </button>
+                  <div className="flex flex-wrap items-center justify-between gap-4 border-t border-hairline-soft pt-3 md:justify-end md:border-t-0 md:pt-0">
+                    <div className="text-right">
+                      <div className="text-sm font-medium tabular-nums text-ink">
+                        ₹{Number(b.totalPrice || b.service?.price || 0).toLocaleString('en-IN')}
+                      </div>
+                      <span className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground">
+                        Fixed rate
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleStatusChange(b.id, 'CONFIRMED')}
+                        disabled={actionLoading === b.id}
+                        className="flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[11px] font-medium text-primary-foreground transition-all hover:bg-primary-active active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+                      >
+                        {actionLoading === b.id ? (
+                          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        ) : (
+                          <Check size={13} />
+                        )}
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(b.id, 'CANCELLED')}
+                        disabled={actionLoading === b.id}
+                        className="flex items-center gap-1.5 rounded-md border border-hairline bg-canvas px-3 py-2 text-[11px] font-medium text-body transition-all hover:border-destructive/30 hover:text-destructive active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+                      >
+                        <X size={13} /> Decline
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </Reveal>
+
+      {/* Active jobs */}
+      <Reveal delay={0.12}>
+        <section className="overflow-hidden rounded-lg border border-hairline bg-card">
+          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-5 py-4 sm:px-6">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-md border border-accent-teal/20 bg-accent-teal/8 text-accent-teal">
+                <Layers size={16} strokeWidth={1.8} />
+              </span>
+              <div>
+                <h2 className="font-display text-[1.5rem] leading-tight tracking-[-0.02em] text-ink">
+                  Jobs in progress
+                </h2>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  Scheduled visits and work currently underway.
+                </p>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Active Jobs Section (Confirmed / In Progress) */}
-      <div className="bg-slate-800/50 border border-slate-700/80 rounded-3xl p-6 space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-              <Layers size={16} />
             </div>
-            <div>
-              <h2 className="text-base font-black text-white">Active Jobs in Progress</h2>
-              <p className="text-xs text-slate-400">Jobs currently scheduled or underway</p>
+            <span className="rounded-pill border border-hairline bg-surface-soft px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+              {activeBookings.length} active
+            </span>
+          </header>
+
+          {activeBookings.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-hairline bg-surface-soft text-muted-foreground">
+                <Calendar size={22} strokeWidth={1.7} />
+              </span>
+              <h3 className="mt-3 text-[13px] font-medium text-ink">No active jobs right now</h3>
+              <p className="mx-auto mt-1 max-w-sm text-[11px] leading-relaxed text-muted-foreground">
+                Accepted bookings will appear here so you can start, complete, and message customers.
+              </p>
             </div>
-          </div>
-        </div>
-
-        {activeBookings.length === 0 ? (
-          <div className="py-8 text-center bg-slate-900/50 rounded-2xl border border-slate-800">
-            <Calendar size={32} className="mx-auto text-slate-500 mb-2 opacity-60" />
-            <p className="text-xs font-bold text-slate-400">No active jobs right now</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Accepted bookings will appear here for execution and completion.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {activeBookings.map((b) => (
-              <div
-                key={b.id}
-                className="p-5 bg-slate-900/90 border border-slate-700/80 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4"
-              >
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-white">
-                      {b.service?.title || 'Service Booking'}
-                    </span>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                        b.status === 'IN_PROGRESS'
-                          ? 'bg-purple-500/20 text-purple-300 border-purple-500/30 animate-pulse'
-                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                      }`}
-                    >
-                      {b.status.replace('_', ' ')}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={13} className="text-slate-500" />
-                      {new Date(b.scheduledAt || b.createdAt).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin size={13} className="text-slate-500" />
-                      {b.location || b.customer?.address || 'Customer Location'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
-                  <div className="text-right mr-2">
-                    <div className="text-base font-black text-emerald-400">
-                      ₹{b.totalPrice || b.service?.price || 0}
-                    </div>
-                  </div>
-
-                  {b.status === 'CONFIRMED' && (
-                    <button
-                      onClick={() => handleStatusChange(b.id, 'IN_PROGRESS')}
-                      disabled={actionLoading === b.id}
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer disabled:opacity-50"
-                    >
-                      <Play size={13} /> Start Job
-                    </button>
-                  )}
-
-                  {b.status === 'IN_PROGRESS' && (
-                    <button
-                      onClick={() => handleStatusChange(b.id, 'COMPLETED')}
-                      disabled={actionLoading === b.id}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer disabled:opacity-50"
-                    >
-                      <CheckCircle2 size={14} /> Complete Job
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => navigate('/provider/messages')}
-                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all border border-slate-700 cursor-pointer"
-                    title="Message Customer"
+          ) : (
+            <div className="divide-y divide-hairline-soft">
+              {activeBookings.map((b) => {
+                const inProgress = b.status === 'IN_PROGRESS';
+                return (
+                  <div
+                    key={b.id}
+                    className="flex flex-col gap-4 px-5 py-4 transition-colors hover:bg-surface-soft/30 sm:px-6 md:flex-row md:items-center md:justify-between"
                   >
-                    Chat
-                  </button>
-                </div>
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[13px] font-medium text-ink">
+                          {b.service?.title || 'Service booking'}
+                        </span>
+                        <span
+                          className={cn(
+                            'flex items-center gap-1 rounded-pill border px-2 py-0.5 text-[8px] font-medium uppercase tracking-[0.08em]',
+                            inProgress
+                              ? 'border-accent-teal/25 bg-accent-teal/8 text-accent-teal'
+                              : 'border-primary/20 bg-primary/6 text-primary'
+                          )}
+                        >
+                          {inProgress && <span className="h-1 w-1 animate-pulse rounded-full bg-current" />}
+                          {b.status.replace('_', ' ')}
+                        </span>
+                        <span className="rounded-xs border border-hairline bg-surface-soft px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                          #{b.id}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px] text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar size={12} className="text-muted-foreground/70" />
+                          {new Date(b.scheduledAt || b.createdAt).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                        <span className="flex min-w-0 items-center gap-1.5">
+                          <MapPin size={12} className="shrink-0 text-muted-foreground/70" />
+                          <span className="truncate">
+                            {b.location || b.customer?.address || 'Customer location'}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline-soft pt-3 md:justify-end md:border-t-0 md:pt-0">
+                      <div className="text-right">
+                        <div className="text-sm font-medium tabular-nums text-ink">
+                          ₹{Number(b.totalPrice || b.service?.price || 0).toLocaleString('en-IN')}
+                        </div>
+                        <span className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground">
+                          Fixed rate
+                        </span>
+                      </div>
+
+                      {b.status === 'CONFIRMED' && (
+                        <button
+                          onClick={() => handleStatusChange(b.id, 'IN_PROGRESS')}
+                          disabled={actionLoading === b.id}
+                          className="flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[11px] font-medium text-primary-foreground transition-all hover:bg-primary-active active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+                        >
+                          <Play size={12} /> Start job
+                        </button>
+                      )}
+
+                      {inProgress && (
+                        <button
+                          onClick={() => handleStatusChange(b.id, 'COMPLETED')}
+                          disabled={actionLoading === b.id}
+                          className="flex items-center gap-1.5 rounded-md border border-accent-teal/25 bg-accent-teal/8 px-3.5 py-2 text-[11px] font-medium text-accent-teal transition-all hover:bg-accent-teal/12 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+                        >
+                          {actionLoading === b.id ? (
+                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          ) : (
+                            <CheckCircle2 size={13} />
+                          )}
+                          Complete job
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => navigate('/provider/messages')}
+                        className="rounded-md border border-hairline bg-canvas px-3 py-2 text-[11px] font-medium text-body transition-all hover:border-ink/25 hover:text-ink active:scale-[0.98]"
+                        title="Message customer"
+                      >
+                        Chat
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      </Reveal>
+
+      {/* Operations shortcuts */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {[
+          {
+            icon: Briefcase,
+            tone: 'coral',
+            title: 'Manage service offerings',
+            copy: 'Add repair or maintenance skills, update rates, and toggle what you offer.',
+            to: '/provider/services',
+          },
+          {
+            icon: Clock,
+            tone: 'teal',
+            title: 'Set working hours',
+            copy: 'Customise working days, shift slots, and breaks for automated booking.',
+            to: '/provider/availability',
+          },
+          {
+            icon: TrendingUp,
+            tone: 'amber',
+            title: 'Payouts & earnings',
+            copy: 'Review completed work settlements, commissions, and request payouts.',
+            to: '/provider/earnings',
+          },
+        ].map(({ icon: Icon, tone, title, copy, to }, index) => (
+          <Reveal key={title} delay={0.16 + Math.min(index * 0.04, 0.12)}>
+            <div
+              onClick={() => navigate(to)}
+              className="group flex h-full cursor-pointer flex-col rounded-lg border border-hairline bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-ink/15 hover:shadow-[var(--shadow-soft)]"
+            >
+              <div className="flex items-center justify-between">
+                <span
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-md border transition-colors',
+                    metricTones[tone]
+                  )}
+                >
+                  <Icon size={18} strokeWidth={1.8} />
+                </span>
+                <ArrowUpRight
+                  size={15}
+                  className="text-muted-foreground/50 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+                />
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Operations Quick Shortcuts */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div
-          onClick={() => navigate('/provider/services')}
-          className="p-6 bg-slate-800/40 border border-slate-700/80 rounded-3xl hover:bg-slate-800/70 hover:border-emerald-500/40 transition-all cursor-pointer group"
-        >
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-            <Briefcase size={20} />
-          </div>
-          <h3 className="text-sm font-bold text-white mb-1">Manage Service Offerings</h3>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Add new repair or maintenance skills, update hourly rates, and toggle availability.
-          </p>
-        </div>
-
-        <div
-          onClick={() => navigate('/provider/availability')}
-          className="p-6 bg-slate-800/40 border border-slate-700/80 rounded-3xl hover:bg-slate-800/70 hover:border-emerald-500/40 transition-all cursor-pointer group"
-        >
-          <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
-            <Clock size={20} />
-          </div>
-          <h3 className="text-sm font-bold text-white mb-1">Set Working Hours</h3>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Customize working days, shift slots, and break periods for automated customer booking.
-          </p>
-        </div>
-
-        <div
-          onClick={() => navigate('/provider/earnings')}
-          className="p-6 bg-slate-800/40 border border-slate-700/80 rounded-3xl hover:bg-slate-800/70 hover:border-emerald-500/40 transition-all cursor-pointer group"
-        >
-          <div className="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-4 border border-purple-500/20 group-hover:bg-purple-500 group-hover:text-white transition-colors">
-            <TrendingUp size={20} />
-          </div>
-          <h3 className="text-sm font-bold text-white mb-1">Payouts & Earnings</h3>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Review completed work settlements, track service commissions, and request payouts.
-          </p>
-        </div>
+              <h3 className="mt-5 text-[13px] font-medium text-ink">{title}</h3>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">{copy}</p>
+            </div>
+          </Reveal>
+        ))}
       </div>
     </div>
   );
 };
-

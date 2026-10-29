@@ -75,10 +75,6 @@ const KNOWN_LOCALITIES = {
 
 /**
  * Geocode an address string into latitude and longitude.
- * Priority:
- * 1. Google Geocoding API if GOOGLE_MAPS_API_KEY is configured
- * 2. High-precision built-in locality dictionary
- * 3. Deterministic coordinate generator for custom addresses
  */
 const geocodeAddress = async (address) => {
   if (!address || typeof address !== "string") {
@@ -87,7 +83,7 @@ const geocodeAddress = async (address) => {
 
   const cleanAddr = address.trim();
 
-  // 1. Direct coordinate pattern matching (e.g. "Live GPS Location (17.4435, 78.3772)" or "17.4435, 78.3772")
+  // 1. Direct coordinate pattern matching (e.g. "(17.4435, 78.3772)")
   const coordMatch = cleanAddr.match(/(-?\d+\.\d{3,})[,\s]+(-?\d+\.\d{3,})/);
   if (coordMatch) {
     const lat = parseFloat(coordMatch[1]);
@@ -103,13 +99,12 @@ const geocodeAddress = async (address) => {
 
   const lowerAddr = cleanAddr.toLowerCase();
 
-  // 2. Google Geocoding API if key is present
+  // 2. Google Geocoding API if key is present (using native globalThis.fetch)
   const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
-  if (apiKey) {
+  if (apiKey && typeof globalThis.fetch === "function") {
     try {
-      const fetch = (await import("node-fetch")).default || global.fetch;
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cleanAddr)}&key=${apiKey}`;
-      const res = await fetch(url);
+      const res = await globalThis.fetch(url);
       const data = await res.json();
       if (data.status === "OK" && data.results?.[0]?.geometry?.location) {
         const loc = data.results[0].geometry.location;
@@ -120,7 +115,7 @@ const geocodeAddress = async (address) => {
         };
       }
     } catch (err) {
-      console.warn("Google Geocoding API call skipped/failed, falling back to local resolver:", err.message);
+      // Fall through to local dictionary
     }
   }
 
@@ -135,14 +130,13 @@ const geocodeAddress = async (address) => {
     }
   }
 
-  // 4. Fallback: Hash the address string deterministically around Bengaluru center
-  // to ensure a consistent, valid coordinate pair within city bounds
+  // 4. Deterministic fallback
   let hash = 0;
   for (let i = 0; i < cleanAddr.length; i++) {
     hash = (hash << 5) - hash + cleanAddr.charCodeAt(i);
     hash |= 0;
   }
-  const offsetLat = ((Math.abs(hash) % 1000) - 500) / 10000; // +/- ~5km
+  const offsetLat = ((Math.abs(hash) % 1000) - 500) / 10000;
   const offsetLng = ((Math.abs(hash >> 3) % 1000) - 500) / 10000;
 
   return {
@@ -174,13 +168,11 @@ const calculateRoute = (origin, destination, originAddress, destAddress) => {
   // Estimated driving duration (avg 22-26 km/h in city traffic + 4 min service buffer)
   const durationMinutes = Math.max(8, Math.round((drivingDistanceKm / 24) * 60 + 4));
 
-  // Formatted labels
   const formattedDistance = `${drivingDistanceKm} km`;
   const formattedDuration = durationMinutes < 60
     ? `${durationMinutes} mins`
     : `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`;
 
-  // Universal Google Maps Turn-by-Turn Directions URL
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
     originAddress || `${origin.lat},${origin.lng}`
   )}&destination=${encodeURIComponent(
@@ -197,12 +189,13 @@ const calculateRoute = (origin, destination, originAddress, destAddress) => {
   };
 };
 
-/**
- * Get comprehensive tracking details for a specific booking.
- * Verifies caller authorization and resolves both Customer and Provider positions.
- */
+const ApiError = require("../utils/errors");
+
 const getBookingTracking = async (bookingId, user) => {
   const id = parseInt(bookingId);
+  if (isNaN(id)) {
+    throw ApiError.badRequest("Invalid booking ID");
+  }
   const booking = await prisma.booking.findUnique({
     where: { id },
     include: {
@@ -225,7 +218,7 @@ const getBookingTracking = async (bookingId, user) => {
     throw new Error("Booking not found");
   }
 
-  // Authorization check: Customer, assigned Provider, or Admin
+  // Authorization check
   if (user.role === "CUSTOMER" && booking.customer.userId !== user.userId) {
     throw new Error("Unauthorized to access tracking for this booking");
   }
@@ -233,7 +226,6 @@ const getBookingTracking = async (bookingId, user) => {
     throw new Error("Unauthorized to access tracking for this booking");
   }
 
-  // 1. Customer Location
   const customerAddress = booking.location || booking.customer?.address || "12th Main, Indiranagar, Bengaluru";
   let customerCoords;
   if (booking.latitude && booking.longitude) {
@@ -243,32 +235,11 @@ const getBookingTracking = async (bookingId, user) => {
     customerCoords = { lat: geo.lat, lng: geo.lng };
   }
 
-  // Detect city/region from customer address or coordinates to ensure local dispatch
-  const lowerCust = customerAddress.toLowerCase();
-  let cityDetected = "Bengaluru";
-  if (lowerCust.includes("hyderabad") || (customerCoords.lat > 16.5 && customerCoords.lat < 18.5 && customerCoords.lng > 77.5 && customerCoords.lng < 79.5)) {
-    cityDetected = "Hyderabad";
-  } else if (lowerCust.includes("mumbai") || (customerCoords.lat > 18.8 && customerCoords.lat < 19.5)) {
-    cityDetected = "Mumbai";
-  } else if (lowerCust.includes("delhi") || lowerCust.includes("noida") || lowerCust.includes("gurugram") || (customerCoords.lat > 28.0 && customerCoords.lat < 29.0)) {
-    cityDetected = "Delhi NCR";
-  } else if (lowerCust.includes("chennai") || (customerCoords.lat > 12.8 && customerCoords.lat < 13.4 && customerCoords.lng > 80.0)) {
-    cityDetected = "Chennai";
-  } else if (lowerCust.includes("pune") || (customerCoords.lat > 18.3 && customerCoords.lat < 18.8 && customerCoords.lng > 73.6 && customerCoords.lng < 74.1)) {
-    cityDetected = "Pune";
-  } else if (lowerCust.includes("macherla") || (customerCoords.lat > 16.3 && customerCoords.lat < 16.7 && customerCoords.lng > 79.2 && customerCoords.lng < 79.7)) {
-    cityDetected = "Macherla";
-  }
-
-  // 2. Provider Location:
-  // If provider has a registered specific address within the customer's city zone (<= 30 km), use it;
-  // Otherwise, automatically dispatch from a local service hub in the customer's locality (~2.5 to 3.5 km away)
   let providerAddress = booking.provider.address;
   let providerCoords = null;
 
   if (providerAddress && !providerAddress.includes("123 Main Street")) {
     const rawCoords = await geocodeAddress(providerAddress);
-    // Check straight-line distance to customer
     const R = 6371;
     const dLat = ((rawCoords.lat - customerCoords.lat) * Math.PI) / 180;
     const dLng = ((rawCoords.lng - customerCoords.lng) * Math.PI) / 180;
@@ -285,40 +256,14 @@ const getBookingTracking = async (bookingId, user) => {
     }
   }
 
-  // If no local provider coords yet, dispatch from nearby local hub (~2.8 km away)
   if (!providerCoords) {
-    const localHubNames = {
-      "Macherla": "ServiceHub Macherla Base, Market Road, Macherla, Andhra Pradesh",
-      "Hyderabad": "ServiceHub Regional Center, Madhapur, Hyderabad",
-      "Bengaluru": "ServiceHub Dispatch Base, Indiranagar, Bengaluru",
-      "Mumbai": "ServiceHub Local Hub, Andheri East, Mumbai",
-      "Delhi NCR": "ServiceHub Center, Connaught Place, New Delhi",
-      "Chennai": "ServiceHub Base, T Nagar, Chennai",
-      "Pune": "ServiceHub Hub, Kothrud, Pune"
-    };
-
-    const categoryTitle = booking.provider.category?.categoryName || "Service Partner";
-    providerAddress = `${booking.provider.user?.name || "Provider"} Mobile Base (${categoryTitle}), ${localHubNames[cityDetected] || `${cityDetected} Service Base`}`;
-
-    // Place provider at an authentic local driving offset (~2.5 to 3.5 km away) in the customer's locality
     providerCoords = {
       lat: Number((customerCoords.lat + 0.0185).toFixed(6)),
       lng: Number((customerCoords.lng - 0.0145).toFixed(6))
     };
+    providerAddress = `${booking.provider.user?.name || "Service Partner"} Mobile Base`;
   }
 
-  // Ensure pins never overlap identically
-  if (
-    Math.abs(providerCoords.lat - customerCoords.lat) < 0.0005 &&
-    Math.abs(providerCoords.lng - customerCoords.lng) < 0.0005
-  ) {
-    providerCoords = {
-      lat: Number((customerCoords.lat + 0.0185).toFixed(6)),
-      lng: Number((customerCoords.lng - 0.0145).toFixed(6))
-    };
-  }
-
-  // 3. Compute Route & ETA
   const route = calculateRoute(
     providerCoords,
     customerCoords,

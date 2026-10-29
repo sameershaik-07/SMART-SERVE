@@ -1,27 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  MapPin, 
-  CheckCircle, 
-  User, 
-  ShieldCheck, 
-  Star, 
-  MessageSquare, 
-  Phone, 
-  AlertCircle,
-  Clock,
-  CreditCard,
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  MessageSquare,
   Crosshair,
-  Loader2
+  Loader2,
+  CreditCard,
+  Clock,
+  ShieldCheck,
+  CheckCircle2,
+  Navigation,
 } from 'lucide-react';
-import { getBookingByIdApi, getBookingTrackingApi, updateBookingStatusApi, updateBookingLocationApi } from '../../api/bookings';
-import { Badge } from '../../components/common/Badge';
+import {
+  getBookingByIdApi,
+  getBookingTrackingApi,
+  updateBookingStatusApi,
+  updateBookingLocationApi,
+} from '../../api/bookings';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '../../components/common/Button';
 import { BookingMap } from '../../components/map/BookingMap';
 import { useAuth } from '../../context/AuthContext';
 import { getAccurateGPSLocation, reverseGeocodeCoords } from '../../utils/geolocation';
+import { cn } from '@/lib/utils';
+
+const statusVariant = (status) => {
+  if (status === 'COMPLETED') return 'success';
+  if (status === 'CANCELLED' || status === 'REJECTED') return 'destructive';
+  if (status === 'PENDING') return 'warning';
+  return 'info';
+};
+
+const steps = [
+  { label: 'Requested', meta: 'Booking placed', match: ['PENDING', 'ACCEPTED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'] },
+  { label: 'Accepted', meta: 'Provider assigned', match: ['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'] },
+  { label: 'On the way', meta: 'In route', match: ['IN_PROGRESS', 'COMPLETED'] },
+  { label: 'Completed', meta: 'All done', match: ['COMPLETED'] },
+];
 
 export const BookingDetailsPage = () => {
   const { id } = useParams();
@@ -33,6 +50,8 @@ export const BookingDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cancelling, setCancelling] = useState(false);
+  const [updateSuccessMsg, setUpdateSuccessMsg] = useState(null);
+  const [updatingLocation, setUpdatingLocation] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -42,7 +61,6 @@ export const BookingDetailsPage = () => {
       setError(null);
 
       try {
-        // Fetch booking details & tracking
         let bData = null;
         let tData = null;
 
@@ -67,9 +85,8 @@ export const BookingDetailsPage = () => {
           } else if (tData) {
             setTrackingData(tData);
           } else {
-            // Build real in-app tracking state from booking so map is ALWAYS visible
-            const custLat = bData.latitude || 16.4800;
-            const custLng = bData.longitude || 79.4300;
+            const custLat = bData.latitude || 16.48;
+            const custLng = bData.longitude || 79.43;
             const provLat = Number((custLat + 0.0185).toFixed(6));
             const provLng = Number((custLng - 0.0145).toFixed(6));
             setTrackingData({
@@ -81,8 +98,11 @@ export const BookingDetailsPage = () => {
                 id: bData.customer?.id || 1,
                 name: bData.customer?.user?.name || user?.name || 'Customer',
                 phone: bData.customer?.user?.phone || user?.phone || '+91 98765 43210',
-                address: bData.location || bData.customer?.address || 'Macherla, Palnadu District, Andhra Pradesh 522426',
-                coordinates: { lat: custLat, lng: custLng }
+                address:
+                  bData.location ||
+                  bData.customer?.address ||
+                  'Macherla, Palnadu District, Andhra Pradesh 522426',
+                coordinates: { lat: custLat, lng: custLng },
               },
               provider: {
                 id: bData.provider?.id || 1,
@@ -91,14 +111,14 @@ export const BookingDetailsPage = () => {
                 category: bData.provider?.category?.categoryName || 'Service Partner',
                 rating: bData.provider?.rating || 4.8,
                 address: bData.provider?.address || 'ServiceHub Macherla Base, Market Road, Macherla',
-                coordinates: { lat: provLat, lng: provLng }
+                coordinates: { lat: provLat, lng: provLng },
               },
               route: {
                 distanceKm: 2.8,
                 formattedDistance: '2.8 km',
                 durationMinutes: 12,
-                formattedDuration: '12 mins'
-              }
+                formattedDuration: '12 mins',
+              },
             });
           }
         } else if (tData) {
@@ -111,26 +131,24 @@ export const BookingDetailsPage = () => {
             location: tData.customer?.address,
             totalPrice: tData.service?.price || 799,
             customer: tData.customer,
-            provider: tData.provider
+            provider: tData.provider,
           });
         } else {
-          // Fallback mock representation for smooth offline/prototype preview
           const fallbackData = {
             id: id || 2,
             status: 'CONFIRMED',
             serviceDate: new Date().toISOString(),
             location: 'Macherla, Palnadu District, Andhra Pradesh 522426',
             totalPrice: 849,
-            service: {
-              title: 'Expert Appliance Repair & Inspection',
-              price: 849
-            },
+            service: { title: 'Expert Appliance Repair & Inspection', price: 849 },
             customer: {
               id: user?.id || 1,
               name: user?.name || 'Customer',
               phone: user?.phone || '+91 98765 43210',
-              address: user?.customer?.address || 'Macherla, Palnadu District, Andhra Pradesh 522426',
-              coordinates: { lat: 16.4800, lng: 79.4300 }
+              address:
+                user?.customer?.address ||
+                'Macherla, Palnadu District, Andhra Pradesh 522426',
+              coordinates: { lat: 16.48, lng: 79.43 },
             },
             provider: {
               id: 2,
@@ -139,14 +157,14 @@ export const BookingDetailsPage = () => {
               category: 'Appliance Repair',
               rating: 4.8,
               address: 'Market Road, Macherla, Andhra Pradesh 522426',
-              coordinates: { lat: 16.4985, lng: 79.4155 }
+              coordinates: { lat: 16.4985, lng: 79.4155 },
             },
             route: {
               distanceKm: 2.8,
               formattedDistance: '2.8 km',
               durationMinutes: 12,
-              formattedDuration: '12 mins'
-            }
+              formattedDuration: '12 mins',
+            },
           };
           setBooking(fallbackData);
           setTrackingData(fallbackData);
@@ -181,16 +199,15 @@ export const BookingDetailsPage = () => {
 
   const handleMessageProvider = () => {
     const providerId = booking?.provider?.id || booking?.providerId || 1;
-    const providerName = booking?.provider?.name || booking?.provider?.user?.name || 'CoolTech Services';
+    const providerName =
+      booking?.provider?.name || booking?.provider?.user?.name || 'CoolTech Services';
     const bookingId = booking?.id || id;
-    navigate(`/messages?providerId=${providerId}&name=${encodeURIComponent(providerName)}&bookingId=${bookingId || ''}`);
+    navigate(
+      `/messages?providerId=${providerId}&name=${encodeURIComponent(providerName)}&bookingId=${bookingId || ''}`
+    );
   };
 
-  const [updateSuccessMsg, setUpdateSuccessMsg] = useState(null);
-  const [updatingLocation, setUpdatingLocation] = useState(false);
-
   const handleLocationUpdated = async ({ location, coordinates }) => {
-    // 1. Immediately update tracking data in UI
     setTrackingData((prev) => {
       if (!prev) return prev;
       const provCoords = prev.provider?.coordinates || { lat: 12.9756, lng: 77.6066 };
@@ -210,39 +227,30 @@ export const BookingDetailsPage = () => {
 
       return {
         ...prev,
-        customer: {
-          ...prev.customer,
-          address: location,
-          coordinates
-        },
+        customer: { ...prev.customer, address: location, coordinates },
         route: {
           ...prev.route,
           distanceKm: distKm,
           formattedDistance: `${distKm} km`,
           durationMinutes: durMins,
           formattedDuration: `${durMins} mins`,
-          directionsUrl: `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prev.provider?.address || `${provCoords.lat},${provCoords.lng}`)}&destination=${encodeURIComponent(`${coordinates.lat},${coordinates.lng}`)}&travelmode=driving`
-        }
+          directionsUrl: `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prev.provider?.address || `${provCoords.lat},${provCoords.lng}`)}&destination=${encodeURIComponent(`${coordinates.lat},${coordinates.lng}`)}&travelmode=driving`,
+        },
       };
     });
 
-    setBooking((prev) => ({
-      ...prev,
-      location
-    }));
-
-    setUpdateSuccessMsg(`📍 Service destination updated to ${location}`);
+    setBooking((prev) => ({ ...prev, location }));
+    setUpdateSuccessMsg(`Service destination updated to ${location}`);
     setTimeout(() => setUpdateSuccessMsg(null), 6000);
 
-    // 2. Persist to backend database
     try {
       await updateBookingLocationApi(id, {
         location,
         latitude: coordinates.lat,
-        longitude: coordinates.lng
+        longitude: coordinates.lng,
       });
     } catch (err) {
-      console.warn("Could not persist location to backend:", err.message);
+      console.warn('Could not persist location to backend:', err.message);
     }
   };
 
@@ -256,10 +264,10 @@ export const BookingDetailsPage = () => {
 
       await handleLocationUpdated({
         location: readableAddress,
-        coordinates: { lat: loc.lat, lng: loc.lng }
+        coordinates: { lat: loc.lat, lng: loc.lng },
       });
 
-      setUpdateSuccessMsg(`📍 Location updated: ${readableAddress} (±${loc.accuracy}m accuracy)`);
+      setUpdateSuccessMsg(`Location updated: ${readableAddress} (±${loc.accuracy}m accuracy)`);
       setTimeout(() => setUpdateSuccessMsg(null), 6000);
     } catch (err) {
       console.error('[BookingDetailsPage] GPS error:', err);
@@ -271,190 +279,230 @@ export const BookingDetailsPage = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6 max-w-4xl pb-16 animate-fade-in">
-        <div className="h-6 w-36 bg-slate-200 rounded animate-pulse"></div>
-        <div className="h-10 w-72 bg-slate-200 rounded animate-pulse"></div>
-        <div className="h-96 bg-slate-100 rounded-2xl animate-pulse"></div>
+      <div className="mx-auto max-w-4xl space-y-5 pb-16">
+        <div className="h-4 w-32 animate-pulse rounded bg-surface-soft" />
+        <div className="h-9 w-64 animate-pulse rounded bg-surface-soft" />
+        <div className="h-80 animate-pulse rounded-lg border border-hairline bg-surface-soft" />
       </div>
     );
   }
 
   const bookingId = booking?.id || id;
-  const serviceTitle = booking?.service?.title || booking?.serviceName || 'Home & Utility Service';
-  const providerName = booking?.provider?.user?.name || booking?.provider?.name || 'Assigned Provider';
-  const providerCategory = booking?.provider?.category?.categoryName || booking?.provider?.category || 'Service Partner';
-  const customerName = booking?.customer?.user?.name || booking?.customer?.name || 'Customer';
+  const serviceTitle = booking?.service?.title || booking?.serviceName || 'Home & utility service';
+  const providerName =
+    booking?.provider?.user?.name || booking?.provider?.name || 'Assigned provider';
+  const providerCategory =
+    booking?.provider?.category?.categoryName || booking?.provider?.category || 'Service partner';
   const locationText = booking?.location || booking?.customer?.address || 'Service address';
   const totalAmount = booking?.totalPrice || booking?.amount || 799;
   const status = booking?.status || 'PENDING';
+  const scheduled = new Date(booking?.serviceDate || Date.now()).toLocaleDateString('en-IN', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-4xl pb-16">
-      {/* Top back navigation */}
+    <div className="mx-auto max-w-5xl pb-16">
       <button
         onClick={() => navigate('/bookings')}
-        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-purple-600 transition-colors"
+        className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-ink"
       >
-        <ArrowLeft size={16} /> Back to My Bookings
+        <ArrowLeft size={13} /> Back to my bookings
       </button>
 
-      {/* Header bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-6">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Booking #{bookingId}</h1>
-          <p className="text-xs text-slate-500 font-medium">
-            Scheduled for {new Date(booking?.serviceDate || Date.now()).toLocaleDateString('en-US', {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            })}
+          <p className="sh-eyebrow">Booking reference</p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-3">
+            <h1 className="font-display text-[clamp(2rem,4vw,2.9rem)] leading-none tracking-[-0.03em] text-ink">
+              #{bookingId}
+            </h1>
+            <Badge variant={statusVariant(status)} className="capitalize">
+              {status.toLowerCase().replace('_', ' ')}
+            </Badge>
+          </div>
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Calendar size={12} className="text-primary" /> Scheduled for {scheduled}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Badge
-            variant={
-              status === 'COMPLETED' ? 'success' :
-              status === 'CONFIRMED' || status === 'ACCEPTED' ? 'primary' :
-              status === 'CANCELLED' ? 'danger' : 'warning'
-            }
-          >
-            {status}
-          </Badge>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleMessageProvider}
-            className="flex items-center gap-1.5"
-          >
-            <MessageSquare size={14} /> Message Provider
-          </Button>
-        </div>
+        <Button variant="outline" size="sm" onClick={handleMessageProvider} icon={MessageSquare}>
+          Message provider
+        </Button>
       </div>
 
       {updateSuccessMsg && (
-        <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center justify-between shadow-sm animate-fade-in">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-            <span>{updateSuccessMsg}</span>
-          </div>
-          <span className="text-[10px] text-emerald-600 uppercase font-bold tracking-wider">Synced to Database</span>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-accent-teal/25 bg-accent-teal/8 px-4 py-3 text-xs text-accent-teal">
+          <span className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-teal" />
+            {updateSuccessMsg}
+          </span>
+          <span className="text-[9px] uppercase tracking-[0.14em] opacity-70">Synced</span>
         </div>
       )}
 
-      {/* Interactive Map Service Component: Dual Location Display */}
-      <section aria-label="Service Tracking Map">
-        <BookingMap 
-          trackingData={trackingData} 
-          loading={loading} 
-          error={error} 
+      {error && (
+        <div className="mt-4 rounded-md border border-destructive/20 bg-destructive/6 px-4 py-3 text-xs text-destructive">
+          {error}
+        </div>
+      )}
+
+      <section aria-label="Service tracking map" className="mt-5">
+        <BookingMap
+          trackingData={trackingData}
+          loading={loading}
+          error={error}
           onLocationUpdated={handleLocationUpdated}
         />
       </section>
 
-      {/* Main Booking Summary Card */}
-      <div className="sh-card p-6 space-y-6 rounded-2xl border border-border shadow-sm">
-        <div className="flex items-center justify-between pb-4 border-b border-border">
+      <div className="mt-5 overflow-hidden rounded-lg border border-hairline bg-card">
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-hairline p-5 sm:p-6">
           <div>
-            <h3 className="text-lg font-bold text-foreground">{serviceTitle}</h3>
-            <p className="text-xs text-muted-foreground">
-              Provider: <span className="font-semibold text-foreground">{providerName}</span> ({providerCategory})
+            <h2 className="font-display text-[1.65rem] leading-tight tracking-[-0.02em] text-ink">
+              {serviceTitle}
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {providerName} · {providerCategory}
             </p>
           </div>
           <div className="text-right">
-            <span className="text-xs text-muted-foreground block font-medium">Total Amount</span>
-            <span className="text-2xl font-black text-foreground">₹{totalAmount}</span>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Total paid</p>
+            <p className="font-display text-[1.7rem] leading-none text-ink">
+              ₹{Number(totalAmount).toLocaleString('en-IN')}
+            </p>
           </div>
         </div>
 
-        {/* Status Lifecycle Stepper */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Order Progress</h4>
-          <div className="grid grid-cols-4 gap-2 text-center">
-            <div className={`p-2.5 rounded-xl border ${['PENDING', 'ACCEPTED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(status) ? 'bg-muted border-foreground/30 text-foreground' : 'bg-muted/50 border-border text-muted-foreground'}`}>
-              <span className="text-[11px] font-bold block">1. Requested</span>
-              <span className="text-[10px] text-muted-foreground">Confirmed</span>
-            </div>
-            <div className={`p-2.5 rounded-xl border ${['ACCEPTED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(status) ? 'bg-muted border-foreground/30 text-foreground' : 'bg-muted/50 border-border text-muted-foreground'}`}>
-              <span className="text-[11px] font-bold block">2. Accepted</span>
-              <span className="text-[10px] text-muted-foreground">Provider Assigned</span>
-            </div>
-            <div className={`p-2.5 rounded-xl border ${['IN_PROGRESS', 'COMPLETED'].includes(status) ? 'bg-muted border-foreground/30 text-foreground' : 'bg-muted/50 border-border text-muted-foreground'}`}>
-              <span className="text-[11px] font-bold block">3. In Route</span>
-              <span className="text-[10px] text-muted-foreground">On the way</span>
-            </div>
-            <div className={`p-2.5 rounded-xl border ${status === 'COMPLETED' ? 'bg-muted border-foreground/30 text-foreground' : status === 'CANCELLED' ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'bg-muted/50 border-border text-muted-foreground'}`}>
-              <span className="text-[11px] font-bold block">{status === 'CANCELLED' ? 'Cancelled' : '4. Completed'}</span>
-              <span className="text-[10px] text-muted-foreground">{status === 'CANCELLED' ? 'Closed' : 'Done'}</span>
-            </div>
+        <div className="p-5 sm:p-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              Visit progress
+            </h3>
+            <span className="flex items-center gap-1 text-[10px] text-accent-teal">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-teal" /> Live tracking
+            </span>
           </div>
-        </div>
 
-        {/* Location & Payment Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <MapPin size={14} className="text-foreground" /> Customer Service Address
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {steps.map((step, index) => {
+              const done = step.match.includes(status);
+              const cancelled = status === 'CANCELLED' && index === 3;
+              return (
+                <div
+                  key={step.label}
+                  className={cn(
+                    'rounded-md border px-3 py-3 transition-colors',
+                    cancelled
+                      ? 'border-destructive/25 bg-destructive/6'
+                      : done
+                        ? 'border-primary/25 bg-primary/5'
+                        : 'border-hairline bg-surface-soft/40'
+                  )}
+                >
+                  <div className="flex items-center gap-1.5">
+                    {cancelled ? (
+                      <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                    ) : done ? (
+                      <CheckCircle2 size={12} className="text-primary" />
+                    ) : (
+                      <span className="h-1.5 w-1.5 rounded-full bg-hairline" />
+                    )}
+                    <span
+                      className={cn(
+                        'text-[11px] font-medium',
+                        cancelled ? 'text-destructive' : done ? 'text-ink' : 'text-muted-foreground'
+                      )}
+                    >
+                      {cancelled ? 'Cancelled' : step.label}
+                    </span>
+                  </div>
+                  <p className="mt-1 pl-[18px] text-[9px] uppercase tracking-[0.08em] text-muted-foreground">
+                    {cancelled ? 'Closed' : step.meta}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-5 border-t border-hairline pt-5 md:grid-cols-2">
+            <div>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h4 className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  <MapPin size={12} className="text-primary" /> Service address
+                </h4>
+                <button
+                  type="button"
+                  onClick={detectAndSetCustomerLocation}
+                  disabled={updatingLocation}
+                  className="flex items-center gap-1.5 text-[10px] font-medium text-primary transition-colors hover:text-primary-active disabled:opacity-60"
+                  title="Detect your device location and update the service destination pin"
+                >
+                  {updatingLocation ? (
+                    <Loader2 size={11} className="animate-spin" />
+                  ) : (
+                    <Crosshair size={11} />
+                  )}
+                  {updatingLocation ? 'Detecting…' : 'Use my location'}
+                </button>
+              </div>
+              <p className="rounded-md border border-hairline bg-surface-soft/50 p-3 text-xs leading-relaxed text-body">
+                {locationText}
+              </p>
+            </div>
+
+            <div>
+              <h4 className="mb-2 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                <CreditCard size={12} className="text-primary" /> Payment breakdown
               </h4>
-              <button
-                type="button"
-                onClick={detectAndSetCustomerLocation}
-                disabled={updatingLocation}
-                className="text-[11px] font-bold text-foreground bg-muted hover:bg-accent border border-border px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
-                title="Detect your device location and update the service destination pin"
-              >
-                {updatingLocation ? (
-                  <Loader2 size={12} className="animate-spin text-emerald-600" />
-                ) : (
-                  <Crosshair size={12} className="text-emerald-600" />
-                )}
-                <span>{updatingLocation ? "Detecting..." : "Update to My Location"}</span>
-              </button>
+              <div className="space-y-1.5 rounded-md border border-hairline bg-surface-soft/50 p-3 text-[11px] text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>Service charge</span>
+                  <span className="tabular-nums">₹{Math.round(totalAmount * 0.94).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Taxes & platform GST (6%)</span>
+                  <span className="tabular-nums">₹{Math.round(totalAmount * 0.06).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between border-t border-hairline pt-2 font-medium text-ink">
+                  <span>Total paid</span>
+                  <span className="tabular-nums">₹{Number(totalAmount).toLocaleString('en-IN')}</span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs font-semibold text-foreground bg-muted/60 p-3 rounded-xl border border-border">
-              {locationText}
-            </p>
           </div>
 
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-              <CreditCard size={14} className="text-foreground" /> Payment Breakdown
-            </h4>
-            <div className="bg-muted/60 p-3 rounded-xl border border-border space-y-1.5 text-xs font-medium text-muted-foreground">
-              <div className="flex justify-between">
-                <span>Service Charge</span>
-                <span>₹{Math.round(totalAmount * 0.94)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Taxes & Platform GST (6%)</span>
-                <span>₹{Math.round(totalAmount * 0.06)}</span>
-              </div>
-              <div className="flex justify-between font-bold text-foreground pt-1.5 border-t border-border">
-                <span>Total Amount Paid</span>
-                <span>₹{totalAmount}</span>
-              </div>
-            </div>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-hairline pt-4">
+            <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              <ShieldCheck size={12} className="text-accent-teal" />
+              Payment protected until the visit is complete
+            </p>
+            {status !== 'COMPLETED' && status !== 'CANCELLED' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="border-destructive/25 text-destructive hover:bg-destructive/6"
+              >
+                {cancelling ? 'Cancelling…' : 'Cancel booking'}
+              </Button>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Cancellation or action options */}
-        {status !== 'COMPLETED' && status !== 'CANCELLED' && (
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-            <p className="text-xs text-slate-400">
-              Need to modify this service booking?
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCancel}
-              disabled={cancelling}
-              className="text-red-600 hover:bg-red-50 border-red-200 hover:border-red-300"
-            >
-              {cancelling ? 'Cancelling...' : 'Cancel Booking'}
-            </Button>
-          </div>
-        )}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-dashed border-hairline px-4 py-3">
+        <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <Clock size={11} className="text-primary" /> Need a different time? Reschedule from My bookings.
+        </p>
+        <button
+          onClick={() => navigate('/bookings')}
+          className="flex items-center gap-1 text-[10px] font-medium text-primary hover:underline"
+        >
+          <Navigation size={10} /> Manage booking
+        </button>
       </div>
     </div>
   );

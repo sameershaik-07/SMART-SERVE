@@ -1,19 +1,45 @@
 const prisma = require("../../config/prisma");
+const ApiError = require("../../utils/errors");
+
+const formatProviderResponse = (provider, reviewCount = 0, jobsCompleted = 0) => {
+    if (!provider) return null;
+    const categoryName = provider.category?.categoryName || "General Services";
+
+    return {
+        ...provider,
+        name: provider.user?.name || "Verified Professional",
+        categoryName,
+        category: provider.category
+            ? {
+                  ...provider.category,
+                  name: provider.category.categoryName
+              }
+            : { name: categoryName, categoryName },
+        location: provider.address || provider.user?.address || "Macherla, Andhra Pradesh",
+        reviewCount: reviewCount || (provider.bookings ? provider.bookings.filter(b => b.review).length : 0),
+        jobsCompleted: jobsCompleted || (provider.bookings ? provider.bookings.filter(b => b.status === "COMPLETED").length : 0)
+    };
+};
 
 const listProviders = async (queryParams) => {
-    const { search, categoryId, minRating, page = 1, limit = 10 } = queryParams;
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
+    const { search, categoryId, minRating, verified, page = 1, limit = 10 } = queryParams;
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.max(1, parseInt(limit) || 10);
     const skip = (pageNum - 1) * limitNum;
 
+    // By default, list verified providers for customer discovery unless explicitly filtered
+    const isVerified = verified !== undefined ? verified === "true" || verified === true : true;
+
     const whereClause = {
-        verified: true, // List verified providers publicly by default
+        ...(isVerified && { verified: true }),
         ...(categoryId && { categoryId: parseInt(categoryId) }),
         ...(minRating && { rating: { gte: parseFloat(minRating) } }),
         ...(search && {
-            user: {
-                name: { contains: search, mode: "insensitive" }
-            }
+            OR: [
+                { user: { name: { contains: search, mode: "insensitive" } } },
+                { bio: { contains: search, mode: "insensitive" } },
+                { category: { categoryName: { contains: search, mode: "insensitive" } } }
+            ]
         })
     };
 
@@ -27,16 +53,27 @@ const listProviders = async (queryParams) => {
                 category: true,
                 services: {
                     where: { isActive: true }
+                },
+                bookings: {
+                    select: { id: true, status: true, review: { select: { id: true } } }
                 }
             },
             skip,
-            take: limitNum
+            take: limitNum,
+            orderBy: [{ rating: "desc" }, { id: "asc" }]
         }),
         prisma.serviceProvider.count({ where: whereClause })
     ]);
 
+    const formattedProviders = providers.map((p) => {
+        const reviewCount = p.bookings?.filter(b => b.review).length || 0;
+        const jobsCompleted = p.bookings?.filter(b => b.status === "COMPLETED").length || 0;
+        const { bookings, ...rest } = p;
+        return formatProviderResponse(rest, reviewCount, jobsCompleted);
+    });
+
     return {
-        providers,
+        providers: formattedProviders,
         pagination: {
             total,
             page: pageNum,
@@ -48,6 +85,10 @@ const listProviders = async (queryParams) => {
 
 const getProviderById = async (id) => {
     const providerId = parseInt(id);
+    if (isNaN(providerId)) {
+        throw ApiError.badRequest("Invalid provider ID");
+    }
+
     const provider = await prisma.serviceProvider.findUnique({
         where: { id: providerId },
         include: {
@@ -56,15 +97,26 @@ const getProviderById = async (id) => {
             },
             category: true,
             services: { where: { isActive: true } },
-            availabilitySlots: { where: { isBooked: false } }
+            availabilitySlots: {
+                where: {
+                    isBooked: false,
+                    date: { gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+                },
+                orderBy: [{ date: "asc" }, { startTime: "asc" }]
+            }
         }
     });
 
     if (!provider) {
-        throw new Error("Service provider not found");
+        throw ApiError.notFound("Service provider not found");
     }
 
-    return provider;
+    const [completedBookings, reviews] = await Promise.all([
+        prisma.booking.count({ where: { providerId, status: "COMPLETED" } }),
+        prisma.review.count({ where: { booking: { providerId } } })
+    ]);
+
+    return formatProviderResponse(provider, reviews, completedBookings);
 };
 
 const updateProviderProfile = async (userId, data) => {
@@ -73,7 +125,7 @@ const updateProviderProfile = async (userId, data) => {
     });
 
     if (!provider) {
-        throw new Error("Provider profile not found");
+        throw ApiError.notFound("Provider profile not found");
     }
 
     const updated = await prisma.serviceProvider.update({
@@ -82,15 +134,16 @@ const updateProviderProfile = async (userId, data) => {
             ...(data.bio !== undefined && { bio: data.bio }),
             ...(data.categoryId && { categoryId: data.categoryId }),
             ...(data.documents && { documents: data.documents }),
-            ...(data.availability !== undefined && { availability: data.availability })
+            ...(data.availability !== undefined && { availability: data.availability }),
+            ...(data.address !== undefined && { address: data.address })
         },
         include: {
-            user: { select: { name: true, email: true, phone: true } },
+            user: { select: { id: true, name: true, email: true, phone: true } },
             category: true
         }
     });
 
-    return updated;
+    return formatProviderResponse(updated);
 };
 
 const getProviderDashboardStats = async (userId) => {
@@ -99,7 +152,7 @@ const getProviderDashboardStats = async (userId) => {
     });
 
     if (!provider) {
-        throw new Error("Provider profile not found");
+        throw ApiError.notFound("Provider profile not found");
     }
 
     const [totalBookings, completedBookings, pendingBookings, payments] = await Promise.all([

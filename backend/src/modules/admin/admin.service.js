@@ -1,4 +1,5 @@
 const prisma = require("../../config/prisma");
+const ApiError = require("../../utils/errors");
 
 const getPendingProviders = async () => {
     return prisma.serviceProvider.findMany({
@@ -12,14 +13,23 @@ const getPendingProviders = async () => {
 };
 
 const getProviders = async () => {
-    return prisma.serviceProvider.findMany({
+    const providers = await prisma.serviceProvider.findMany({
         include: {
             user: { select: { id: true, name: true, email: true, phone: true, createdAt: true } },
             category: true,
-            services: { select: { id: true, title: true, isActive: true } }
+            services: { select: { id: true, title: true, isActive: true } },
+            bookings: { select: { id: true, status: true, review: { select: { id: true } } } }
         },
         orderBy: { user: { createdAt: "desc" } }
     });
+
+    return providers.map((p) => ({
+        ...p,
+        name: p.user?.name || "Professional",
+        categoryName: p.category?.categoryName || "General Services",
+        reviewCount: p.bookings ? p.bookings.filter(b => b.review).length : 0,
+        jobsCompleted: p.bookings ? p.bookings.filter(b => b.status === "COMPLETED").length : 0
+    }));
 };
 
 const getUsers = async () => {
@@ -40,10 +50,13 @@ const getUsers = async () => {
 const verifyProvider = async (userId, providerId) => {
     const admin = await prisma.admin.findUnique({ where: { userId } });
     if (!admin) {
-        throw new Error("Admin profile required for verification action");
+        throw ApiError.forbidden("Admin profile required for verification action");
     }
 
     const id = parseInt(providerId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid provider ID");
+    }
 
     return prisma.$transaction(async (tx) => {
         const updated = await tx.serviceProvider.update({
@@ -67,10 +80,13 @@ const verifyProvider = async (userId, providerId) => {
 const rejectProvider = async (userId, providerId, reason) => {
     const admin = await prisma.admin.findUnique({ where: { userId } });
     if (!admin) {
-        throw new Error("Admin profile required");
+        throw ApiError.forbidden("Admin profile required");
     }
 
     const id = parseInt(providerId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid provider ID");
+    }
 
     return prisma.$transaction(async (tx) => {
         const updated = await tx.serviceProvider.update({
@@ -94,7 +110,7 @@ const rejectProvider = async (userId, providerId, reason) => {
 const createCategory = async (userId, data) => {
     const admin = await prisma.admin.findUnique({ where: { userId } });
     if (!admin) {
-        throw new Error("Admin profile required");
+        throw ApiError.forbidden("Admin profile required");
     }
 
     return prisma.$transaction(async (tx) => {
@@ -120,6 +136,10 @@ const createCategory = async (userId, data) => {
 
 const updateCategory = async (categoryId, data) => {
     const id = parseInt(categoryId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid category ID");
+    }
+
     return prisma.serviceCategory.update({
         where: { id },
         data
@@ -128,6 +148,10 @@ const updateCategory = async (categoryId, data) => {
 
 const deleteCategory = async (categoryId) => {
     const id = parseInt(categoryId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid category ID");
+    }
+
     return prisma.serviceCategory.delete({
         where: { id }
     });
@@ -140,10 +164,20 @@ const getCategories = async () => {
 };
 
 const getAnalyticsOverview = async () => {
-    const [totalUsers, totalCustomers, totalProviders, totalBookings, successfulPayments] = await Promise.all([
+    const [
+        totalUsers,
+        totalCustomers,
+        totalProviders,
+        activeProviders,
+        pendingVerifications,
+        totalBookings,
+        successfulPayments
+    ] = await Promise.all([
         prisma.user.count(),
         prisma.customer.count(),
         prisma.serviceProvider.count(),
+        prisma.serviceProvider.count({ where: { verified: true } }),
+        prisma.serviceProvider.count({ where: { verified: false } }),
         prisma.booking.count(),
         prisma.payment.findMany({ where: { status: "SUCCESS" } })
     ]);
@@ -154,6 +188,8 @@ const getAnalyticsOverview = async () => {
         totalUsers,
         totalCustomers,
         totalProviders,
+        activeProviders,
+        pendingVerifications,
         totalBookings,
         totalRevenue
     };
@@ -218,7 +254,8 @@ const getBookings = async () => {
             provider: {
                 include: { user: { select: { name: true, email: true } } }
             },
-            service: { select: { title: true } }
+            service: { select: { title: true } },
+            payment: true
         },
         orderBy: { createdAt: "desc" }
     });

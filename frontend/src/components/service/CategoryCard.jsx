@@ -1,29 +1,49 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export const CategoryCard = ({ title, count, icon: Icon, colorBg, colorText, onClick, active }) => {
-  const countLabel = typeof count === 'number' || (typeof count === 'string' && count.trim() !== '') ? `${count} services` : 'services';
+export const CategoryCard = ({ title, count, icon: Icon, onClick, active }) => {
+  const countLabel =
+    typeof count === 'number' || (typeof count === 'string' && count.trim() !== '')
+      ? `${count} services`
+      : 'Browse services';
 
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className={`sh-card p-4 flex items-center justify-between cursor-pointer transition-all duration-200 hover:-translate-y-0.5 ${
-        active ? 'border-foreground/70 ring-2 ring-foreground/10 bg-muted/40' : 'hover:border-foreground/25'
-      }`}
+      className={cn(
+        'group flex w-full items-center justify-between gap-3 rounded-lg border p-4 text-left transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)]',
+        active
+          ? 'border-primary/30 bg-primary/5'
+          : 'border-hairline bg-card hover:-translate-y-0.5 hover:border-ink/15 hover:shadow-[var(--shadow-soft)]'
+      )}
     >
       <div className="flex min-w-0 items-center gap-3.5">
         <div
-          className="w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110"
-          style={{ backgroundColor: colorBg, color: colorText }}
+          className={cn(
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border transition-colors',
+            active
+              ? 'border-primary/25 bg-primary/10 text-primary'
+              : 'border-hairline bg-surface-soft text-body group-hover:text-primary'
+          )}
         >
-          <Icon size={22} />
+          <Icon size={18} strokeWidth={1.7} />
         </div>
         <div className="flex min-w-0 flex-col">
-          <h4 className="truncate text-sm font-bold text-foreground tracking-tight">{title}</h4>
-          <span className="text-xs text-muted-foreground font-medium">{countLabel}</span>
+          <h4 className="truncate text-[13px] font-medium tracking-[-0.01em] text-ink">{title}</h4>
+          <span className="mt-0.5 text-[11px] text-muted-foreground">{countLabel}</span>
         </div>
       </div>
-      <ChevronRight size={16} className="shrink-0 text-muted-foreground/60 group-hover:text-foreground transition-colors" />
-    </div>
+      <ArrowUpRight
+        size={14}
+        className={cn(
+          'shrink-0 transition-all duration-300',
+          active
+            ? 'text-primary'
+            : 'text-muted-foreground/60 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary'
+        )}
+      />
+    </button>
   );
 };

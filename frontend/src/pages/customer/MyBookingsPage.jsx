@@ -1,12 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertCircle, ChevronRight, RefreshCw, Navigation } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  ChevronRight,
+  RefreshCw,
+  Navigation,
+  Search,
+} from 'lucide-react';
 import { getCustomerBookingsApi, getProviderBookingsApi, updateBookingStatusApi } from '../../api/bookings';
 import { useAuth } from '../../context/AuthContext';
-import { Badge } from '../../components/common/Badge';
+import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
+import { Input } from '../../components/common/Input';
+import { Reveal } from '@/components/motion/Reveal';
+import { cn } from '@/lib/utils';
+
+const statusConfig = {
+  COMPLETED: { variant: 'success', label: 'Completed' },
+  ACCEPTED: { variant: 'info', label: 'Accepted' },
+  PENDING: { variant: 'warning', label: 'Pending' },
+  CANCELLED: { variant: 'destructive', label: 'Cancelled' },
+  REJECTED: { variant: 'destructive', label: 'Rejected' },
+};
 
 export const MyBookingsPage = () => {
   const { user } = useAuth();
@@ -14,13 +33,12 @@ export const MyBookingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [rescheduleBooking, setRescheduleBooking] = useState(null);
-  const [newDate, setNewDate] = useState('2024-05-25');
+  const [newDate, setNewDate] = useState(new Date().toISOString().slice(0, 10));
   const [newTime, setNewTime] = useState('11:00 AM');
   const [isSubmittingReschedule, setIsSubmittingReschedule] = useState(false);
   const navigate = useNavigate();
 
   const mockBookings = [];
-
   const [actionNotice, setActionNotice] = useState(null);
 
   useEffect(() => {
@@ -34,9 +52,10 @@ export const MyBookingsPage = () => {
           return;
         }
 
-        const res = user?.role === 'PROVIDER' 
-          ? await getProviderBookingsApi() 
-          : await getCustomerBookingsApi();
+        const res =
+          user?.role === 'PROVIDER'
+            ? await getProviderBookingsApi()
+            : await getCustomerBookingsApi();
         const apiBookings = res.data || res.bookings || (Array.isArray(res) ? res : []);
         if (Array.isArray(apiBookings)) {
           setBookings(apiBookings);
@@ -86,173 +105,222 @@ export const MyBookingsPage = () => {
     }, 400);
   };
 
-  const statusVariants = {
-    COMPLETED: 'success',
-    ACCEPTED: 'info',
-    PENDING: 'warning',
-    CANCELLED: 'danger',
-    REJECTED: 'danger',
-  };
-
   const filteredBookings = bookings.filter((b) => {
     if (statusFilter === 'ALL') return true;
     return b.status === statusFilter;
   });
 
+  const counts = {
+    ALL: bookings.length,
+    PENDING: bookings.filter((b) => b.status === 'PENDING').length,
+    ACCEPTED: bookings.filter((b) => b.status === 'ACCEPTED').length,
+    COMPLETED: bookings.filter((b) => b.status === 'COMPLETED').length,
+    CANCELLED: bookings.filter((b) => b.status === 'CANCELLED').length,
+  };
+
   return (
-    <div className="max-w-[1120px] space-y-6 animate-fade-in pb-12">
-      <div>
-        <h1 className="workspace-title">My Bookings</h1>
-        <p className="workspace-subtitle">Manage, reschedule, and track your service appointments.</p>
-      </div>
+    <div className="mx-auto max-w-[1120px] pb-12">
+      <Reveal className="border-b border-hairline pb-6">
+        <p className="sh-eyebrow">Your appointments</p>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="workspace-title">My bookings</h1>
+            <p className="workspace-subtitle">
+              Track visits, reschedule when life shifts, and keep the details in one place.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate('/services')}>
+            Book a service
+          </Button>
+        </div>
+      </Reveal>
 
       {actionNotice && (
-        <div className="p-3.5 bg-muted border border-border text-foreground rounded-2xl text-xs font-bold animate-fade-in flex items-center justify-between">
+        <div className="mt-4 flex items-center justify-between gap-4 rounded-md border border-accent-teal/25 bg-accent-teal/8 px-4 py-3 text-xs text-accent-teal">
           <span>{actionNotice}</span>
-          <button onClick={() => setActionNotice(null)} className="text-muted-foreground hover:text-foreground text-xs">
+          <button onClick={() => setActionNotice(null)} className="text-[11px] underline-offset-2 hover:underline">
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-border pb-2 overflow-x-auto">
+      <div className="scrollbar-none mt-6 flex items-center gap-1.5 overflow-x-auto border-b border-hairline pb-3">
         {['ALL', 'PENDING', 'ACCEPTED', 'COMPLETED', 'CANCELLED'].map((tab) => (
           <button
             key={tab}
             onClick={() => setStatusFilter(tab)}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+            className={cn(
+              'flex shrink-0 items-center gap-2 rounded-pill px-3.5 py-1.5 text-[11px] font-medium transition-all',
               statusFilter === tab
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-            }`}
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-surface-soft hover:text-ink'
+            )}
           >
-            {tab}
+            <span className="capitalize">{tab.toLowerCase()}</span>
+            <span
+              className={cn(
+                'rounded-full px-1.5 text-[9px] tabular-nums',
+                statusFilter === tab ? 'bg-white/20' : 'bg-surface-cream-strong text-body'
+              )}
+            >
+              {counts[tab]}
+            </span>
           </button>
         ))}
       </div>
 
-      {/* Bookings List */}
-      {filteredBookings.length === 0 ? (
+      {loading ? (
+        <div className="mt-5 space-y-3">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="h-28 animate-pulse rounded-lg border border-hairline bg-surface-soft" />
+          ))}
+        </div>
+      ) : filteredBookings.length === 0 ? (
         <EmptyState
           icon={Calendar}
-          title="No bookings found"
-          description="Your bookings will appear here once you reserve a service."
-          actionLabel="Browse Services"
+          title="A clear calendar"
+          description="No bookings here yet. When you reserve a service, the visit and all its details will live right here."
+          actionLabel="Browse services"
           onAction={() => navigate('/services')}
         />
       ) : (
-        <div className="space-y-4">
-          {filteredBookings.map((b) => (
-            <div
-              key={b.id}
-              className="sh-card p-5 flex flex-wrap items-center justify-between gap-4 hover:border-foreground/25 transition-all cursor-pointer"
-              onClick={() => navigate(`/bookings/${b.id}`)}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-muted text-foreground rounded-2xl flex items-center justify-center font-extrabold text-sm border border-border shrink-0">
-                  #{b.id}
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-foreground">{b.serviceName || b.service?.title || 'Service'}</h3>
-                  <p className="text-xs text-muted-foreground font-medium">Provider: {b.providerName || b.provider?.user?.name || 'ServiceHub Pro'}</p>
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground font-medium">
-                    <span className="flex items-center gap-1"><Clock size={12} /> {b.date || 'Today'}</span>
-                    <span className="flex items-center gap-1"><MapPin size={12} /> {b.location || 'Bengaluru'}</span>
+        <div className="mt-5 space-y-3">
+          {filteredBookings.map((b) => {
+            const status = statusConfig[b.status] || { variant: 'outline', label: b.status };
+            return (
+              <article
+                key={b.id}
+                onClick={() => navigate(`/bookings/${b.id}`)}
+                className="group cursor-pointer rounded-lg border border-hairline bg-card p-4 transition-all duration-300 hover:border-ink/15 hover:shadow-[var(--shadow-soft)] sm:p-5"
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-md border border-hairline bg-surface-soft">
+                      <span className="text-[8px] uppercase tracking-[0.1em] text-muted-foreground">Ref</span>
+                      <span className="text-[11px] font-medium tabular-nums text-ink">#{b.id}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-display text-[1.35rem] leading-tight tracking-[-0.02em] text-ink transition-colors group-hover:text-primary">
+                          {b.serviceName || b.service?.title || 'Service'}
+                        </h3>
+                        <Badge variant={status.variant} className="capitalize">
+                          {status.label}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        with {b.providerName || b.provider?.user?.name || 'ServiceHub Pro'}
+                      </p>
+                      <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <Clock size={12} className="text-primary" />
+                          {b.date || b.serviceDate || 'Date to be confirmed'}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <MapPin size={12} className="text-primary" />
+                          {b.location || b.address || 'Bengaluru'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline-soft pt-3 sm:border-0 sm:pt-0">
+                    <div className="text-left sm:text-right">
+                      <p className="font-display text-[1.5rem] leading-none text-ink">
+                        ₹{Number(b.amount || b.totalPrice || 599).toLocaleString('en-IN')}
+                      </p>
+                      <p className="mt-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Total</p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/bookings/${b.id}`);
+                        }}
+                        className="flex items-center gap-1.5 rounded-sm border border-accent-teal/25 bg-accent-teal/8 px-2.5 py-1.5 text-[10px] font-medium text-accent-teal transition-colors hover:bg-accent-teal/15"
+                        title="View dual location tracking map"
+                      >
+                        <Navigation size={11} />
+                        Track
+                      </button>
+
+                      {(b.status === 'PENDING' || b.status === 'ACCEPTED') && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRescheduleBooking(b);
+                            }}
+                            className="flex items-center gap-1 rounded-sm border border-hairline px-2.5 py-1.5 text-[10px] font-medium text-body transition-colors hover:bg-surface-soft hover:text-ink"
+                            title="Reschedule booking"
+                          >
+                            <RefreshCw size={11} /> Reschedule
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCancelBooking(b.id);
+                            }}
+                            className="rounded-sm border border-destructive/20 px-2.5 py-1.5 text-[10px] font-medium text-destructive transition-colors hover:bg-destructive/6"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+
+                      <ChevronRight size={15} className="text-muted-foreground/50 transition-transform group-hover:translate-x-0.5" />
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <span className="text-lg font-black text-foreground block">₹{b.amount || b.totalPrice || 599}</span>
-                  <Badge variant={statusVariants[b.status] || 'neutral'}>{b.status}</Badge>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/bookings/${b.id}`);
-                    }}
-                    className="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl border border-emerald-200 transition-colors flex items-center gap-1.5 shadow-sm"
-                    title="View dual location tracking map"
-                  >
-                    <Navigation size={12} className="text-emerald-600" />
-                    Track on Map
-                  </button>
-
-                  {(b.status === 'PENDING' || b.status === 'ACCEPTED') && (
-                    <>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setRescheduleBooking(b);
-                        }}
-                        className="px-3 py-1.5 text-xs font-bold text-foreground hover:bg-muted rounded-xl border border-border transition-colors flex items-center gap-1"
-                        title="Reschedule booking"
-                      >
-                        <RefreshCw size={12} /> Reschedule
-                      </button>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCancelBooking(b.id);
-                        }}
-                        className="px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl border border-rose-200 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  )}
-
-                  <ChevronRight size={18} className="text-muted-foreground" />
-                </div>
-              </div>
-            </div>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
 
-      {/* Reschedule Modal */}
       <Modal
         isOpen={Boolean(rescheduleBooking)}
         onClose={() => setRescheduleBooking(null)}
-        title={`Reschedule Booking #${rescheduleBooking?.id}`}
+        title={`Reschedule booking #${rescheduleBooking?.id || ''}`}
+        description="Choose a new date and time. We’ll let your professional know."
       >
         <form onSubmit={handleRescheduleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Select New Date</label>
+            <label className="mb-2 block text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              New date
+            </label>
             <input
               type="date"
               value={newDate}
               onChange={(e) => setNewDate(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold focus:border-purple-600 outline-none"
+              className="h-11 w-full rounded-md border border-input bg-canvas px-3.5 text-sm text-ink outline-hidden focus:border-primary focus:ring-3 focus:ring-primary/15"
               required
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Select Time Slot</label>
+            <label className="mb-2 block text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              New time slot
+            </label>
             <select
               value={newTime}
               onChange={(e) => setNewTime(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold focus:border-purple-600 outline-none"
+              className="h-11 w-full cursor-pointer rounded-md border border-input bg-canvas px-3.5 text-sm text-ink outline-hidden focus:border-primary focus:ring-3 focus:ring-primary/15"
             >
-              <option value="09:00 AM">09:00 AM</option>
-              <option value="10:30 AM">10:30 AM</option>
-              <option value="11:00 AM">11:00 AM</option>
-              <option value="02:00 PM">02:00 PM</option>
-              <option value="04:00 PM">04:00 PM</option>
-              <option value="06:00 PM">06:00 PM</option>
+              {['09:00 AM', '10:30 AM', '11:00 AM', '02:00 PM', '04:00 PM', '06:00 PM'].map((slot) => (
+                <option key={slot} value={slot}>{slot}</option>
+              ))}
             </select>
           </div>
 
-          <div className="pt-2">
+          <div className="flex gap-2 pt-2">
+            <Button type="button" variant="outline" fullWidth onClick={() => setRescheduleBooking(null)}>
+              Keep as is
+            </Button>
             <Button type="submit" fullWidth loading={isSubmittingReschedule}>
-              Confirm Reschedule
+              Confirm new time
             </Button>
           </div>
         </form>

@@ -23,8 +23,8 @@ export const AdminLayout = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex min-h-screen items-center justify-center bg-canvas">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
   }
@@ -34,92 +34,85 @@ export const AdminLayout = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground transition-colors">
-      {/* Desktop Admin Sidebar */}
-      <div className="hidden md:flex h-screen sticky top-0 shrink-0">
+    <div className="flex min-h-screen bg-canvas text-foreground">
+      <div className="sticky top-0 hidden h-screen shrink-0 md:flex">
         <AdminSidebar />
       </div>
 
-      {/* Mobile Drawer */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="p-0 w-64 border-r border-sidebar-border">
+        <SheetContent side="left" className="w-[280px] border-r border-white/8 p-0">
           <AdminSidebar onItemClick={() => setMobileMenuOpen(false)} />
         </SheetContent>
       </Sheet>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 md:h-[76px] bg-card/95 backdrop-blur border-b border-border px-4 md:px-8 flex items-center justify-between sticky top-0 z-20 transition-colors">
-          <div className="flex items-center gap-2 md:gap-4 flex-1 max-w-xl">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-hairline bg-canvas/88 px-4 backdrop-blur-xl md:h-20 md:px-8">
+          <div className="flex max-w-xl flex-1 items-center gap-2 md:gap-3">
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden shrink-0"
+              className="shrink-0 md:hidden"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open admin menu"
             >
               <Menu className="h-5 w-5" />
             </Button>
 
-            {/* Global Search Bar */}
             <div className="relative w-full">
-              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" strokeWidth={1.8} />
               <Input
                 type="text"
                 placeholder="Search bookings, providers, users..."
-                className="pl-10 h-10 md:h-11 rounded-xl bg-muted/55 border-transparent focus-visible:bg-card focus-visible:border-input"
+                className="h-10 rounded-md border-transparent bg-surface-soft pl-10 focus-visible:bg-canvas md:h-11"
               />
             </div>
           </div>
 
-          {/* Right Header Controls */}
           <div className="flex items-center gap-2 md:gap-3">
             <ThemeToggle />
 
-            {/* Notification Bell */}
             <Button
               variant="outline"
               size="icon"
-              className="relative rounded-xl"
-              title="Admin Notifications"
-              aria-label="Admin Notifications"
+              className="relative"
+              title="Admin notifications"
+              aria-label="Admin notifications"
             >
-              <Bell size={18} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full ring-2 ring-background"></span>
+              <Bell size={17} strokeWidth={1.8} />
+              <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-primary ring-2 ring-canvas" />
             </Button>
 
-            {/* Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-xl">
-                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center shadow-xs">
+                <Button variant="ghost" className="flex items-center gap-2 rounded-md px-1.5 py-1.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground md:h-9 md:w-9">
                     {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
                   </div>
-                  <span className="text-xs md:text-sm font-semibold text-foreground max-w-[100px] truncate hidden sm:inline">
+                  <span className="hidden max-w-[100px] truncate text-xs font-medium text-ink sm:inline md:text-sm">
                     {user?.name || 'Admin'}
                   </span>
-                  <ChevronDown size={14} className="text-muted-foreground" />
+                  <ChevronDown size={13} className="text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 rounded-xl">
+              <DropdownMenuContent align="end" className="w-52 rounded-md border-hairline">
                 <DropdownMenuLabel className="text-xs font-normal">
-                  <div className="font-bold text-foreground">{user?.name || 'Administrator'}</div>
-                  <div className="text-muted-foreground text-[11px]">{user?.email}</div>
+                  <div className="font-medium text-ink">{user?.name || 'Administrator'}</div>
+                  <div className="text-[11px] text-muted-foreground">{user?.email}</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={logout}
-                  className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 gap-2"
+                  className="cursor-pointer gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
                 >
                   <LogOut size={15} />
-                  <span>Sign Out</span>
+                  <span>Sign out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <Outlet />
         </main>
       </div>

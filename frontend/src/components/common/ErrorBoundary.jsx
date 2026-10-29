@@ -29,22 +29,24 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-[400px] flex flex-col items-center justify-center p-8 text-center bg-card text-card-foreground rounded-2xl border border-border shadow-sm m-6 space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
-            <AlertTriangle size={28} />
+        <div className="m-4 flex min-h-[400px] flex-col items-center justify-center space-y-5 rounded-lg border border-hairline bg-card p-8 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-accent-amber/25 bg-accent-amber/10 text-accent-amber">
+            <AlertTriangle size={24} strokeWidth={1.6} />
           </div>
-          <div className="space-y-1 max-w-md">
-            <h2 className="text-xl font-bold text-foreground">Something went wrong loading this view</h2>
-            <p className="text-sm text-muted-foreground">
+          <div className="max-w-md space-y-2">
+            <h2 className="font-display text-2xl tracking-[-0.02em] text-ink">
+              Something went wrong loading this view
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
               An unexpected error occurred. You can refresh the view or return to the dashboard.
             </p>
           </div>
-          <div className="flex items-center gap-3 pt-2">
-            <Button onClick={this.handleReset} size="sm" className="gap-2">
-              <RefreshCw size={14} /> Refresh Page
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+            <Button onClick={this.handleReset} size="sm" icon={RefreshCw}>
+              Refresh page
             </Button>
-            <Button onClick={this.handleGoHome} variant="outline" size="sm" className="gap-2">
-              <Home size={14} /> Go to Services
+            <Button onClick={this.handleGoHome} variant="outline" size="sm" icon={Home}>
+              Go to services
             </Button>
           </div>
         </div>

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Star, MessageSquare, CheckCircle2, AlertCircle, Calendar } from 'lucide-react';
+import { Star, MessageSquare, CheckCircle2, AlertCircle, Quote } from 'lucide-react';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { createReviewApi } from '../../api/reviews';
 import { getCustomerBookingsApi } from '../../api/bookings';
+import { Reveal } from '@/components/motion/Reveal';
+import { cn } from '@/lib/utils';
 
 export const ReviewsPage = () => {
   const [reviews, setReviews] = useState([
@@ -90,71 +92,111 @@ export const ReviewsPage = () => {
       setFeedbackNotice('Thank you! Your verified review has been published.');
       setTimeout(() => setFeedbackNotice(''), 4000);
     } catch (err) {
-      setModalError(err.message || 'Could not submit review. Note: only completed bookings can be reviewed.');
+      setModalError(
+        err.message || 'Could not submit review. Note: only completed bookings can be reviewed.'
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
+  const average =
+    reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      : 0;
+
   return (
-    <div className="space-y-6 animate-fade-in max-w-4xl pb-16">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-[1000px] animate-fade-in space-y-6 pb-16">
+      <Reveal className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">My Reviews & Ratings</h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">Verified feedback you provided to service professionals.</p>
+          <p className="sh-eyebrow">Your voice, on the record</p>
+          <h1 className="workspace-title mt-2">Reviews & ratings</h1>
+          <p className="workspace-subtitle">
+            Verified feedback you’ve shared with the professionals who’ve worked in your home.
+          </p>
         </div>
-        <Button onClick={() => setIsWriteOpen(true)} variant="primary" icon={MessageSquare}>
-          Write Review
-        </Button>
-      </div>
+        <div className="flex items-center gap-3">
+          <div className="hidden items-center gap-2 rounded-md border border-hairline bg-surface-soft px-3 py-2 sm:flex">
+            <Star size={14} className="fill-accent-amber text-accent-amber" />
+            <span className="text-sm font-medium tabular-nums text-ink">
+              {average.toFixed(1)}
+            </span>
+            <span className="text-[10px] text-muted-foreground">avg. given</span>
+          </div>
+          <Button onClick={() => setIsWriteOpen(true)} icon={MessageSquare} size="sm">
+            Write a review
+          </Button>
+        </div>
+      </Reveal>
 
       {feedbackNotice && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center gap-2 animate-fade-in">
-          <CheckCircle2 size={16} className="text-emerald-600" />
+        <div className="flex animate-fade-in items-center gap-2.5 rounded-md border border-accent-teal/25 bg-accent-teal/8 px-4 py-3 text-xs font-medium text-accent-teal">
+          <CheckCircle2 size={15} />
           <span>{feedbackNotice}</span>
         </div>
       )}
 
-      <div className="space-y-4">
-        {reviews.map((r) => (
-          <div key={r.id} className="sh-card p-5 bg-white space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-black text-slate-900">{r.serviceName}</h3>
-                  {r.verified && (
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
-                      <CheckCircle2 size={11} className="text-emerald-600" /> Verified Booking
-                    </span>
-                  )}
+      <div className="space-y-3.5">
+        {reviews.map((r, index) => (
+          <Reveal key={r.id} delay={Math.min(index * 0.05, 0.2)}>
+            <article className="group rounded-lg border border-hairline bg-card p-5 transition-all duration-300 hover:border-ink/15 hover:shadow-[var(--shadow-soft)] sm:p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="font-display text-[1.45rem] leading-tight tracking-[-0.02em] text-ink">
+                      {r.serviceName}
+                    </h2>
+                    {r.verified && (
+                      <span className="flex items-center gap-1 rounded-pill border border-accent-teal/20 bg-accent-teal/8 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.06em] text-accent-teal">
+                        <CheckCircle2 size={10} /> Verified booking
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    with <span className="font-medium text-body">{r.providerName}</span>
+                  </p>
                 </div>
-                <span className="text-xs text-slate-500 font-medium">Provider: {r.providerName}</span>
+                <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
+                  {r.date}
+                </span>
               </div>
-              <span className="text-xs text-slate-400 font-medium">{r.date}</span>
-            </div>
 
-            <div className="flex items-center gap-1 text-amber-400">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={16}
-                  className={i < r.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
-                />
-              ))}
-            </div>
+              <div className="mt-4 flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={14}
+                    className={
+                      i < r.rating
+                        ? 'fill-accent-amber text-accent-amber'
+                        : 'text-hairline'
+                    }
+                  />
+                ))}
+                <span className="ml-2 text-[10px] font-medium tabular-nums text-muted-foreground">
+                  {r.rating}.0
+                </span>
+              </div>
 
-            <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100 font-medium">
-              "{r.comment}"
-            </p>
-          </div>
+              <div className="mt-4 flex items-start gap-3 rounded-md border border-hairline-soft bg-surface-soft/50 p-4">
+                <Quote size={14} className="mt-0.5 shrink-0 text-primary" />
+                <p className="text-[12.5px] leading-relaxed text-body">{r.comment}</p>
+              </div>
+            </article>
+          </Reveal>
         ))}
       </div>
 
       {/* Review Modal */}
-      <Modal isOpen={isWriteOpen} onClose={() => setIsWriteOpen(false)} title="Write a Service Review">
+      <Modal
+        isOpen={isWriteOpen}
+        onClose={() => setIsWriteOpen(false)}
+        title="Write a service review"
+        description="Share how the visit went. Reviews are tied to completed bookings."
+      >
         <form onSubmit={handleAddReview} className="space-y-4">
           {modalError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-md border border-destructive/20 bg-destructive/6 p-3 text-xs font-medium text-destructive">
               <AlertCircle size={14} className="shrink-0" />
               <span>{modalError}</span>
             </div>
@@ -162,40 +204,50 @@ export const ReviewsPage = () => {
 
           {/* Booking Selector */}
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1.5">Select Completed Service</label>
+            <label className="mb-2 block text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              Completed service
+            </label>
             {completedBookings.length > 0 ? (
               <select
                 value={selectedBookingId}
                 onChange={(e) => setSelectedBookingId(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 font-medium focus:border-purple-600 outline-none"
+                className="h-11 w-full cursor-pointer rounded-md border border-input bg-canvas px-3 text-xs text-ink outline-hidden focus:border-primary focus:ring-3 focus:ring-primary/15"
                 required
               >
                 {completedBookings.map((b) => (
                   <option key={b.id} value={b.id}>
-                    Booking #{b.id} - {b.service?.title || b.serviceName || 'Home Service'} ({b.provider?.name || 'Provider'})
+                    Booking #{b.id} — {b.service?.title || b.serviceName || 'Home service'} (
+                    {b.provider?.name || 'Provider'})
                   </option>
                 ))}
               </select>
             ) : (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-                <span className="font-bold">No completed bookings found.</span> Once a service appointment is marked completed, you will be able to review the specialist.
+              <div className="rounded-md border border-accent-amber/25 bg-accent-amber/8 p-3 text-xs leading-relaxed text-accent-amber">
+                <span className="font-medium">No completed bookings found.</span> Once a service is
+                marked completed, you’ll be able to review the specialist here.
               </div>
             )}
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-2">Rating</label>
-            <div className="flex gap-2">
+            <label className="mb-2 block text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              Rating
+            </label>
+            <div className="flex gap-1.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
                   onClick={() => setNewRating(star)}
-                  className="p-1.5 hover:scale-110 transition-transform"
+                  className={cn(
+                    'rounded-sm p-1.5 transition-transform hover:scale-110',
+                    star <= newRating ? 'text-accent-amber' : 'text-hairline'
+                  )}
+                  aria-label={`${star} star${star === 1 ? '' : 's'}`}
                 >
                   <Star
-                    size={26}
-                    className={star <= newRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'}
+                    size={24}
+                    className={star <= newRating ? 'fill-accent-amber' : 'fill-transparent'}
                   />
                 </button>
               ))}
@@ -203,19 +255,25 @@ export const ReviewsPage = () => {
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Your Detailed Feedback</label>
+            <label className="mb-2 block text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              Your feedback
+            </label>
             <textarea
               rows={4}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Describe technician professionalism, quality of work, and timeliness..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs focus:bg-white focus:border-purple-600 outline-none"
+              placeholder="Describe the technician’s professionalism, quality of work, and timeliness…"
+              className="w-full rounded-md border border-input bg-canvas p-3.5 text-xs leading-relaxed text-ink outline-hidden placeholder:text-muted-foreground focus:border-primary focus:ring-3 focus:ring-primary/15"
               required
-            ></textarea>
+            />
           </div>
 
-          <Button type="submit" fullWidth disabled={submitting || (completedBookings.length === 0)}>
-            {submitting ? 'Publishing...' : 'Submit Verified Review'}
+          <Button
+            type="submit"
+            fullWidth
+            disabled={submitting || completedBookings.length === 0}
+          >
+            {submitting ? 'Publishing…' : 'Submit verified review'}
           </Button>
         </form>
       </Modal>

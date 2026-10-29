@@ -2,26 +2,31 @@ import React, { useState, useEffect } from 'react';
 import {
   UserCheck,
   ShieldCheck,
-  Building2,
-  Phone,
-  Mail,
+  Award,
+  FileCheck,
   FileText,
   Upload,
   CheckCircle2,
   Clock,
   AlertCircle,
   Save,
-  Wrench,
-  MapPin,
-  Award,
-  Sparkles,
-  X,
-  FileCheck,
-  Plus
+  Plus,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getProviderDashboardApi, updateProviderProfileApi } from '../../api/providers';
 import { updateProfileApi } from '../../api/users';
+import { Modal } from '@/components/common/Modal';
+import { Input } from '@/components/common/Input';
+import { Reveal } from '@/components/motion/Reveal';
+import { cn } from '@/lib/utils';
+
+const fieldClass =
+  'h-10 w-full rounded-md border border-input bg-canvas px-3.5 text-xs text-ink outline-hidden transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-surface-soft disabled:text-muted-foreground';
+
+const labelClass = 'mb-2 block text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground';
+
+const sectionIcon =
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-hairline bg-surface-soft text-primary';
 
 export const ProviderProfilePage = () => {
   const { user, updateUser } = useAuth();
@@ -58,7 +63,9 @@ export const ProviderProfilePage = () => {
           name: user?.name || '',
           email: user?.email || '',
           phone: user?.phone || '',
-          bio: user?.serviceProvider?.bio || 'Certified specialist with over 5 years of verified field experience in residential maintenance, diagnostics, and repairs.',
+          bio:
+            user?.serviceProvider?.bio ||
+            'Certified specialist with over 5 years of verified field experience in residential maintenance, diagnostics, and repairs.',
           categoryId: user?.serviceProvider?.categoryId || 1,
           yearsOfExperience: 5,
           serviceCity: 'Bengaluru',
@@ -133,282 +140,315 @@ export const ProviderProfilePage = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-5xl mx-auto pb-16">
+    <div className="mx-auto max-w-[1040px] animate-fade-in space-y-6 pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-800/80 border border-slate-700/80 p-6 rounded-3xl backdrop-blur-md">
+      <Reveal className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs uppercase font-extrabold text-emerald-400 tracking-wider">
-              Credentials & Verification
-            </span>
-            <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-              <ShieldCheck size={12} /> KYC Verified Partner
+          <div className="flex flex-wrap items-center gap-2.5">
+            <p className="sh-eyebrow">Credentials & verification</p>
+            <span className="inline-flex items-center gap-1 rounded-pill border border-accent-teal/20 bg-accent-teal/8 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.08em] text-accent-teal">
+              <ShieldCheck size={10} /> KYC verified partner
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-            Partner Profile & KYC
-          </h1>
-          <p className="text-xs md:text-sm text-slate-400 mt-0.5">
-            Manage your public professional profile, trade credentials, and verification badges.
+          <h1 className="workspace-title mt-2">Partner profile & KYC</h1>
+          <p className="workspace-subtitle">
+            Manage the professional profile customers see, along with your trade credentials and
+            verification badges.
           </p>
         </div>
 
         <button
           onClick={handleSubmit}
           disabled={saving}
-          className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50 self-start sm:self-auto"
+          className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-[11px] font-medium text-primary-foreground transition-all hover:bg-primary-active active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
         >
-          <Save size={16} />
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? (
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          ) : (
+            <Save size={13} />
+          )}
+          {saving ? 'Saving…' : 'Save changes'}
         </button>
-      </div>
+      </Reveal>
 
-      {/* Inline Feedback Banner */}
+      {/* Feedback */}
       {feedback.msg && (
         <div
-          className={`p-4 rounded-2xl text-xs font-bold flex items-center justify-between animate-fade-in ${
+          className={cn(
+            'flex animate-fade-in items-center justify-between gap-3 rounded-md border px-4 py-3 text-xs font-medium',
             feedback.type === 'error'
-              ? 'bg-rose-950/80 border border-rose-500/50 text-rose-300'
-              : 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300'
-          }`}
+              ? 'border-destructive/25 bg-destructive/8 text-destructive'
+              : 'border-accent-teal/25 bg-accent-teal/8 text-accent-teal'
+          )}
         >
-          <span>{feedback.msg}</span>
-          <button onClick={() => setFeedback({ type: '', msg: '' })}>
-            <X size={14} />
+          <span className="flex items-center gap-2">
+            {feedback.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
+            {feedback.msg}
+          </span>
+          <button
+            onClick={() => setFeedback({ type: '', msg: '' })}
+            className="transition-opacity hover:opacity-70"
+            aria-label="Dismiss message"
+          >
+            <span aria-hidden>×</span>
           </button>
         </div>
       )}
 
-      {/* Profile Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Section 1: Business Identity & Contact */}
-        <div className="bg-slate-800/60 border border-slate-700/80 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center gap-2.5 pb-2 border-b border-slate-700/60">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <UserCheck size={16} />
-            </div>
-            <div>
-              <h3 className="text-sm font-black text-white">Basic Information & Contact</h3>
-              <p className="text-[11px] text-slate-400">Your public partner identity shown to customers</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Full Name / Business Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Contact Phone Number *
-              </label>
-              <input
-                type="tel"
-                required
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+91 98765 43210"
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Registered Email (Verified)
-              </label>
-              <input
-                type="email"
-                disabled
-                value={formData.email}
-                className="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-400 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Primary Operating City
-              </label>
-              <select
-                value={formData.serviceCity}
-                onChange={(e) => setFormData({ ...formData, serviceCity: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
-              >
-                <option value="Bengaluru">Bengaluru, Karnataka</option>
-                <option value="Hyderabad">Hyderabad, Telangana</option>
-                <option value="Mumbai">Mumbai, Maharashtra</option>
-                <option value="Delhi NCR">Delhi NCR</option>
-                <option value="Chennai">Chennai, Tamil Nadu</option>
-                <option value="Pune">Pune, Maharashtra</option>
-              </select>
-            </div>
-          </div>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-24">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="text-[11px] text-muted-foreground">Loading profile…</p>
         </div>
-
-        {/* Section 2: Professional Bio & Specialization */}
-        <div className="bg-slate-800/60 border border-slate-700/80 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center gap-2.5 pb-2 border-b border-slate-700/60">
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-              <Award size={16} />
-            </div>
-            <div>
-              <h3 className="text-sm font-black text-white">Experience & Customer Introduction</h3>
-              <p className="text-[11px] text-slate-400">Describe your work philosophy, expertise, and service standards</p>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">
-              Public Bio & Experience Statement
-            </label>
-            <textarea
-              rows={4}
-              value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              placeholder="Describe your technical background, equipment used, and service quality commitments..."
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 leading-relaxed"
-            />
-          </div>
-        </div>
-
-        {/* Section 3: Verified KYC Documents */}
-        <div className="bg-slate-800/60 border border-slate-700/80 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-700/60">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
-                <FileCheck size={16} />
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Section 1: identity */}
+          <Reveal delay={0.04}>
+            <section className="overflow-hidden rounded-lg border border-hairline bg-card">
+              <div className="flex items-start gap-3 border-b border-hairline px-5 py-4 sm:px-6">
+                <span className={sectionIcon}>
+                  <UserCheck size={16} strokeWidth={1.8} />
+                </span>
+                <div>
+                  <h2 className="font-display text-[1.4rem] leading-tight tracking-[-0.02em] text-ink">
+                    Basic information & contact
+                  </h2>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    Your public partner identity shown to customers.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-black text-white">KYC Verification & Trade Licenses</h3>
-                <p className="text-[11px] text-slate-400">Official documents establishing platform trust & background check</p>
+
+              <div className="grid grid-cols-1 gap-4 p-5 sm:p-6 md:grid-cols-2">
+                <div>
+                  <label className={labelClass}>Full name / business name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className={fieldClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Contact phone number *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="+91 98765 43210"
+                    className={fieldClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Registered email (verified)</label>
+                  <input
+                    type="email"
+                    disabled
+                    value={formData.email}
+                    className={fieldClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Primary operating city</label>
+                  <select
+                    value={formData.serviceCity}
+                    onChange={(e) => setFormData({ ...formData, serviceCity: e.target.value })}
+                    className={cn(fieldClass, 'cursor-pointer')}
+                  >
+                    <option value="Bengaluru">Bengaluru, Karnataka</option>
+                    <option value="Hyderabad">Hyderabad, Telangana</option>
+                    <option value="Mumbai">Mumbai, Maharashtra</option>
+                    <option value="Delhi NCR">Delhi NCR</option>
+                    <option value="Chennai">Chennai, Tamil Nadu</option>
+                    <option value="Pune">Pune, Maharashtra</option>
+                  </select>
+                </div>
               </div>
-            </div>
+            </section>
+          </Reveal>
 
-            <button
-              type="button"
-              onClick={() => setShowAddDocModal(true)}
-              className="px-3.5 py-1.5 bg-muted hover:bg-accent text-foreground border border-border rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Plus size={14} /> Add Document
-            </button>
-          </div>
+          {/* Section 2: bio */}
+          <Reveal delay={0.08}>
+            <section className="overflow-hidden rounded-lg border border-hairline bg-card">
+              <div className="flex items-start gap-3 border-b border-hairline px-5 py-4 sm:px-6">
+                <span className={cn(sectionIcon, 'text-accent-amber')}>
+                  <Award size={16} strokeWidth={1.8} />
+                </span>
+                <div>
+                  <h2 className="font-display text-[1.4rem] leading-tight tracking-[-0.02em] text-ink">
+                    Experience & introduction
+                  </h2>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    Describe your work philosophy, expertise, and service standards.
+                  </p>
+                </div>
+              </div>
 
-          <div className="space-y-3">
-            {documents.map((doc, idx) => (
-              <div
-                key={idx}
-                className="p-4 bg-slate-900/80 border border-slate-700/80 rounded-2xl flex items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-                    <FileText size={18} />
-                  </div>
+              <div className="space-y-2 p-5 sm:p-6">
+                <label className={labelClass}>Public bio & experience statement</label>
+                <textarea
+                  rows={5}
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  placeholder="Describe your technical background, equipment used, and service quality commitments…"
+                  className="w-full rounded-md border border-input bg-canvas p-3.5 text-xs leading-relaxed text-ink outline-hidden transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-3 focus:ring-primary/15"
+                />
+                <p className="text-[10px] leading-relaxed text-muted-foreground">
+                  A clear, specific introduction helps customers choose you with confidence.
+                </p>
+              </div>
+            </section>
+          </Reveal>
+
+          {/* Section 3: documents */}
+          <Reveal delay={0.12}>
+            <section className="overflow-hidden rounded-lg border border-hairline bg-card">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-5 py-4 sm:px-6">
+                <div className="flex items-start gap-3">
+                  <span className={cn(sectionIcon, 'text-accent-teal')}>
+                    <FileCheck size={16} strokeWidth={1.8} />
+                  </span>
                   <div>
-                    <div className="text-xs font-bold text-white">{doc.name}</div>
-                    <div className="text-[10px] text-slate-400">Submitted: {doc.date}</div>
+                    <h2 className="font-display text-[1.4rem] leading-tight tracking-[-0.02em] text-ink">
+                      KYC & trade licenses
+                    </h2>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      Documents that establish platform trust and background verification.
+                    </p>
                   </div>
                 </div>
 
-                <span
-                  className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full border ${
-                    doc.status === 'VERIFIED'
-                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                      : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                  }`}
-                >
-                  {doc.status === 'VERIFIED' ? (
-                    <>
-                      <CheckCircle2 size={11} /> Verified by ServiceHub
-                    </>
-                  ) : (
-                    <>
-                      <Clock size={11} /> Review Pending
-                    </>
-                  )}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Section 4: Save Actions */}
-        <div className="flex items-center justify-end gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-          >
-            <Save size={16} />
-            {saving ? 'Saving Updates...' : 'Save Profile & Credentials'}
-          </button>
-        </div>
-      </form>
-
-      {/* Add Document Modal */}
-      {showAddDocModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-sm font-black text-white flex items-center gap-2">
-                <Upload size={16} className="text-emerald-400" />
-                Upload New Verification Document
-              </h3>
-              <button
-                onClick={() => setShowAddDocModal(false)}
-                className="p-1 text-slate-400 hover:text-white"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddDocument} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Document Title / Certificate Type *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. GST Registration or Safety Training Certificate"
-                  value={newDocName}
-                  onChange={(e) => setNewDocName(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-
-              <div className="p-6 border-2 border-dashed border-slate-700 rounded-2xl text-center space-y-2 hover:border-emerald-500/50 transition-colors">
-                <Upload size={24} className="mx-auto text-slate-400" />
-                <div className="text-xs text-slate-300 font-bold">Upload PDF or Image</div>
-                <p className="text-[10px] text-slate-500">Max file size 10MB (PDF, JPG, PNG)</p>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowAddDocModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white"
+                  onClick={() => setShowAddDocModal(true)}
+                  className="flex items-center gap-1.5 rounded-md border border-hairline bg-canvas px-3 py-1.5 text-[10px] font-medium text-body transition-all hover:border-primary/30 hover:text-primary active:scale-[0.98]"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
-                >
-                  Attach & Submit
+                  <Plus size={12} /> Add document
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+
+              <div className="divide-y divide-hairline-soft">
+                {documents.map((doc, idx) => {
+                  const verified = doc.status === 'VERIFIED';
+                  return (
+                    <div
+                      key={idx}
+                      className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 transition-colors hover:bg-surface-soft/30 sm:px-6"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-hairline bg-surface-soft text-primary">
+                          <FileText size={16} strokeWidth={1.8} />
+                        </span>
+                        <div className="min-w-0">
+                          <div className="text-[12px] font-medium text-ink">{doc.name}</div>
+                          <div className="mt-0.5 text-[10px] text-muted-foreground">
+                            Submitted: {doc.date}
+                          </div>
+                        </div>
+                      </div>
+
+                      <span
+                        className={cn(
+                          'inline-flex shrink-0 items-center gap-1 rounded-pill border px-2.5 py-1 text-[9px] font-medium uppercase tracking-[0.06em]',
+                          verified
+                            ? 'border-accent-teal/20 bg-accent-teal/8 text-accent-teal'
+                            : 'border-accent-amber/25 bg-accent-amber/8 text-accent-amber'
+                        )}
+                      >
+                        {verified ? (
+                          <>
+                            <CheckCircle2 size={10} /> Verified by ServiceHub
+                          </>
+                        ) : (
+                          <>
+                            <Clock size={10} /> Review pending
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="border-t border-hairline bg-surface-soft/30 px-5 py-3 sm:px-6">
+                <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                  <ShieldCheck size={11} className="text-accent-teal" />
+                  Documents are encrypted and visible only to the ServiceHub verification team.
+                </p>
+              </div>
+            </section>
+          </Reveal>
+
+          {/* Save actions */}
+          <Reveal delay={0.16} className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline pt-5">
+            <p className="text-[10px] leading-relaxed text-muted-foreground">
+              Changes go live on your public profile as soon as they’re saved.
+            </p>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex items-center gap-1.5 rounded-md bg-primary px-5 py-2.5 text-[11px] font-medium text-primary-foreground transition-all hover:bg-primary-active active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+            >
+              {saving ? (
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                <Save size={13} />
+              )}
+              {saving ? 'Saving updates…' : 'Save profile & credentials'}
+            </button>
+          </Reveal>
+        </form>
       )}
+
+      {/* Add document modal */}
+      <Modal
+        isOpen={showAddDocModal}
+        onClose={() => setShowAddDocModal(false)}
+        title="Upload verification document"
+        description="Add a trade licence, certificate, or identity document for review."
+      >
+        <form onSubmit={handleAddDocument} className="space-y-4">
+          <Input
+            label="Document title / certificate type *"
+            required
+            placeholder="e.g. GST registration or safety training certificate"
+            value={newDocName}
+            onChange={(e) => setNewDocName(e.target.value)}
+            icon={FileText}
+          />
+
+          <div className="cursor-pointer rounded-md border border-dashed border-hairline bg-surface-soft/40 p-6 text-center transition-colors hover:border-primary/40 hover:bg-primary/5">
+            <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-canvas text-muted-foreground">
+              <Upload size={18} strokeWidth={1.7} />
+            </span>
+            <div className="mt-2 text-[11px] font-medium text-ink">Upload PDF or image</div>
+            <p className="mt-0.5 text-[9px] text-muted-foreground">
+              Max file size 10MB · PDF, JPG, PNG
+            </p>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 border-t border-hairline pt-4">
+            <button
+              type="button"
+              onClick={() => setShowAddDocModal(false)}
+              className="rounded-md px-3 py-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-surface-soft hover:text-ink"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="rounded-md bg-primary px-4 py-2 text-[11px] font-medium text-primary-foreground transition-all hover:bg-primary-active active:scale-[0.98]"
+            >
+              Attach & submit
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

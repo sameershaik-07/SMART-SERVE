@@ -7,13 +7,11 @@ import {
   User,
   Wrench,
   Send,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  RefreshCw,
   X,
   FileText,
-  BadgeAlert
+  RefreshCw,
+  CheckCircle2,
+  ArrowUpRight,
 } from 'lucide-react';
 import {
   getAdminChatConversationsApi,
@@ -21,6 +19,20 @@ import {
   sendAdminChatMessageApi,
   getAdminChatStatsApi,
 } from '../../api/admin';
+import { Reveal } from '@/components/motion/Reveal';
+import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
+import { cn } from '@/lib/utils';
+
+const templates = [
+  {
+    label: 'Verify arrival',
+    text: 'Notice: ServiceHub Dispute Support has reviewed this booking. Technician arrival has been verified.',
+  },
+  {
+    label: 'Warranty re-work',
+    text: 'Dispute Ruling: Customer service guarantee has been approved. Warranty re-work scheduled at zero cost.',
+  },
+];
 
 export const AdminChatAuditPage = () => {
   const [conversations, setConversations] = useState([]);
@@ -44,14 +56,19 @@ export const AdminChatAuditPage = () => {
       ]);
 
       if (convRes.status === 'fulfilled' && convRes.value) {
-        const list = Array.isArray(convRes.value) ? convRes.value : convRes.value.conversations || [];
+        const list = Array.isArray(convRes.value)
+          ? convRes.value
+          : convRes.value.conversations || [];
         setConversations(list);
         if (list.length > 0 && !selectedConv) {
           selectConversation(list[0]);
         }
         if (list.length === 0) setSelectedConv(null);
       } else if (convRes.status === 'rejected') {
-        setFeedback({ type: 'error', msg: convRes.reason?.message || 'Unable to load chat conversations.' });
+        setFeedback({
+          type: 'error',
+          msg: convRes.reason?.message || 'Unable to load chat conversations.',
+        });
       }
 
       if (statsRes.status === 'fulfilled' && statsRes.value) {
@@ -133,322 +150,396 @@ export const AdminChatAuditPage = () => {
     return cust.includes(q) || prov.includes(q) || svc.includes(q) || id.includes(q);
   });
 
+  const metrics = [
+    {
+      label: 'Active channels',
+      icon: MessageSquare,
+      tone: 'border-primary/20 bg-primary/8 text-primary',
+      value: (
+        <span className="flex items-baseline gap-1.5">
+          <AnimatedNumber value={stats.totalConversations ?? conversations.length} />
+          <span className="font-sans text-[10px] font-normal text-muted-foreground">channels</span>
+        </span>
+      ),
+      note: 'Customer ↔ provider threads under audit.',
+    },
+    {
+      label: 'Messages today',
+      icon: FileText,
+      tone: 'border-accent-amber/25 bg-accent-amber/8 text-accent-amber',
+      value: (
+        <span className="flex items-baseline gap-1.5">
+          <AnimatedNumber value={stats.messagesToday ?? 0} />
+          <span className="font-sans text-[10px] font-normal text-muted-foreground">today</span>
+        </span>
+      ),
+      note: 'Transcript entries recorded since midnight.',
+    },
+    {
+      label: 'Moderator status',
+      icon: CheckCircle2,
+      tone: 'border-accent-teal/20 bg-accent-teal/8 text-accent-teal',
+      value: <span className="text-[1.35rem]">Encrypted / Active</span>,
+      note: 'Escrow-protected channels with full audit trail.',
+    },
+  ];
+
   return (
-    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-16 font-sans">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border p-6 rounded-3xl shadow-sm">
+    <div className="mx-auto max-w-[1240px] animate-fade-in space-y-6 pb-16 font-sans">
+      {/* Header */}
+      <Reveal className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs uppercase font-extrabold text-foreground tracking-wider">
-              Safety & Compliance Audit
-            </span>
-            <span className="inline-flex items-center gap-1 bg-muted text-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-border">
-              <Shield size={12} /> Live Message Audit
+          <div className="flex flex-wrap items-center gap-2.5">
+            <p className="sh-eyebrow">Safety & compliance audit</p>
+            <span className="inline-flex items-center gap-1 rounded-pill border border-primary/20 bg-primary/6 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.08em] text-primary">
+              <Shield size={10} /> Live message audit
             </span>
           </div>
-          <h1 className="workspace-title text-2xl md:text-3xl">
-            Chat Moderation & Dispute Audit
-          </h1>
-          <p className="workspace-subtitle text-xs md:text-sm mt-0.5">
-            Inspect customer-to-provider communications, mediate active disputes, and issue official resolution notices.
+          <h1 className="workspace-title mt-2">Chat moderation & dispute audit</h1>
+          <p className="workspace-subtitle">
+            Inspect customer-to-provider communications, mediate active disputes, and issue
+            official resolution notices.
           </p>
         </div>
 
         <button
           onClick={fetchAuditData}
-          className="p-2.5 bg-muted hover:bg-accent text-foreground rounded-xl border border-border transition-colors cursor-pointer self-start sm:self-auto"
-          title="Refresh Audit Logs"
+          title="Refresh audit logs"
+          className="flex items-center gap-1.5 rounded-md border border-hairline bg-canvas px-3.5 py-2 text-[11px] font-medium text-body transition-all hover:border-ink/25 hover:text-ink active:scale-[0.98]"
         >
-          <RefreshCw size={16} className={loadingList ? 'animate-spin' : ''} />
+          <RefreshCw size={13} className={loadingList ? 'animate-spin' : ''} /> Refresh audit
         </button>
-      </div>
+      </Reveal>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 bg-card border border-border rounded-2xl flex items-center gap-3 shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center">
-            <MessageSquare size={18} />
-          </div>
-          <div>
-            <div className="text-xs text-muted-foreground font-bold uppercase">Active Channels</div>
-            <div className="text-xl font-black text-foreground">
-              {stats.totalConversations ?? conversations.length} Channels
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 bg-card border border-border rounded-2xl flex items-center gap-3 shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center">
-            <FileText size={18} />
-          </div>
-          <div>
-            <div className="text-xs text-muted-foreground font-bold uppercase">Messages Today</div>
-            <div className="text-xl font-black text-foreground">
-              {stats.messagesToday ?? 0} Today
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 bg-card border border-border rounded-2xl flex items-center gap-3 shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center">
-            <CheckCircle2 size={18} />
-          </div>
-          <div>
-            <div className="text-xs text-muted-foreground font-bold uppercase">Moderator Status</div>
-            <div className="text-xl font-black text-foreground">Encrypted / Active</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Inline Feedback Banner */}
+      {/* Feedback */}
       {feedback.msg && (
         <div
-          className={`p-4 rounded-2xl text-xs font-bold flex items-center justify-between animate-fade-in ${
+          className={cn(
+            'flex animate-fade-in items-center justify-between gap-3 rounded-md border px-4 py-3 text-xs font-medium',
             feedback.type === 'error'
-              ? 'bg-rose-50 border border-rose-200 text-rose-700'
-              : 'bg-emerald-50 border border-emerald-200 text-emerald-700'
-          }`}
+              ? 'border-destructive/25 bg-destructive/8 text-destructive'
+              : 'border-accent-teal/25 bg-accent-teal/8 text-accent-teal'
+          )}
         >
-          <span>{feedback.msg}</span>
-          <button onClick={() => setFeedback({ type: '', msg: '' })}>
+          <span className="flex items-center gap-2">
+            {feedback.type === 'error' ? <ShieldAlert size={14} /> : <CheckCircle2 size={14} />}
+            {feedback.msg}
+          </span>
+          <button
+            onClick={() => setFeedback({ type: '', msg: '' })}
+            className="transition-opacity hover:opacity-70"
+            aria-label="Dismiss message"
+          >
             <X size={14} />
           </button>
         </div>
       )}
 
-      {/* Two-Pane Audit Console */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Pane (5 Cols): Conversations Browser */}
-        <div className="lg:col-span-5 bg-card border border-border rounded-3xl p-5 space-y-4 shadow-sm">
-          {/* Search Conversations */}
-          <div className="relative">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by customer, pro, or booking ID..."
-              className="w-full bg-muted border border-border rounded-xl pl-10 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:bg-card focus:border-foreground focus:outline-none transition-all"
-            />
-          </div>
-
-          {/* Conversations List */}
-          {loadingList ? (
-            <div className="py-20 flex flex-col items-center justify-center space-y-2">
-              <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-xs text-muted-foreground">Loading audit threads...</span>
-            </div>
-          ) : filteredConversations.length === 0 ? (
-            <div className="py-16 text-center space-y-2">
-              <MessageSquare size={32} className="mx-auto text-slate-300" />
-              <p className="text-xs font-bold text-slate-600">No conversations found</p>
-              <p className="text-[11px] text-slate-400">Chats between customers and providers will appear here.</p>
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-[580px] overflow-y-auto pr-1">
-              {filteredConversations.map((conv) => {
-                const isSelected = selectedConv?.id === conv.id;
-                const custName = conv.customer?.name || conv.customer?.user?.name || 'Customer';
-                const provName = conv.provider?.name || conv.provider?.user?.name || 'Provider';
-                const serviceTitle = conv.booking?.service?.title || 'Service Appointment';
-
-                return (
-                  <div
-                    key={conv.id}
-                    onClick={() => selectConversation(conv)}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-muted border-foreground ring-2 ring-foreground/10'
-                        : 'border-border hover:bg-muted'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="text-[11px] font-black text-foreground truncate">
-                        {custName} ↔ {provName}
-                      </span>
-                      {conv.bookingId && (
-                        <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">
-                          #{conv.bookingId}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="text-xs text-foreground font-semibold truncate mb-1">
-                      {serviceTitle}
-                    </div>
-
-                    <p className="text-[11px] text-slate-500 line-clamp-1 leading-relaxed">
-                      {conv.lastMessage || 'Active chat channel between customer and verified technician.'}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Right Pane (7 Cols): Transcript & Intervention Console */}
-        <div className="lg:col-span-7 bg-card border border-border rounded-3xl p-6 space-y-4 shadow-sm">
-          {selectedConv ? (
-            <>
-              {/* Header Details */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-black text-foreground">
-                      Channel #{selectedConv.id} Audit
-                    </span>
-                    <span className="text-[10px] font-bold bg-muted text-foreground px-2.5 py-0.5 rounded-full border border-border">
-                      Escrow Protected
-                    </span>
-                  </div>
-                  <div className="text-xs text-slate-500 flex flex-wrap items-center gap-3">
-                    <span className="flex items-center gap-1">
-                      <User size={12} className="text-foreground" />
-                      <strong>Customer:</strong> {selectedConv.customer?.name || selectedConv.customer?.user?.name || 'Customer'}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Wrench size={12} className="text-foreground" />
-                      <strong>Pro:</strong> {selectedConv.provider?.name || selectedConv.provider?.user?.name || 'Provider'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-right self-start sm:self-auto">
-                  <span className="text-[10px] uppercase font-extrabold text-slate-400 block">
-                    Service Reference
-                  </span>
-                  <span className="text-xs font-black text-foreground">
-                    {selectedConv.booking?.service?.title || 'Appointment'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Message Transcript Viewer */}
-              <div className="bg-muted/60 border border-border rounded-2xl p-4 min-h-[340px] max-h-[400px] overflow-y-auto space-y-3">
-                {loadingMessages ? (
-                  <div className="py-20 flex flex-col items-center justify-center space-y-2">
-                    <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-xs text-slate-400">Decrypting messages...</span>
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className="py-20 text-center text-slate-400 text-xs">
-                    No transcript entries recorded yet for this booking.
-                  </div>
-                ) : (
-                  messages.map((m, idx) => {
-                    const isAdmin = m.senderRole === 'ADMIN';
-                    const isCustomer = m.senderRole === 'CUSTOMER';
-                    const isProvider = m.senderRole === 'PROVIDER';
-
-                    return (
-                      <div
-                        key={m.id || idx}
-                        className={`flex flex-col space-y-1 ${
-                          isAdmin
-                            ? 'items-center'
-                            : isCustomer
-                            ? 'items-start'
-                            : 'items-end'
-                        }`}
-                      >
-                        <span className="text-[10px] font-bold text-slate-400 px-1">
-                          {isAdmin
-                            ? '🛡️ Official ServiceHub Moderator Notice'
-                            : isCustomer
-                            ? `👤 Customer (${selectedConv.customer?.name || selectedConv.customer?.user?.name || 'Customer'})`
-                            : `🔧 Provider (${selectedConv.provider?.name || selectedConv.provider?.user?.name || 'Pro'})`}
-                        </span>
-
-                        <div
-                          className={`p-3 rounded-2xl max-w-md text-xs leading-relaxed ${
-                            isAdmin
-                              ? 'bg-foreground text-background font-semibold text-center border border-foreground shadow-md'
-                              : isCustomer
-                              ? 'bg-card text-foreground border border-border shadow-sm'
-                              : 'bg-slate-800 text-white shadow-2xs'
-                          }`}
-                        >
-                          {m.message || m.text || m.content}
-                        </div>
-
-                        <span className="text-[9px] text-slate-400 px-1">
-                          {m.createdAt
-                            ? new Date(m.createdAt).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })
-                            : 'Just now'}
-                        </span>
-                      </div>
-                    );
-                  })
+      {/* Metrics */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {metrics.map(({ label, icon: Icon, tone, value, note }, index) => (
+          <Reveal key={label} delay={Math.min(index * 0.04, 0.12)}>
+            <div className="flex h-full items-start gap-3.5 rounded-lg border border-hairline bg-card p-4">
+              <span
+                className={cn(
+                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border',
+                  tone
                 )}
+              >
+                <Icon size={17} strokeWidth={1.8} />
+              </span>
+              <div className="min-w-0">
+                <div className="text-[9px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  {label}
+                </div>
+                <div className="mt-1 font-display text-[1.5rem] leading-none tracking-[-0.02em] text-ink">
+                  {value}
+                </div>
+                <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">{note}</p>
+              </div>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+
+      {/* Two-pane audit console */}
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
+        {/* Conversations browser */}
+        <Reveal delay={0.06} className="lg:col-span-5">
+          <section className="overflow-hidden rounded-lg border border-hairline bg-card">
+            <div className="border-b border-hairline px-5 py-4">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="font-display text-[1.35rem] leading-tight tracking-[-0.02em] text-ink">
+                  Conversations
+                </h2>
+                <span className="rounded-pill border border-hairline bg-surface-soft px-2 py-0.5 text-[8px] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                  {filteredConversations.length} threads
+                </span>
               </div>
 
-              {/* Official Moderator Action & Resolution */}
-              <div className="pt-2 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <ShieldAlert size={14} className="text-foreground" />
-                    Official Moderator Ruling / Intervention
-                  </span>
-                  <div className="flex items-center gap-1.5">
+              <div className="relative mt-3">
+                <Search
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by customer, pro, or booking ID…"
+                  className="h-10 w-full rounded-md border border-hairline bg-canvas pl-10 pr-3 text-xs text-ink outline-hidden transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-3 focus:ring-primary/15"
+                />
+              </div>
+            </div>
+
+            {loadingList ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-24">
+                <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <p className="text-[11px] text-muted-foreground">Loading audit threads…</p>
+              </div>
+            ) : filteredConversations.length === 0 ? (
+              <div className="px-6 py-16 text-center">
+                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-hairline bg-surface-soft text-muted-foreground">
+                  <MessageSquare size={22} strokeWidth={1.7} />
+                </span>
+                <h3 className="mt-3 text-[13px] font-medium text-ink">No conversations found</h3>
+                <p className="mx-auto mt-1 max-w-xs text-[11px] leading-relaxed text-muted-foreground">
+                  Chats between customers and providers will appear here once bookings start.
+                </p>
+              </div>
+            ) : (
+              <div className="max-h-[560px] space-y-1 overflow-y-auto p-2.5">
+                {filteredConversations.map((conv) => {
+                  const isSelected = selectedConv?.id === conv.id;
+                  const custName = conv.customer?.name || conv.customer?.user?.name || 'Customer';
+                  const provName = conv.provider?.name || conv.provider?.user?.name || 'Provider';
+                  const serviceTitle = conv.booking?.service?.title || 'Service Appointment';
+
+                  return (
                     <button
-                      type="button"
-                      onClick={() =>
-                        applyTemplate(
-                          'Notice: ServiceHub Dispute Support has reviewed this booking. Technician arrival has been verified.'
-                        )
-                      }
-                      className="text-[10px] bg-muted hover:bg-accent text-foreground border border-border px-2 py-1 rounded-md font-semibold transition-colors"
+                      key={conv.id}
+                      onClick={() => selectConversation(conv)}
+                      className={cn(
+                        'w-full rounded-md border p-3.5 text-left transition-all',
+                        isSelected
+                          ? 'border-primary/30 bg-primary/6 shadow-xs'
+                          : 'border-transparent hover:border-hairline hover:bg-surface-soft/40'
+                      )}
                     >
-                      Verify Arrival
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-[11px] font-medium text-ink">
+                          {custName} ↔ {provName}
+                        </span>
+                        {conv.bookingId && (
+                          <span className="shrink-0 rounded-xs border border-hairline bg-surface-soft px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                            #{conv.bookingId}
+                          </span>
+                        )}
+                      </div>
+
+                      <div
+                        className={cn(
+                          'mt-1 truncate text-[11px]',
+                          isSelected ? 'text-primary' : 'text-body'
+                        )}
+                      >
+                        {serviceTitle}
+                      </div>
+
+                      <p className="mt-1 line-clamp-1 text-[10px] leading-relaxed text-muted-foreground">
+                        {conv.lastMessage ||
+                          'Active chat channel between customer and verified technician.'}
+                      </p>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        applyTemplate(
-                          'Dispute Ruling: Customer service guarantee has been approved. Warranty re-work scheduled at zero cost.'
-                        )
-                      }
-                      className="text-[10px] bg-muted hover:bg-accent text-foreground border border-border px-2 py-1 rounded-md font-semibold transition-colors"
-                    >
-                      Warranty Re-work
-                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </Reveal>
+
+        {/* Transcript & intervention */}
+        <Reveal delay={0.1} className="lg:col-span-7">
+          <section className="overflow-hidden rounded-lg border border-hairline bg-card">
+            {selectedConv ? (
+              <>
+                {/* Header details */}
+                <div className="flex flex-col gap-3 border-b border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="font-display text-[1.35rem] leading-tight tracking-[-0.02em] text-ink">
+                        Channel #{selectedConv.id}
+                      </h2>
+                      <span className="rounded-pill border border-accent-teal/20 bg-accent-teal/8 px-2 py-0.5 text-[8px] font-medium uppercase tracking-[0.06em] text-accent-teal">
+                        <Shield size={8} className="mr-1 inline" />
+                        Escrow protected
+                      </span>
+                    </div>
+
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <User size={11} className="text-primary" />
+                        {selectedConv.customer?.name ||
+                          selectedConv.customer?.user?.name ||
+                          'Customer'}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Wrench size={11} className="text-accent-teal" />
+                        {selectedConv.provider?.name ||
+                          selectedConv.provider?.user?.name ||
+                          'Provider'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="sm:text-right">
+                    <span className="block text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+                      Service reference
+                    </span>
+                    <span className="mt-0.5 block text-[11px] font-medium text-ink">
+                      {selectedConv.booking?.service?.title || 'Appointment'}
+                    </span>
                   </div>
                 </div>
 
-                <form onSubmit={handleSendAdminNotice} className="flex gap-2">
-                  <input
-                    type="text"
-                    required
-                    value={adminReplyText}
-                    onChange={(e) => setAdminReplyText(e.target.value)}
-                    placeholder="Type official moderation message or dispute ruling..."
-                    className="flex-1 bg-muted border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:bg-card focus:border-foreground focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    disabled={sendingReply}
-                    className="px-4 py-2.5 bg-foreground hover:bg-foreground/90 text-background rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md cursor-pointer disabled:opacity-50"
-                  >
-                    <Send size={14} />
-                    {sendingReply ? 'Posting...' : 'Post Notice'}
-                  </button>
-                </form>
+                {/* Transcript viewer */}
+                <div className="max-h-[400px] min-h-[340px] space-y-4 overflow-y-auto bg-surface-soft/30 p-4 sm:p-5">
+                  {loadingMessages ? (
+                    <div className="flex flex-col items-center justify-center gap-3 py-20">
+                      <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      <p className="text-[11px] text-muted-foreground">Decrypting messages…</p>
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <div className="py-20 text-center">
+                      <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-canvas text-muted-foreground">
+                        <MessageSquare size={19} strokeWidth={1.7} />
+                      </span>
+                      <p className="mt-2.5 text-[12px] font-medium text-ink">
+                        No transcript entries yet
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground">
+                        Messages exchanged on this booking will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    messages.map((m, idx) => {
+                      const isAdmin = m.senderRole === 'ADMIN';
+                      const isCustomer = m.senderRole === 'CUSTOMER';
+
+                      return (
+                        <div
+                          key={m.id || idx}
+                          className={cn(
+                            'flex flex-col gap-1',
+                            isAdmin ? 'items-center' : isCustomer ? 'items-start' : 'items-end'
+                          )}
+                        >
+                          <span className="px-1 text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                            {isAdmin
+                              ? 'ServiceHub moderator notice'
+                              : isCustomer
+                                ? `Customer · ${
+                                    selectedConv.customer?.name ||
+                                    selectedConv.customer?.user?.name ||
+                                    'Customer'
+                                  }`
+                                : `Provider · ${
+                                    selectedConv.provider?.name ||
+                                    selectedConv.provider?.user?.name ||
+                                    'Pro'
+                                  }`}
+                          </span>
+
+                          <div
+                            className={cn(
+                              'max-w-md rounded-lg px-3.5 py-2.5 text-[11px] leading-relaxed',
+                              isAdmin
+                                ? 'border border-primary/25 bg-primary/8 text-center font-medium text-primary'
+                                : isCustomer
+                                  ? 'border border-hairline bg-canvas text-body shadow-xs'
+                                  : 'bg-ink text-canvas shadow-xs'
+                            )}
+                          >
+                            {m.message || m.text || m.content}
+                          </div>
+
+                          <span className="px-1 text-[9px] tabular-nums text-muted-foreground">
+                            {m.createdAt
+                              ? new Date(m.createdAt).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : 'Just now'}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Moderation composer */}
+                <div className="space-y-3 border-t border-hairline px-5 py-4 sm:px-6">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                      <ShieldAlert size={12} className="text-primary" /> Official moderator ruling
+                    </span>
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {templates.map((template) => (
+                        <button
+                          key={template.label}
+                          type="button"
+                          onClick={() => applyTemplate(template.text)}
+                          className="rounded-pill border border-hairline bg-canvas px-2.5 py-1 text-[9px] font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
+                        >
+                          {template.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSendAdminNotice} className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      type="text"
+                      required
+                      value={adminReplyText}
+                      onChange={(e) => setAdminReplyText(e.target.value)}
+                      placeholder="Type an official moderation message or dispute ruling…"
+                      className="h-10 flex-1 rounded-md border border-hairline bg-canvas px-3.5 text-xs text-ink outline-hidden transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-3 focus:ring-primary/15"
+                    />
+                    <button
+                      type="submit"
+                      disabled={sendingReply}
+                      className="flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-[11px] font-medium text-primary-foreground transition-all hover:bg-primary-active active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+                    >
+                      <Send size={13} />
+                      {sendingReply ? 'Posting…' : 'Post notice'}
+                    </button>
+                  </form>
+
+                  <p className="flex items-center gap-1.5 text-[9px] leading-relaxed text-muted-foreground">
+                    <ArrowUpRight size={10} className="shrink-0 text-primary" />
+                    Notices are delivered to both parties and permanently attached to the booking
+                    audit trail.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="px-6 py-32 text-center">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-hairline bg-surface-soft text-muted-foreground">
+                  <Shield size={24} strokeWidth={1.6} />
+                </span>
+                <h3 className="mt-4 font-display text-[1.5rem] leading-tight tracking-[-0.02em] text-ink">
+                  Select a conversation to audit
+                </h3>
+                <p className="mx-auto mt-1.5 max-w-xs text-[11px] leading-relaxed text-muted-foreground">
+                  Choose an active communication channel from the left panel to review message
+                  transcripts and issue notices.
+                </p>
               </div>
-            </>
-          ) : (
-            <div className="py-36 text-center space-y-3">
-              <Shield size={40} className="mx-auto text-slate-300" />
-              <h4 className="text-sm font-bold text-foreground">Select a Conversation to Audit</h4>
-              <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                Choose an active communication channel from the left panel to review message transcripts.
-              </p>
-            </div>
-          )}
-        </div>
+            )}
+          </section>
+        </Reveal>
       </div>
     </div>
   );

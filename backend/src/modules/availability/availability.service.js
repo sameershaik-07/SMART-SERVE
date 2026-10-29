@@ -1,4 +1,5 @@
 const prisma = require("../../config/prisma");
+const ApiError = require("../../utils/errors");
 
 const createSlot = async (userId, slotData) => {
     const provider = await prisma.serviceProvider.findUnique({
@@ -6,7 +7,7 @@ const createSlot = async (userId, slotData) => {
     });
 
     if (!provider) {
-        throw new Error("Provider profile not found");
+        throw ApiError.notFound("Provider profile not found");
     }
 
     const dateObj = new Date(slotData.date);
@@ -21,7 +22,7 @@ const createSlot = async (userId, slotData) => {
     });
 
     if (existing) {
-        throw new Error("An availability slot for this date and time already exists.");
+        throw ApiError.conflict("An availability slot for this date and time already exists.");
     }
 
     return prisma.availabilitySlot.create({
@@ -35,11 +36,20 @@ const createSlot = async (userId, slotData) => {
 };
 
 const getProviderSlots = async (providerId) => {
+    const id = parseInt(providerId);
+    if (isNaN(id)) {
+        throw ApiError.badRequest("Invalid provider ID");
+    }
+
+    // Set to start of today so slots created for today are included
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
     return prisma.availabilitySlot.findMany({
         where: {
-            providerId: parseInt(providerId),
+            providerId: id,
             isBooked: false,
-            date: { gte: new Date() }
+            date: { gte: startOfToday }
         },
         orderBy: [{ date: "asc" }, { startTime: "asc" }]
     });
@@ -51,7 +61,7 @@ const updateSlot = async (userId, slotId, updateData) => {
     });
 
     if (!provider) {
-        throw new Error("Provider profile not found");
+        throw ApiError.notFound("Provider profile not found");
     }
 
     const id = parseInt(slotId);
@@ -60,7 +70,7 @@ const updateSlot = async (userId, slotId, updateData) => {
     });
 
     if (!existing) {
-        throw new Error("Slot not found or unauthorized");
+        throw ApiError.notFound("Slot not found or unauthorized");
     }
 
     return prisma.availabilitySlot.update({
@@ -75,7 +85,7 @@ const deleteSlot = async (userId, slotId) => {
     });
 
     if (!provider) {
-        throw new Error("Provider profile not found");
+        throw ApiError.notFound("Provider profile not found");
     }
 
     const id = parseInt(slotId);
@@ -84,11 +94,11 @@ const deleteSlot = async (userId, slotId) => {
     });
 
     if (!existing) {
-        throw new Error("Slot not found or unauthorized");
+        throw ApiError.notFound("Slot not found or unauthorized");
     }
 
     if (existing.isBooked) {
-        throw new Error("Cannot delete a slot that is already booked.");
+        throw ApiError.badRequest("Cannot delete a slot that is already booked.");
     }
 
     return prisma.availabilitySlot.delete({
@@ -102,7 +112,7 @@ const getMySlots = async (userId) => {
     });
 
     if (!provider) {
-        throw new Error("Provider profile not found");
+        throw ApiError.notFound("Provider profile not found");
     }
 
     return prisma.availabilitySlot.findMany({

@@ -2,21 +2,31 @@ import React from 'react'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 
-export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-md' }) => {
+export const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  description,
+  children,
+  maxWidth = 'max-w-md',
+  className,
+}) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={cn("p-0 overflow-hidden", maxWidth)}>
+      <DialogContent className={cn('gap-0 p-0', maxWidth, className)}>
         {title && (
-          <DialogHeader className="px-6 py-4 border-b border-border">
-            <DialogTitle className="text-lg font-bold text-foreground">{title}</DialogTitle>
+          <DialogHeader className="border-b border-hairline px-6 py-5">
+            <DialogTitle>{title}</DialogTitle>
+            {description && <DialogDescription>{description}</DialogDescription>}
           </DialogHeader>
         )}
-        <div className="p-6 max-h-[80vh] overflow-y-auto">{children}</div>
+        <div className="max-h-[80vh] overflow-y-auto p-6">{children}</div>
       </DialogContent>
     </Dialog>
   )
