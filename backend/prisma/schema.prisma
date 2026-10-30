@@ -49,21 +49,24 @@ model ServiceCategory {
 }
 
 model ServiceProvider {
-  id                Int                @id @default(autoincrement())
-  userId            Int                @unique
-  categoryId        Int
-  verified          Boolean            @default(false)
-  rating            Float              @default(0)
-  availability      Boolean            @default(true)
-  address           String?
-  bio               String?
-  documents         String[]           @default([])
-  availabilitySlots AvailabilitySlot[]
-  bookings          Booking[]
-  conversations     Conversation[]
-  services          Service[]
-  category          ServiceCategory    @relation(fields: [categoryId], references: [id])
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   Int                    @id @default(autoincrement())
+  userId               Int                    @unique
+  categoryId           Int
+  verified             Boolean                @default(false)
+  rating               Float                  @default(0)
+  availability         Boolean                @default(true)
+  address              String?
+  bio                  String?
+  documents            String[]               @default([])
+  latitude             Float?
+  longitude            Float?
+  availabilitySlots    AvailabilitySlot[]
+  bookings             Booking[]
+  conversations        Conversation[]
+  ProviderVerification ProviderVerification[]
+  services             Service[]
+  category             ServiceCategory        @relation(fields: [categoryId], references: [id])
+  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Service {
@@ -79,6 +82,9 @@ model Service {
   updatedAt       DateTime        @updatedAt
   bookings        Booking[]
   provider        ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([description(ops: raw("gin_trgm_ops"))], map: "Service_desc_trgm_idx", type: Gin)
+  @@index([title(ops: raw("gin_trgm_ops"))], map: "Service_title_trgm_idx", type: Gin)
 }
 
 model AvailabilitySlot {
@@ -89,7 +95,12 @@ model AvailabilitySlot {
   endTime    String
   isBooked   Boolean         @default(false)
   createdAt  DateTime        @default(now())
+  startsAt   DateTime?       @db.Timestamptz(6)
+  endsAt     DateTime?       @db.Timestamptz(6)
+  timezone   String?         @default("Asia/Kolkata")
   provider   ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, startsAt])
 }
 
 model Booking {
@@ -110,19 +121,24 @@ model Booking {
   provider      ServiceProvider @relation(fields: [providerId], references: [id])
   service       Service?        @relation(fields: [serviceId], references: [id])
   conversations Conversation[]
+  Dispute       Dispute[]
   notification  Notification[]
   payment       Payment?
   review        Review?
 }
 
 model Payment {
-  id          Int           @id @default(autoincrement())
-  bookingId   Int           @unique
-  amount      Float
-  paymentMode String
-  status      PaymentStatus @default(PENDING)
-  createdAt   DateTime      @default(now())
-  booking     Booking       @relation(fields: [bookingId], references: [id])
+  id                Int           @id @default(autoincrement())
+  bookingId         Int           @unique
+  amount            Float
+  paymentMode       String
+  status            PaymentStatus @default(PENDING)
+  createdAt         DateTime      @default(now())
+  idempotencyKey    String?       @unique
+  razorpayOrderId   String?
+  razorpayPaymentId String?       @unique
+  updatedAt         DateTime
+  booking           Booking       @relation(fields: [bookingId], references: [id])
 }
 
 model Review {
@@ -186,8 +202,12 @@ model Conversation {
   provider      ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
   @@unique([customerId, providerId])
+  @@unique([customerId, providerId, bookingId])
   @@index([customerId])
   @@index([providerId])
+  @@index([bookingId])
+  @@index([customerId, updatedAt])
+  @@index([providerId, updatedAt])
 }
 
 model ChatMessage {
@@ -196,16 +216,68 @@ model ChatMessage {
   senderId       Int
   senderRole     Role
   message        String
-  messageType    String       @default("TEXT")
+  messageType    MessageType  @default(TEXT)
   isRead         Boolean      @default(false)
   readAt         DateTime?
   createdAt      DateTime     @default(now())
+  attachments    Json?        @default("[]")
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
   @@index([createdAt])
   @@index([conversationId, isRead, senderId])
+  @@index([conversationId, id])
+}
+
+model CancellationPolicy {
+  id             Int      @id @default(autoincrement())
+  name           String   @unique @default("default")
+  minHoursBefore Int      @default(2)
+  refundPercent  Int      @default(100)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime
+}
+
+model Dispute {
+  id        Int      @id @default(autoincrement())
+  bookingId Int
+  raisedBy  Int
+  reason    String
+  status    String   @default("OPEN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  Booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([status])
+}
+
+model OutboxEvent {
+  id          Int       @id @default(autoincrement())
+  aggregate   String
+  aggregateId String
+  type        String
+  payload     Json
+  processedAt DateTime?
+  attempts    Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@index([processedAt, createdAt])
+}
+
+model ProviderVerification {
+  id              Int             @id @default(autoincrement())
+  providerId      Int
+  status          String          @default("PENDING")
+  notes           String?
+  reviewedBy      Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime
+  ServiceProvider ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([status])
 }
 
 enum Role {
@@ -226,4 +298,14 @@ enum PaymentStatus {
   PENDING
   SUCCESS
   FAILED
+  REFUND_PENDING
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
 }
