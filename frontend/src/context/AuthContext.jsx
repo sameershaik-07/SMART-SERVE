@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { loginApi, registerApi } from '../api/auth';
 import { getProfileApi } from '../api/users';
+import { disconnectSocket } from '../api/socket';
 
 const AuthContext = createContext(null);
 
@@ -73,6 +74,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    disconnectSocket();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.clear();

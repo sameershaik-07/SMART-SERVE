@@ -12,6 +12,12 @@ export const getSocket = () => {
     return null;
   }
 
+  // If token has changed, disconnect the stale connection and establish a fresh one
+  if (socketInstance && socketInstance.auth?.token !== token) {
+    socketInstance.disconnect();
+    socketInstance = null;
+  }
+
   if (!socketInstance) {
     const backendUrl = import.meta.env.VITE_SOCKET_URL || undefined;
     socketInstance = io(backendUrl, {

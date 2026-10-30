@@ -15,6 +15,7 @@ import {
   Smile,
   Clock,
   MapPin,
+  Shield,
   ShieldCheck,
   ArrowLeft,
   X,
@@ -52,8 +53,10 @@ export const MessagesPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const targetProviderId = searchParams.get('providerId');
-  const targetProviderName = searchParams.get('name');
-  const targetProviderAvatar = searchParams.get('avatar');
+  const targetCustomerId = searchParams.get('customerId');
+  const targetPartnerId = targetProviderId || targetCustomerId;
+  const targetPartnerName = searchParams.get('name') || searchParams.get('customerName');
+  const targetPartnerAvatar = searchParams.get('avatar') || searchParams.get('customerAvatar');
   const targetBookingId = searchParams.get('bookingId');
 
   const defaultConversations = [];
@@ -152,22 +155,42 @@ export const MessagesPage = () => {
   // Format message to UI representation
   const formatMessage = (msg) => {
     const isMe = user
-      ? msg.senderId === user.id || msg.senderRole === user.role
+      ? msg.senderId === user.id || (user.role !== 'ADMIN' && msg.senderRole === user.role)
       : msg.senderRole === 'CUSTOMER';
     const timeStr = msg.createdAt
       ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       : msg.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+    let senderName = msg.sender?.name;
+    if (!senderName) {
+      if (msg.senderRole === 'ADMIN') senderName = 'ServiceHub Moderator';
+      else if (isMe) senderName = 'You';
+      else senderName = user?.role === 'PROVIDER' ? 'Customer' : 'Provider';
+    }
+
     return {
       id: msg.id || Date.now(),
       isMe,
       senderRole: msg.senderRole,
-      senderName: msg.sender?.name || (isMe ? 'You' : 'Provider'),
+      senderName,
       text: msg.message || msg.text,
       time: timeStr,
       isRead: msg.isRead ?? true,
       image: msg.image || null,
     };
+  };
+
+  const matchesPartner = (conv, partnerId) => {
+    if (!conv || !partnerId) return false;
+    const pid = Number(partnerId);
+    return (
+      conv.providerId === pid ||
+      conv.provider?.userId === pid ||
+      conv.provider?.id === pid ||
+      conv.customerId === pid ||
+      conv.customer?.userId === pid ||
+      conv.customer?.id === pid
+    );
   };
 
   // 1. Initial load & query param handling
@@ -178,23 +201,25 @@ export const MessagesPage = () => {
       setErrorMessage(null);
 
       const token = localStorage.getItem('token');
-      // Demo mode without token: keep existing behavior
+      const isProv = user?.role === 'PROVIDER';
+
+      // Demo mode without token: keep fallback
       if (!token) {
         setLoadingConversations(false);
-        if (targetProviderId) {
-          const pId = Number(targetProviderId);
+        if (targetPartnerId) {
+          const pId = Number(targetPartnerId);
           const exists = defaultConversations.find((c) => c.id === pId);
-          if (!exists && targetProviderName) {
+          if (!exists && targetPartnerName) {
             const newConv = {
               id: pId,
-              name: decodeURIComponent(targetProviderName),
-              avatar: targetProviderAvatar
-                ? decodeURIComponent(targetProviderAvatar)
+              name: decodeURIComponent(targetPartnerName),
+              avatar: targetPartnerAvatar
+                ? decodeURIComponent(targetPartnerAvatar)
                 : 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80',
               lastMessage: 'Conversation opened',
               time: 'Just now',
               unread: 0,
-              role: 'Verified Service Provider',
+              role: isProv ? 'Customer' : 'Verified Service Provider',
               rating: 4.9,
               online: true,
               booking: targetBookingId
@@ -213,80 +238,94 @@ export const MessagesPage = () => {
         return;
       }
 
-      // If cached conversations exist for this user, show them immediately and refresh in background
+      // Check cache first for instant render
       const cached = cacheGetConversations(user?.id);
+      let selectedId = null;
+
       if (cached && Array.isArray(cached) && cached.length > 0) {
-        setConversations(cached.map(formatConversation));
+        const formattedCached = cached.map(formatConversation);
+        setConversations(formattedCached);
         setLoadingConversations(false);
 
-        // Background refresh (deduplicated)
-        cacheWithOngoing(`conversations:${user?.id}`, async () => {
-          try {
-            const res = await getConversationsApi();
-            const convList = res.conversations || [];
-            // update cache with merged conversations (raw server objects)
-            const merged = cacheMergeConversations(cached, convList);
-            cacheSetConversations(user?.id, merged);
-            if (!isMounted) return;
-            setConversations(merged.map(formatConversation));
-          } catch (err) {
-            console.warn('Background refresh conversations failed:', err);
+        if (targetPartnerId) {
+          const matchCached = cached.find((c) => matchesPartner(c, targetPartnerId));
+          if (matchCached) {
+            selectedId = matchCached.id;
+            setActiveChatId(selectedId);
           }
-        }).catch(() => {});
-
-        return;
+        } else {
+          selectedId = cached[0]?.id || null;
+          setActiveChatId(selectedId);
+        }
+      } else {
+        setLoadingConversations(true);
       }
 
-      // No cache: perform normal load (blocking UI)
-      setLoadingConversations(true);
+      // Fetch fresh conversations from backend
       try {
         const res = await getConversationsApi();
         const convList = res.conversations || [];
-        // store raw conversations in cache
-        cacheSetConversations(user?.id, convList);
-        const formattedList = convList.map(formatConversation);
+        const mergedRaw =
+          cached && Array.isArray(cached) && cached.length > 0
+            ? cacheMergeConversations(cached, convList)
+            : convList;
+        cacheSetConversations(user?.id, mergedRaw);
 
         if (!isMounted) return;
 
-        let selectedId = null;
+        let formattedList = mergedRaw.map(formatConversation);
 
-        if (targetProviderId) {
-          const provId = Number(targetProviderId);
-          const existing = convList.find(
-            (c) => c.providerId === provId || c.provider?.userId === provId
-          );
+        if (targetPartnerId) {
+          const pId = Number(targetPartnerId);
+          let match = mergedRaw.find((c) => matchesPartner(c, pId));
 
-          if (existing) {
-            selectedId = existing.id;
+          if (match) {
+            selectedId = match.id;
             setConversations(formattedList);
+            setActiveChatId(selectedId);
           } else {
+            // Initiate new conversation with partner
             try {
-              const createRes = await createOrGetConversationApi(provId, targetBookingId);
+              const createRes = await createOrGetConversationApi(pId, targetBookingId);
               if (createRes.conversation) {
                 const formattedNew = formatConversation(createRes.conversation);
-                const updated = [
+                formattedList = [
                   formattedNew,
                   ...formattedList.filter((c) => c.id !== formattedNew.id),
                 ];
-                setConversations(updated);
+                setConversations(formattedList);
                 selectedId = formattedNew.id;
+                setActiveChatId(selectedId);
+                cacheSetConversations(user?.id, [
+                  createRes.conversation,
+                  ...mergedRaw.filter((c) => c.id !== createRes.conversation.id),
+                ]);
               }
             } catch (err) {
               console.warn('Could not create conversation, fallback to first:', err);
-              setConversations(formattedList.length > 0 ? formattedList : defaultConversations);
-              selectedId = formattedList[0]?.id || 1;
+              setConversations(formattedList);
+              if (!selectedId) {
+                selectedId = formattedList[0]?.id || null;
+                setActiveChatId(selectedId);
+              }
             }
           }
         } else {
-          setConversations(formattedList.length > 0 ? formattedList : defaultConversations);
-          selectedId = formattedList.length > 0 ? formattedList[0].id : 1;
+          setConversations(formattedList);
+          // Only change activeChatId if not yet set or not in current list
+          setActiveChatId((prev) => {
+            if (prev && formattedList.some((c) => c.id === prev)) {
+              return prev;
+            }
+            return formattedList[0]?.id || null;
+          });
         }
-
-        setActiveChatId(selectedId);
       } catch (err) {
-        console.warn('Backend conversations unavailable, using default demo:', err);
-        setConversations(defaultConversations);
-        setActiveChatId(targetProviderId ? Number(targetProviderId) : 1);
+        console.warn('Backend conversations unavailable:', err);
+        if (!cached || cached.length === 0) {
+          setConversations([]);
+          setActiveChatId(null);
+        }
       } finally {
         if (isMounted) setLoadingConversations(false);
       }
@@ -297,12 +336,15 @@ export const MessagesPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [targetProviderId, targetProviderName, targetProviderAvatar, targetBookingId, user?.id, user?.role]);
+  }, [targetPartnerId, targetPartnerName, targetPartnerAvatar, targetBookingId, user?.id, user?.role]);
 
   // 2. Fetch messages & Socket subscription
 
   useEffect(() => {
-    if (!activeChatId) return;
+    if (!activeChatId) {
+      setMessages([]);
+      return;
+    }
 
     let isMounted = true;
 
@@ -792,9 +834,19 @@ export const MessagesPage = () => {
                 >
                   <Search size={20} strokeWidth={1.7} />
                 </div>
-                <h4 className={`text-[13px] font-medium ${t.emptyTitle}`}>No conversations found</h4>
+                <h4 className={`text-[13px] font-medium ${t.emptyTitle}`}>
+                  {conversations.length === 0
+                    ? isProvider
+                      ? 'No conversations yet'
+                      : 'No messages yet'
+                    : 'No conversations found'}
+                </h4>
                 <p className={`mt-1 text-[11px] ${t.subtitleColor}`}>
-                  Try a different search or filter.
+                  {conversations.length === 0
+                    ? isProvider
+                      ? 'Customer booking inquiries will appear here.'
+                      : 'Book a service or contact a provider to start chatting.'
+                    : 'Try a different search or filter.'}
                 </p>
               </div>
             ) : (
@@ -994,7 +1046,7 @@ export const MessagesPage = () => {
               {activeConv?.booking && (
                 <button
                   type="button"
-                  onClick={() => navigate(`/bookings/${activeConv.booking.id}`)}
+                  onClick={() => navigate(isProvider ? '/provider/bookings' : `/bookings/${activeConv.booking.id}`)}
                   className={`hidden items-center gap-1.5 rounded-md border px-2.5 py-2 text-[11px] font-medium transition-all active:scale-95 xl:flex ${t.bookingBtn}`}
                 >
                   <Calendar size={13} className="shrink-0" />
@@ -1029,7 +1081,7 @@ export const MessagesPage = () => {
                 </span>
               </div>
               <button
-                onClick={() => navigate(`/bookings/${activeConv.booking.id}`)}
+                onClick={() => navigate(isProvider ? '/provider/bookings' : `/bookings/${activeConv.booking.id}`)}
                 className={`flex items-center gap-1 font-medium transition-colors ${t.pinBtn}`}
               >
                 Track <ChevronRight size={13} />
@@ -1078,18 +1130,29 @@ export const MessagesPage = () => {
                   <Sparkles size={24} strokeWidth={1.6} />
                 </div>
                 <h4 className={`text-[13px] font-medium ${t.emptyTitle}`}>
-                  {activeConv ? 'Start the conversation' : 'No conversations yet'}
+                  {activeConv
+                    ? 'Start the conversation'
+                    : isProvider
+                    ? 'No active customer chats'
+                    : 'No conversations yet'}
                 </h4>
                 <p className={`mt-1 max-w-sm text-[11px] ${t.emptyText}`}>
                   {activeConv
-                    ? `Send your first message to ${activeConv.name || 'your professional'}.`
-                    : 'When you book a service, your messages with the professional will appear here.'}
+                    ? `Send your first message to ${activeConv.name || (isProvider ? 'the customer' : 'your professional')}.`
+                    : isProvider
+                    ? 'When customers reach out or book your services, conversations will appear here.'
+                    : 'When you book a service or message a provider, your messages will appear here.'}
                 </p>
-                {!activeConv && (
-                  <Button size="sm" className="mt-4" onClick={() => navigate('/services')}>
-                    Browse services
-                  </Button>
-                )}
+                {!activeConv &&
+                  (isProvider ? (
+                    <Button size="sm" className="mt-4" onClick={() => navigate('/provider/bookings')}>
+                      View job requests
+                    </Button>
+                  ) : (
+                    <Button size="sm" className="mt-4" onClick={() => navigate('/services')}>
+                      Browse services
+                    </Button>
+                  ))}
               </div>
             ) : (
               messages.map((m) => (
@@ -1098,18 +1161,26 @@ export const MessagesPage = () => {
                   className={`group flex flex-col ${m.isMe ? 'items-end' : 'items-start'}`}
                 >
                   {!m.isMe && (
-                    <span className={`mb-1 px-1 text-[10px] font-medium ${t.subtitleColor}`}>
+                    <span className={`mb-1 flex items-center gap-1 px-1 text-[10px] font-medium ${t.subtitleColor}`}>
+                      {m.senderRole === 'ADMIN' && <Shield size={10} className="text-primary" />}
                       {m.senderName}
                     </span>
                   )}
                   <div className="flex max-w-[85%] items-end gap-2 sm:max-w-md md:max-w-lg">
                     <div
                       className={`rounded-lg border px-3.5 py-2.5 text-[12.5px] font-normal leading-relaxed transition-all ${
-                        m.isMe
+                        m.senderRole === 'ADMIN'
+                          ? `border-primary/30 bg-primary/10 text-ink shadow-xs`
+                          : m.isMe
                           ? `rounded-br-xs shadow-xs ${t.myBubble}`
                           : `rounded-bl-xs ${t.theirBubble}`
                       }`}
                     >
+                      {m.senderRole === 'ADMIN' && (
+                        <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                          <Shield size={11} /> ServiceHub Official Notice
+                        </div>
+                      )}
                       {m.image && (
                         <div className="mb-2 max-h-56 overflow-hidden rounded-md border border-white/20">
                           <img src={m.image} alt="Attachment" className="h-full w-full object-cover" />

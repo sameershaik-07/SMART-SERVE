@@ -19,6 +19,7 @@ import {
   sendAdminChatMessageApi,
   getAdminChatStatsApi,
 } from '../../api/admin';
+import { getSocket } from '../../api/socket';
 import { Reveal } from '@/components/motion/Reveal';
 import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
 import { cn } from '@/lib/utils';
@@ -83,6 +84,52 @@ export const AdminChatAuditPage = () => {
 
   useEffect(() => {
     fetchAuditData();
+
+    const socket = getSocket();
+    if (socket) {
+      const handleAdminNewMessage = (payload) => {
+        const { conversationId, message } = payload || {};
+        if (!conversationId || !message) return;
+
+        // Live update conversation in list
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === conversationId
+              ? {
+                  ...c,
+                  lastMessage: message.message || message.text,
+                  lastMessageAt: message.createdAt || new Date().toISOString(),
+                  totalMessages: (c.totalMessages || 0) + 1,
+                }
+              : c
+          )
+        );
+
+        // If currently viewing this conversation, live append
+        setSelectedConv((curr) => {
+          if (curr && curr.id === conversationId) {
+            setMessages((prevMsgs) => {
+              if (prevMsgs.some((m) => m.id === message.id)) return prevMsgs;
+              return [...prevMsgs, message];
+            });
+          }
+          return curr;
+        });
+
+        // Live update metrics
+        setStats((prev) => ({
+          ...prev,
+          totalMessages: (prev.totalMessages || 0) + 1,
+          messagesToday: (prev.messagesToday || 0) + 1,
+        }));
+      };
+
+      socket.on('admin_new_message', handleAdminNewMessage);
+
+      return () => {
+        socket.off('admin_new_message', handleAdminNewMessage);
+      };
+    }
   }, []);
 
   const selectConversation = async (conv) => {
