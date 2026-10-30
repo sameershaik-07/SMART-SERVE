@@ -1,8 +1,18 @@
 const { z } = require("zod");
 
+const parseBooleanFlag = (value) => {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "string") {
+        const normalized = value.trim().toLowerCase();
+        if (["true", "1", "yes", "y"].includes(normalized)) return true;
+        if (["false", "0", "no", "n"].includes(normalized)) return false;
+    }
+    return value;
+};
+
 const createConversationSchema = z.object({
-    providerId: z.number().int().positive("providerId must be a positive integer"),
-    bookingId: z.number().int().positive().optional().nullable()
+    providerId: z.coerce.number().int().positive("providerId must be a positive integer"),
+    bookingId: z.coerce.number().int().positive().optional().nullable()
 });
 
 const sendMessageSchema = z.object({
@@ -15,8 +25,10 @@ const getMessagesQuerySchema = z.object({
     limit: z.coerce.number().int().positive().max(100).default(50)
 });
 
-const getMessagesQuerySchemaWithSkip = getMessagesQuerySchema.extend({
-    skipCount: z.coerce.boolean().optional().default(false)
+const getMessagesQuerySchemaWithSkip = z.object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().max(100).default(50),
+    skipCount: z.preprocess(parseBooleanFlag, z.boolean().optional().default(false))
 });
 
 module.exports = {
