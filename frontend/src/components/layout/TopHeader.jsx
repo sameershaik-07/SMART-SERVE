@@ -50,7 +50,7 @@ export const TopHeader = ({ onMenuClick }) => {
             type="text"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search for a service..."
+            placeholder="Search services…"
             className="h-10 rounded-md border-transparent bg-surface-soft pl-10 focus-visible:bg-canvas md:h-11"
           />
           <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-xs border border-hairline bg-canvas px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:block">

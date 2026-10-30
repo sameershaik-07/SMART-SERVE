@@ -1,0 +1,33 @@
+{
+  "name": "smart-serve",
+  "version": "1.0.0",
+  "description": "SMART-SERVE On-Demand Home Services Platform (Frontend, Backend, Database)",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend run build",
+    "test": "npm --prefix backend test",
+    "lint": "npm --prefix frontend run lint",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "start:backend": "npm --prefix backend start",
+    "db:deploy": "npm --prefix backend run db:deploy",
+    "db:seed": "npm --prefix backend run db:seed",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "keywords": [
+    "on-demand-services",
+    "react",
+    "vite",
+    "express",
+    "socket.io",
+    "prisma",
+    "postgresql",
+    "docker",
+    "cloudflare"
+  ],
+  "author": "SMART-SERVE Team",
+  "license": "ISC"
+}
+

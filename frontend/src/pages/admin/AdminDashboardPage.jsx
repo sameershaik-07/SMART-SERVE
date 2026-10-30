@@ -207,15 +207,15 @@ export const AdminDashboardPage = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] border-collapse text-left">
+              <table className="w-full min-w-full border-collapse text-left sm:min-w-[760px]">
                 <thead>
                   <tr className="border-b border-hairline text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
                     <th className="px-5 py-3 font-medium sm:px-6">Booking</th>
                     <th className="px-3 py-3 font-medium">Service</th>
-                    <th className="px-3 py-3 font-medium">Provider</th>
-                    <th className="px-3 py-3 font-medium">Date & time</th>
+                    <th className="hidden px-3 py-3 font-medium md:table-cell">Provider</th>
+                    <th className="hidden px-3 py-3 font-medium sm:table-cell">Date & time</th>
                     <th className="px-3 py-3 font-medium">Status</th>
-                    <th className="px-5 py-3 text-right font-medium sm:px-6">Amount</th>
+                    <th className="hidden px-5 py-3 text-right font-medium sm:table-cell sm:px-6">Amount</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-hairline-soft text-[11px]">
@@ -227,10 +227,10 @@ export const AdminDashboardPage = () => {
                       <td className="px-3 py-3.5 font-medium text-ink">
                         {b.service?.title || 'Service booking'}
                       </td>
-                      <td className="px-3 py-3.5 text-body">
+                      <td className="hidden px-3 py-3.5 text-body md:table-cell">
                         {b.provider?.user?.name || 'Unassigned'}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-3.5 text-muted-foreground">
+                      <td className="hidden whitespace-nowrap px-3 py-3.5 text-muted-foreground sm:table-cell">
                         {formatDateTime(b)}
                       </td>
                       <td className="whitespace-nowrap px-3 py-3.5">
@@ -244,7 +244,7 @@ export const AdminDashboardPage = () => {
                           {(b.status || 'PENDING').replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3.5 text-right font-medium tabular-nums text-ink sm:px-6">
+                      <td className="hidden whitespace-nowrap px-5 py-3.5 text-right font-medium tabular-nums text-ink sm:table-cell sm:px-6">
                         ₹{Number(b.totalPrice || 0).toLocaleString('en-IN')}
                       </td>
                     </tr>

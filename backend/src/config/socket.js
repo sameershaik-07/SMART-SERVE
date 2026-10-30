@@ -5,10 +5,16 @@ const prisma = require("./prisma");
 let io = null;
 
 const initSocket = (httpServer) => {
+    const configuredOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || "")
+        .split(",")
+        .map((o) => o.trim())
+        .filter(Boolean);
+
     io = new Server(httpServer, {
         cors: {
-            origin: "*",
-            methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+            origin: configuredOrigins.length > 0 && !configuredOrigins.includes("*") ? configuredOrigins : "*",
+            methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+            credentials: true
         }
     });
 

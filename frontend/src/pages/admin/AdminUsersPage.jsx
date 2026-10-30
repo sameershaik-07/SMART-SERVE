@@ -219,13 +219,13 @@ export const AdminUsersPage = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] border-collapse text-left">
+            <table className="w-full min-w-full border-collapse text-left sm:min-w-[760px]">
               <thead>
                 <tr className="border-b border-hairline text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
                   <th className="px-5 py-3 font-medium sm:px-6">Account</th>
-                  <th className="px-3 py-3 font-medium">Email</th>
+                  <th className="hidden px-3 py-3 font-medium md:table-cell">Email</th>
                   <th className="px-3 py-3 font-medium">Role</th>
-                  <th className="px-3 py-3 font-medium">Joined</th>
+                  <th className="hidden px-3 py-3 font-medium sm:table-cell">Joined</th>
                   <th className="px-5 py-3 text-right font-medium sm:px-6">Status</th>
                 </tr>
               </thead>
@@ -263,7 +263,7 @@ export const AdminUsersPage = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-3 py-3.5 text-muted-foreground">
+                      <td className="hidden px-3 py-3.5 text-muted-foreground md:table-cell">
                         <span className="flex items-center gap-1.5">
                           <Mail size={11} className="shrink-0 text-muted-foreground/70" />
                           <span className="truncate">{u.email || 'No email on file'}</span>
@@ -280,7 +280,7 @@ export const AdminUsersPage = () => {
                           {u.role || 'USER'}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-3 py-3.5 text-muted-foreground">
+                      <td className="hidden whitespace-nowrap px-3 py-3.5 text-muted-foreground sm:table-cell">
                         <span className="flex items-center gap-1.5">
                           <Calendar size={11} className="text-muted-foreground/70" />
                           {joined}

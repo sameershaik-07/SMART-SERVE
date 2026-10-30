@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: smartserve-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: servicehub
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d servicehub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smartserve-backend
+    restart: always
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:password123@postgres:5432/servicehub?schema=public
+      CORS_ORIGIN: "*"
+      RUN_SEED: "true"
+      JWT_SECRET: "smartserve_production_secret_key_2026_jwt"
+      JWT_EXPIRE: "7d"
+      REFRESH_TOKEN_EXPIRE: "30d"
+      RAZORPAY_KEY_ID: "rzp_test_dummykey123"
+      RAZORPAY_KEY_SECRET: "dummysecretkey123"
+      RESEND_API_KEY: ""
+      CLOUDINARY_NAME: "smartserve_cloud"
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smartserve-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+

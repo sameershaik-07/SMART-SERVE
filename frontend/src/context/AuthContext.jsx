@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       // Re-throw genuine authentication errors
       const errorMsg = error.data?.message || error.message || 'Authentication failed';
-      throw new Error(errorMsg);
+      throw new Error(errorMsg, { cause: error });
     }
   };
 
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
       return await registerApi(formData);
     } catch (error) {
       const errorMsg = error.data?.message || error.message || 'Registration failed';
-      throw new Error(errorMsg);
+      throw new Error(errorMsg, { cause: error });
     }
   };
 

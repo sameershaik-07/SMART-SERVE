@@ -62,7 +62,7 @@ export const AdminLayout = () => {
               <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" strokeWidth={1.8} />
               <Input
                 type="text"
-                placeholder="Search bookings, providers, users..."
+                placeholder="Search…"
                 className="h-10 rounded-md border-transparent bg-surface-soft pl-10 focus-visible:bg-canvas md:h-11"
               />
             </div>

@@ -19,10 +19,32 @@ const errorHandler = require("./middlewares/error.middleware");
 
 const app = express();
 
-// Trust reverse proxy (Vite dev proxy, Nginx, cloud load balancers)
+// Trust reverse proxy (Vite dev proxy, Nginx, Cloudflare, cloud load balancers)
 app.set("trust proxy", 1);
 
-app.use(cors());
+// Configure CORS for development and production environments
+const configuredOrigins = (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            // Allow requests with no origin (like mobile apps, curl, server-to-server)
+            if (!origin) return callback(null, true);
+            if (configuredOrigins.length === 0 || configuredOrigins.includes("*") || configuredOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            // Allow localhost during development or staging
+            if (process.env.NODE_ENV !== "production" && /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error(`CORS blocked request from origin: ${origin}`));
+        },
+        credentials: true
+    })
+);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -31,6 +53,7 @@ app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("X-XSS-Protection", "1; mode=block");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     next();
 });
 
@@ -39,24 +62,27 @@ app.get("/", (req, res) => {
     res.json({
         status: "online",
         message: "Welcome to SMART-SERVE Backend API",
-        version: "1.0.0"
+        version: "1.0.0",
+        environment: process.env.NODE_ENV || "development"
     });
 });
 
-// Health check endpoint for uptime and DB verification
+// Health check endpoint for uptime, DB, and resource verification
 app.get("/health", async (req, res) => {
     try {
         await prisma.$queryRaw`SELECT 1`;
         return res.json({
             status: "healthy",
-            uptime: process.uptime(),
+            uptime: Math.round(process.uptime()),
             database: "connected",
+            environment: process.env.NODE_ENV || "development",
+            memoryUsageMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
             timestamp: new Date().toISOString()
         });
     } catch (err) {
         return res.status(503).json({
             status: "unhealthy",
-            uptime: process.uptime(),
+            uptime: Math.round(process.uptime()),
             database: "disconnected",
             error: err.message
         });

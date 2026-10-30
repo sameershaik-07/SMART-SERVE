@@ -347,13 +347,13 @@ export const AdminAnalyticsPage = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] border-collapse text-left">
+            <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="border-b border-hairline text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
-                  <th className="px-5 py-3 font-medium sm:px-6">Day</th>
+                  <th className="px-4 py-3 font-medium sm:px-6">Day</th>
                   <th className="px-3 py-3 text-right font-medium">Bookings</th>
                   <th className="px-3 py-3 text-right font-medium">Revenue</th>
-                  <th className="px-5 py-3 text-right font-medium sm:px-6">Share of week</th>
+                  <th className="hidden px-5 py-3 text-right font-medium sm:table-cell sm:px-6">Share of week</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-hairline-soft text-[11px]">
@@ -362,7 +362,7 @@ export const AdminAnalyticsPage = () => {
                     totalRevenue > 0 ? Math.round((Number(item.revenue) / totalRevenue) * 100) : 0;
                   return (
                     <tr key={item.day} className="transition-colors hover:bg-surface-soft/30">
-                      <td className="whitespace-nowrap px-5 py-3.5 font-medium text-ink sm:px-6">
+                      <td className="whitespace-nowrap px-4 py-3.5 font-medium text-ink sm:px-6">
                         {item.day}
                       </td>
                       <td className="whitespace-nowrap px-3 py-3.5 text-right tabular-nums text-body">
@@ -371,7 +371,7 @@ export const AdminAnalyticsPage = () => {
                       <td className="whitespace-nowrap px-3 py-3.5 text-right tabular-nums font-medium text-ink">
                         ₹{Number(item.revenue || 0).toLocaleString('en-IN')}
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3.5 sm:px-6">
+                      <td className="hidden whitespace-nowrap px-5 py-3.5 sm:table-cell sm:px-6">
                         <div className="ml-auto flex w-32 items-center gap-2">
                           <div className="h-1 w-full overflow-hidden rounded-pill bg-surface-soft">
                             <div

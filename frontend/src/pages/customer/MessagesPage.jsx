@@ -912,6 +912,7 @@ export const MessagesPage = () => {
               >
                 <ArrowLeft size={17} />
               </button>
+              {activeConv && (
               <div className="relative shrink-0">
                 <img
                   src={
@@ -925,18 +926,21 @@ export const MessagesPage = () => {
                   className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 ${t.onlineDot}`}
                 />
               </div>
+              )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <h3
                     className={`truncate font-display text-[1.3rem] leading-none tracking-[-0.02em] ${t.nameHdr}`}
                   >
-                    {activeConv?.name || 'Conversation'}
+                    {activeConv?.name || 'No conversation selected'}
                   </h3>
-                  <CheckCircle2
-                    size={14}
-                    className="shrink-0 fill-accent-teal text-accent-teal"
-                    strokeWidth={2}
-                  />
+                  {activeConv && (
+                    <CheckCircle2
+                      size={14}
+                      className="shrink-0 fill-accent-teal text-accent-teal"
+                      strokeWidth={2}
+                    />
+                  )}
                   {activeConv?.role && (
                     <span
                       className={`hidden shrink-0 rounded-xs border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.06em] sm:inline-flex ${t.roleHdrPill}`}
@@ -946,7 +950,7 @@ export const MessagesPage = () => {
                   )}
                 </div>
                 <div
-                  className={`mt-1 flex items-center gap-2 text-[10px] ${t.subtitleColor}`}
+                  className={`mt-1 flex items-center gap-2 text-[10px] ${activeConv ? '' : 'hidden'} ${t.subtitleColor}`}
                 >
                   <span className={`flex shrink-0 items-center gap-1 font-medium ${t.onlineText}`}>
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-teal" />
@@ -963,7 +967,7 @@ export const MessagesPage = () => {
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-1.5">
+            <div className={`flex shrink-0 items-center gap-1.5 ${activeConv ? '' : 'hidden'}`}>
               <div
                 className={`flex items-center gap-0.5 rounded-md border p-0.5 ${t.callSegment}`}
               >
@@ -1074,11 +1078,18 @@ export const MessagesPage = () => {
                   <Sparkles size={24} strokeWidth={1.6} />
                 </div>
                 <h4 className={`text-[13px] font-medium ${t.emptyTitle}`}>
-                  Start the conversation
+                  {activeConv ? 'Start the conversation' : 'No conversations yet'}
                 </h4>
                 <p className={`mt-1 max-w-sm text-[11px] ${t.emptyText}`}>
-                  Send your first message to {activeConv?.name || 'your professional'}.
+                  {activeConv
+                    ? `Send your first message to ${activeConv.name || 'your professional'}.`
+                    : 'When you book a service, your messages with the professional will appear here.'}
                 </p>
+                {!activeConv && (
+                  <Button size="sm" className="mt-4" onClick={() => navigate('/services')}>
+                    Browse services
+                  </Button>
+                )}
               </div>
             ) : (
               messages.map((m) => (
@@ -1143,7 +1154,7 @@ export const MessagesPage = () => {
 
           {/* Quick Reply Chips */}
           <div
-            className={`scrollbar-none flex shrink-0 items-center gap-2 overflow-x-auto border-t px-5 py-2 ${t.quickBar}`}
+            className={`scrollbar-none flex shrink-0 items-center gap-2 overflow-x-auto border-t px-5 py-2 ${activeConv ? '' : 'hidden'} ${t.quickBar}`}
           >
             <span
               className={`shrink-0 text-[9px] font-medium uppercase tracking-[0.14em] ${t.quickLabel}`}
@@ -1162,7 +1173,7 @@ export const MessagesPage = () => {
           </div>
 
           {/* Input Dock */}
-          <div className={`relative shrink-0 border-t p-3.5 sm:p-4 ${t.inputDock}`}>
+          <div className={`relative shrink-0 border-t p-3.5 sm:p-4 ${activeConv ? '' : 'hidden'} ${t.inputDock}`}>
             {attachedImage && (
               <div
                 className={`mb-3 flex max-w-xs items-center justify-between rounded-md border p-2 ${t.attachPreview}`}

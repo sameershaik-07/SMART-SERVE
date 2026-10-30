@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -10,12 +10,14 @@ import {
   CreditCard,
   Hammer,
   Leaf,
+  Menu,
   Paintbrush,
   Search,
   ShieldCheck,
   Sparkles,
   Star,
   Wrench,
+  X,
   Zap,
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -69,6 +71,7 @@ const fadeUp = {
 export const LandingPage = () => {
   const navigate = useNavigate();
   const reduce = useReducedMotion();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-canvas font-sans text-ink">
@@ -97,11 +100,64 @@ export const LandingPage = () => {
             <Button variant="ghost" onClick={() => navigate('/login')} className="hidden sm:inline-flex">
               Sign in
             </Button>
-            <Button onClick={() => navigate('/register')} icon={ArrowRight} iconPosition="right">
+            <Button onClick={() => navigate('/register')} icon={ArrowRight} iconPosition="right" className="hidden sm:inline-flex">
               Get started
             </Button>
+            <button
+              type="button"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-hairline bg-card text-ink transition-colors hover:border-ink/20 md:hidden"
+            >
+              {menuOpen ? <X size={17} /> : <Menu size={17} />}
+            </button>
           </div>
         </div>
+
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, ease: EASE }}
+            className="border-t border-hairline bg-canvas md:hidden"
+          >
+            <nav className="content-shell flex flex-col py-3">
+              {['How it works', 'Services', 'For professionals'].map((label, index) => (
+                <a
+                  key={label}
+                  href={['#how-it-works', '#services', '#providers'][index]}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-between border-b border-hairline-soft py-3 text-sm font-medium text-body last:border-0 hover:text-ink"
+                >
+                  {label}
+                  <ChevronRight size={14} className="text-muted-foreground" />
+                </a>
+              ))}
+              <div className="flex items-center gap-2 pt-4 pb-1">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    navigate('/login');
+                  }}
+                >
+                  Sign in
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    navigate('/register');
+                  }}
+                >
+                  Create account
+                </Button>
+              </div>
+            </nav>
+          </motion.div>
+        )}
       </header>
 
       <main>

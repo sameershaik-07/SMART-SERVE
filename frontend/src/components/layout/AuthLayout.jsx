@@ -75,7 +75,7 @@ export const AuthLayout = () => {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.55, ease: EASE }}
-                className="absolute -bottom-7 -right-4 flex items-center gap-2.5 rounded-md border border-white/12 bg-coral px-3.5 py-2.5 text-ink shadow-[var(--shadow-dark)]"
+                className="relative z-10 ml-auto mt-4 flex w-fit items-center gap-2.5 rounded-md border border-white/12 bg-coral px-3.5 py-2.5 text-ink shadow-[var(--shadow-dark)]"
               >
                 <ShieldCheck size={16} />
                 <div>
