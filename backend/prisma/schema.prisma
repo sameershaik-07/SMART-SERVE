@@ -137,7 +137,7 @@ model Payment {
   idempotencyKey    String?       @unique
   razorpayOrderId   String?
   razorpayPaymentId String?       @unique
-  updatedAt         DateTime
+  updatedAt         DateTime      @updatedAt @default(now())
   booking           Booking       @relation(fields: [bookingId], references: [id])
 }
 
@@ -236,7 +236,7 @@ model CancellationPolicy {
   minHoursBefore Int      @default(2)
   refundPercent  Int      @default(100)
   createdAt      DateTime @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime @updatedAt @default(now())
 }
 
 model Dispute {
@@ -246,7 +246,7 @@ model Dispute {
   reason    String
   status    String   @default("OPEN")
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt @default(now())
   Booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@index([bookingId])
@@ -273,7 +273,7 @@ model ProviderVerification {
   notes           String?
   reviewedBy      Int?
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime @updatedAt @default(now())
   ServiceProvider ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
   @@index([providerId])
