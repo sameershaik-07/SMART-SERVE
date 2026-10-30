@@ -48,6 +48,21 @@ const errorHandler = (err, req, res, next) => {
         });
     }
 
+    // 3.5. Prisma Database Connection / Initialization Errors
+    if (
+        err.name === "PrismaClientInitializationError" ||
+        err.constructor?.name === "PrismaClientInitializationError" ||
+        (typeof err.message === "string" && (
+            err.message.includes("Can't reach database server") ||
+            err.message.includes("Connection refused") ||
+            err.message.includes("PrismaClientInitializationError")
+        ))
+    ) {
+        return res.status(503).json({
+            message: "Database service unavailable. Please make sure the PostgreSQL database is running."
+        });
+    }
+
     // 4. JWT Token Errors
     if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
         return res.status(401).json({
@@ -58,9 +73,14 @@ const errorHandler = (err, req, res, next) => {
     // 5. Fallback for unhandled server errors
     console.error("❌ UNHANDLED INTERNAL ERROR:", err);
     const statusCode = err.statusCode || err.status || 500;
-    const message = statusCode === 500 && process.env.NODE_ENV === "production"
-        ? "Internal Server Error"
-        : (err.message || "Internal Server Error");
+    let message = err.message || "Internal Server Error";
+
+    // Never leak raw stack traces, local paths, or internal Prisma code snippets
+    if (statusCode === 500 || message.includes("invocation in") || message.includes("prisma.")) {
+        message = process.env.NODE_ENV === "production"
+            ? "Internal Server Error"
+            : "An unexpected database or server error occurred.";
+    }
 
     return res.status(statusCode).json({
         message

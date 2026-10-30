@@ -18,7 +18,11 @@ export const apiFetch = async (endpoint, options = {}) => {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      const error = new Error(data.message || data.error || `HTTP error ${response.status}`);
+      let rawMsg = data.message || data.error || `HTTP error ${response.status}`;
+      if (typeof rawMsg === 'string' && (rawMsg.includes('invocation in') || rawMsg.includes('prisma.'))) {
+        rawMsg = 'Database connection error. Please make sure the PostgreSQL database is running.';
+      }
+      const error = new Error(rawMsg);
       error.status = response.status;
       error.data = data;
       throw error;
