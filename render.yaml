@@ -6,7 +6,7 @@ services:
     region: singapore
     rootDir: backend
     buildCommand: npm install && npx prisma generate
-    startCommand: npx prisma db push --accept-data-loss && node src/server.js
+    startCommand: node scripts/init-db.js && npx prisma db push --accept-data-loss && node prisma/seed.js && node src/server.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -29,3 +29,4 @@ databases:
     region: singapore
     databaseName: servicehub
     user: servicehub_user
+
