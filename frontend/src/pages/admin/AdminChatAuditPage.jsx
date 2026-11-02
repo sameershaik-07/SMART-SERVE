@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
 const templates = [
   {
     label: 'Verify arrival',
-    text: 'Notice: ServiceHub Dispute Support has reviewed this booking. Technician arrival has been verified.',
+    text: 'Notice: SmartServ Dispute Support has reviewed this booking. Technician arrival has been verified.',
   },
   {
     label: 'Warranty re-work',
@@ -483,7 +483,7 @@ export const AdminChatAuditPage = () => {
                         >
                           <span className="px-1 text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                             {isAdmin
-                              ? 'ServiceHub moderator notice'
+                              ? 'SmartServ moderator notice'
                               : isCustomer
                                 ? `Customer · ${
                                     selectedConv.customer?.name ||

@@ -69,7 +69,7 @@ async function main() {
                     verified: true,
                     rating: 4.9,
                     availability: true,
-                    address: "ServiceHub Hub, Market Road, Macherla, Andhra Pradesh 522426",
+                    address: "SmartServ Macherla Base, Market Road, Macherla, Andhra Pradesh 522426",
                     bio: "Certified HVAC & home appliance maintenance specialist with 8+ years experience."
                 }
             }

@@ -81,7 +81,7 @@ export const ProviderEarningsPage = () => {
     0
   );
 
-  // Platform standard: 90% partner share, 10% ServiceHub platform fee
+  // Platform standard: 90% partner share, 10% SmartServ platform fee
   const partnerNetEarnings = Math.round(totalGrossEarnings * 0.9);
   const platformFeeTotal = totalGrossEarnings - partnerNetEarnings;
   const pendingClearance = inProgressBookings.reduce(

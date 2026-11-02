@@ -204,7 +204,7 @@ export const ProviderDetailsPage = () => {
         <EmptyState
           icon={Briefcase}
           title="No services listed yet"
-          description="This professional hasn’t published services on ServiceHub. Send a message to ask about their work."
+          description="This professional hasn’t published services on SmartServ. Send a message to ask about their work."
           actionLabel="Send a message"
           onAction={handleMessage}
         />
@@ -216,7 +216,7 @@ export const ProviderDetailsPage = () => {
             <ShieldCheck size={16} />
           </div>
           <p className="max-w-[54ch] text-[11px] leading-relaxed text-muted-foreground">
-            Every ServiceHub professional is identity checked, and every booking is covered by our
+            Every SmartServ professional is identity checked, and every booking is covered by our
             service guarantee.
           </p>
         </div>

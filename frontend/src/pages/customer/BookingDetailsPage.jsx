@@ -110,7 +110,7 @@ export const BookingDetailsPage = () => {
                 phone: bData.provider?.user?.phone || '+91 91234 56789',
                 category: bData.provider?.category?.categoryName || 'Service Partner',
                 rating: bData.provider?.rating || 4.8,
-                address: bData.provider?.address || 'ServiceHub Macherla Base, Market Road, Macherla',
+                address: bData.provider?.address || 'SmartServ Macherla Base, Market Road, Macherla',
                 coordinates: { lat: provLat, lng: provLng },
               },
               route: {

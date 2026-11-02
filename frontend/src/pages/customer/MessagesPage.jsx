@@ -163,7 +163,7 @@ export const MessagesPage = () => {
 
     let senderName = msg.sender?.name;
     if (!senderName) {
-      if (msg.senderRole === 'ADMIN') senderName = 'ServiceHub Moderator';
+      if (msg.senderRole === 'ADMIN') senderName = 'SmartServ Moderator';
       else if (isMe) senderName = 'You';
       else senderName = user?.role === 'PROVIDER' ? 'Customer' : 'Provider';
     }
@@ -940,7 +940,7 @@ export const MessagesPage = () => {
               className={`flex items-center justify-center gap-1.5 text-[10px] ${t.subtitleColor}`}
             >
               <ShieldCheck size={12} className="text-accent-teal" />
-              ServiceHub safe consultation guarantee
+              SmartServ safe consultation guarantee
             </span>
           </div>
         </div>
@@ -1178,7 +1178,7 @@ export const MessagesPage = () => {
                     >
                       {m.senderRole === 'ADMIN' && (
                         <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
-                          <Shield size={11} /> ServiceHub Official Notice
+                          <Shield size={11} /> SmartServ Official Notice
                         </div>
                       )}
                       {m.image && (

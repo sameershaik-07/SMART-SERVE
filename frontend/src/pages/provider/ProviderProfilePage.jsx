@@ -362,7 +362,7 @@ export const ProviderProfilePage = () => {
                       >
                         {verified ? (
                           <>
-                            <CheckCircle2 size={10} /> Verified by ServiceHub
+                            <CheckCircle2 size={10} /> Verified by SmartServ
                           </>
                         ) : (
                           <>
@@ -378,7 +378,7 @@ export const ProviderProfilePage = () => {
               <div className="border-t border-hairline bg-surface-soft/30 px-5 py-3 sm:px-6">
                 <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                   <ShieldCheck size={11} className="text-accent-teal" />
-                  Documents are encrypted and visible only to the ServiceHub verification team.
+                  Documents are encrypted and visible only to the SmartServ verification team.
                 </p>
               </div>
             </section>

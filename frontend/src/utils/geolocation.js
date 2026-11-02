@@ -1,5 +1,5 @@
 /**
- * ServiceHub Geolocation & Live GPS Tracking Utility
+ * SmartServ Geolocation & Live GPS Tracking Utility
  * Uses direct device GPS / WiFi positioning (NO misleading IP fallbacks like Maharashtra)
  * and OpenStreetMap reverse geocoding.
  */

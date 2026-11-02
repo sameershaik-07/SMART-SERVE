@@ -52,7 +52,7 @@ const steps = [
   {
     number: '03',
     title: 'Relax, it’s handled',
-    copy: 'Track the visit, pay securely through ServiceHub, and know every job is backed by our service guarantee.',
+    copy: 'Track the visit, pay securely through SmartServ, and know every job is backed by our service guarantee.',
   },
 ];
 
@@ -80,7 +80,7 @@ export const LandingPage = () => {
       {/* ---------------------------------------------------------------- */}
       <header className="sticky top-0 z-40 border-b border-hairline/80 bg-canvas/85 backdrop-blur-xl">
         <div className="content-shell flex h-[72px] items-center justify-between gap-4">
-          <Link to="/" aria-label="ServiceHub home" className="flex items-center">
+          <Link to="/" aria-label="SmartServ home" className="flex items-center">
             <BrandLockup size={32} />
           </Link>
 
@@ -469,12 +469,12 @@ export const LandingPage = () => {
         <section className="section-pad">
           <div className="content-shell grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
             <Reveal>
-              <p className="sh-eyebrow">Why ServiceHub</p>
+              <p className="sh-eyebrow">Why SmartServ</p>
               <h2 className="mt-3 max-w-[14ch] font-display text-[clamp(2.4rem,4.4vw,3.4rem)] leading-[1.03] tracking-[-0.03em] text-ink">
                 Care you can measure.
               </h2>
               <p className="mt-5 max-w-[40ch] text-sm leading-relaxed text-muted-foreground">
-                We built ServiceHub around the details that make a service visit feel easy — clear
+                We built SmartServ around the details that make a service visit feel easy — clear
                 prices, real people, and a guarantee that means something.
               </p>
               <div className="mt-9 flex items-center gap-6 border-t border-hairline pt-6">
@@ -651,7 +651,7 @@ export const LandingPage = () => {
               </p>
             </div>
             {[
-              { heading: 'ServiceHub', links: ['How it works', 'Services', 'For professionals', 'Cities'] },
+              { heading: 'SmartServ', links: ['How it works', 'Services', 'For professionals', 'Cities'] },
               { heading: 'Support', links: ['Help centre', 'Contact us', 'Service guarantee', 'Safety'] },
               { heading: 'Company', links: ['About', 'Careers', 'Privacy', 'Terms'] },
             ].map(({ heading, links }) => (
@@ -675,7 +675,7 @@ export const LandingPage = () => {
             ))}
           </div>
           <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-hairline pt-6 text-[11px] text-muted-foreground sm:flex-row sm:items-center">
-            <p>© 2026 ServiceHub. Made for homes and the people in them.</p>
+            <p>© 2026 SmartServ. Made for homes and the people in them.</p>
             <p className="flex items-center gap-4">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck size={12} className="text-accent-teal" />

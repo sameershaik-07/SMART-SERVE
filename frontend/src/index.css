@@ -13,7 +13,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ------------------------------------------------------------------
-   ServiceHub design tokens
+   SmartServ design tokens
    Warm editorial canvas, coral action, espresso product surfaces.
 ------------------------------------------------------------------- */
 @theme inline {

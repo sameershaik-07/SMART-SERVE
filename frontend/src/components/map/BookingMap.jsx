@@ -48,7 +48,7 @@ export const BookingMap = ({ trackingData, loading, error, onLocationUpdated }) 
       provider: {
         name: 'Service Expert',
         category: 'Service Partner',
-        address: 'ServiceHub Macherla Base, Market Road, Macherla',
+        address: 'SmartServ Macherla Base, Market Road, Macherla',
         coordinates: { lat: 16.4985, lng: 79.4155 }
       },
       route: {

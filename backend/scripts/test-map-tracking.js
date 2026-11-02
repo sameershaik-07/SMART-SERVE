@@ -12,7 +12,7 @@ const prisma = require("../src/config/prisma");
 
 async function runTests() {
   console.log("==================================================");
-  console.log("🗺️  SERVICEHUB DUAL-LOCATION MAP & TRACKING TESTS");
+  console.log("🗺️  SMARTSERV DUAL-LOCATION MAP & TRACKING TESTS");
   console.log("==================================================\n");
 
   try {

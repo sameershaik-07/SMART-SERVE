@@ -73,7 +73,7 @@ export const NotFoundPage = () => {
       </main>
 
       <footer className="content-shell relative flex items-center justify-between border-t border-hairline py-6 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-        <span>ServiceHub · Home services, considered</span>
+        <span>SmartServ · Home services, considered</span>
         <span>2026</span>
       </footer>
     </div>

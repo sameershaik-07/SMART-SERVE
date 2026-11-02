@@ -37,7 +37,7 @@ export const AddMoneyModal = ({ isOpen, onClose, onSuccess }) => {
           </div>
           <h3 className="font-display text-[1.6rem] leading-tight text-ink">Money added</h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            ₹{Number(amount).toLocaleString('en-IN')} is now available in your ServiceHub wallet.
+            ₹{Number(amount).toLocaleString('en-IN')} is now available in your SmartServ wallet.
           </p>
         </div>
       ) : (

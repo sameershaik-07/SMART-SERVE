@@ -96,7 +96,7 @@ export const AdminDashboardPage = () => {
       icon: Calendar,
       tone: 'coral',
       value: Number(stats.totalBookings) || 0,
-      note: 'Every booking placed on ServiceHub.',
+      note: 'Every booking placed on SmartServ.',
     },
     {
       label: 'Active providers',
@@ -142,7 +142,7 @@ export const AdminDashboardPage = () => {
           </div>
           <h1 className="workspace-title mt-2">Good morning, Admin.</h1>
           <p className="workspace-subtitle">
-            Here’s what’s happening across ServiceHub today.
+            Here’s what’s happening across SmartServ today.
           </p>
         </div>
 

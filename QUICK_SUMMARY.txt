@@ -279,7 +279,7 @@ Questions? The project_roadmap.md file has detailed breakdowns for each phase!
 
 
 
-ServiceHub Frontend Architecture
+SmartServ Frontend Architecture
 │
 ├── 🌐 Public & Authentication (6 Pages)
 │   ├── LandingPage.jsx              → Gateway (Sign In & Sign Up options ONLY)

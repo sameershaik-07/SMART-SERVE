@@ -32,7 +32,7 @@ import { cn } from '@/lib/utils';
 const paymentOptions = [
   {
     value: 'WALLET',
-    label: 'ServiceHub Wallet',
+    label: 'SmartServ Wallet',
     note: 'Instant, one-click payment',
     icon: Wallet,
     tag: 'Fastest',
@@ -621,7 +621,7 @@ export const CheckoutPage = () => {
               </Button>
 
               <p className="mt-2.5 text-center text-[9px] text-muted-foreground">
-                By confirming you agree to ServiceHub’s terms and cancellation policy.
+                By confirming you agree to SmartServ’s terms and cancellation policy.
               </p>
             </div>
           </div>

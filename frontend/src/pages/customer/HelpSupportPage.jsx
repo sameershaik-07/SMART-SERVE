@@ -14,11 +14,11 @@ export const HelpSupportPage = () => {
     },
     {
       q: 'What payment options are accepted?',
-      a: 'ServiceHub supports Razorpay UPI, debit and credit cards, net banking, and instant one-click ServiceHub wallet balance.',
+      a: 'SmartServ supports Razorpay UPI, debit and credit cards, net banking, and instant one-click SmartServ wallet balance.',
     },
     {
       q: 'Are all service providers background checked?',
-      a: 'Yes. Every professional undergoes identity verification, a background check, and a skill evaluation before joining ServiceHub.',
+      a: 'Yes. Every professional undergoes identity verification, a background check, and a skill evaluation before joining SmartServ.',
     },
     {
       q: 'What if I’m not happy with the work?',
@@ -32,7 +32,7 @@ export const HelpSupportPage = () => {
         <p className="sh-eyebrow">A real person, when you need one</p>
         <h1 className="workspace-title mt-2">Help & support</h1>
         <p className="workspace-subtitle">
-          Answers to the common questions, plus a direct line to the team behind ServiceHub.
+          Answers to the common questions, plus a direct line to the team behind SmartServ.
         </p>
       </Reveal>
 
@@ -61,7 +61,7 @@ export const HelpSupportPage = () => {
 
         <Reveal delay={0.08}>
           <a
-            href="mailto:support@servicehub.com"
+            href="mailto:support@smartserve.com"
             className="group flex h-full items-center gap-4 rounded-lg border border-hairline bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-ink/15 hover:shadow-[var(--shadow-soft)]"
           >
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-hairline bg-surface-soft text-body">
@@ -72,7 +72,7 @@ export const HelpSupportPage = () => {
                 Email support
               </span>
               <span className="mt-1 block truncate font-display text-[1.45rem] leading-none text-ink transition-colors group-hover:text-primary">
-                support@servicehub.com
+                support@smartserve.com
               </span>
               <span className="mt-1.5 block text-[10px] text-muted-foreground">
                 We reply within one working day
@@ -166,7 +166,7 @@ export const HelpSupportPage = () => {
             </div>
             <Button
               variant="coral"
-              onClick={() => (window.location.href = 'mailto:support@servicehub.com')}
+              onClick={() => (window.location.href = 'mailto:support@smartserve.com')}
             >
               Contact support
             </Button>

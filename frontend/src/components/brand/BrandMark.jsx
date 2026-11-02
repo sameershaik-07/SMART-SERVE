@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Original ServiceHub mark: a four-point service spark inside a soft hub ring.
+ * Original SmartServ mark: a four-point service spark inside a soft hub ring.
  * The mark is intentionally simple so it reads at favicon size and inside dark
  * product windows.
  */
@@ -52,7 +52,7 @@ export const BrandLockup = ({
           textClassName
         )}
       >
-        Service<span className={inverted ? "text-coral" : "text-primary"}>Hub</span>
+        Smart<span className={inverted ? "text-coral" : "text-primary"}>Serv</span>
       </span>
       {showTagline && (
         <span

@@ -61,7 +61,7 @@ export const AdminSettingsPage = () => {
   const [commission, setCommission] = useState('15');
   const [minPayout, setMinPayout] = useState('500');
   const [cancellationWindow, setCancellationWindow] = useState('24');
-  const [supportEmail, setSupportEmail] = useState('support@servicehub.in');
+  const [supportEmail, setSupportEmail] = useState('support@smartserve.com');
   const [autoApprove, setAutoApprove] = useState(false);
   const [payoutAlerts, setPayoutAlerts] = useState(true);
   const [providerInsurance, setProviderInsurance] = useState(true);
@@ -89,7 +89,7 @@ export const AdminSettingsPage = () => {
           <h1 className="workspace-title mt-2">Platform settings</h1>
           <p className="workspace-subtitle">
             Commission, payout thresholds, and the operating policies that apply across
-            ServiceHub.
+            SmartServ.
           </p>
         </div>
 
@@ -169,7 +169,7 @@ export const AdminSettingsPage = () => {
                   Commission & payouts
                 </h2>
                 <p className="mt-0.5 text-[10px] text-muted-foreground">
-                  How revenue is split between ServiceHub and service partners.
+                  How revenue is split between SmartServ and service partners.
                 </p>
               </div>
             </div>

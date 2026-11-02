@@ -144,7 +144,7 @@ export const LoginPage = () => {
           </>
         ) : (
           <>
-            New to ServiceHub?{' '}
+            New to SmartServ?{' '}
             <Link to="/register" className="font-medium text-ink underline-offset-4 hover:text-primary hover:underline">
               Create an account
             </Link>

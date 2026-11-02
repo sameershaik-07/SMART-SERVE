@@ -13,7 +13,7 @@ export class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('ServiceHub Uncaught UI Error caught by boundary:', error, errorInfo)
+    console.error('SmartServ Uncaught UI Error caught by boundary:', error, errorInfo)
   }
 
   handleReset = () => {

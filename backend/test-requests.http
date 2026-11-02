@@ -663,11 +663,11 @@ Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE
 Content-Type: application/json
 
 {
-  "message": "Official Notice: Please keep all communications and payments within ServiceHub for guarantee protection."
+  "message": "Official Notice: Please keep all communications and payments within SmartServ for guarantee protection."
 }
 
 # Terminal curl:
-# curl -X POST http://localhost:3000/api/admin/chat/conversations/1/messages -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"message":"Official Notice: Please keep all communications and payments within ServiceHub for guarantee protection."}'
+# curl -X POST http://localhost:3000/api/admin/chat/conversations/1/messages -H "Authorization: Bearer PASTE_ADMIN_ACCESS_TOKEN_HERE" -H "Content-Type: application/json" -d '{"message":"Official Notice: Please keep all communications and payments within SmartServ for guarantee protection."}'
 
 
 ### 54) Admin: Chat Platform Analytics & Stats

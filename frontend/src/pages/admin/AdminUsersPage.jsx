@@ -120,7 +120,7 @@ export const AdminUsersPage = () => {
           </div>
           <h1 className="workspace-title mt-2">Users & roles</h1>
           <p className="workspace-subtitle">
-            Every account on ServiceHub, with its role, verification state, and join date.
+            Every account on SmartServ, with its role, verification state, and join date.
           </p>
         </div>
 

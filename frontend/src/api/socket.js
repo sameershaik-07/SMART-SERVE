@@ -28,7 +28,7 @@ export const getSocket = () => {
     });
 
     socketInstance.on('connect', () => {
-      console.log('⚡ Connected to ServiceHub WebSocket server');
+      console.log('⚡ Connected to SmartServ WebSocket server');
     });
 
     socketInstance.on('connect_error', (err) => {

@@ -87,7 +87,7 @@ export const AuthLayout = () => {
           </div>
 
           <div className="relative z-10 flex items-center justify-between border-t border-white/8 pt-5 text-[10px] uppercase tracking-[0.16em] text-on-dark-soft">
-            <span>ServiceHub · 2026</span>
+            <span>SmartServ · 2026</span>
             <span>Trusted in 6 cities</span>
           </div>
         </aside>

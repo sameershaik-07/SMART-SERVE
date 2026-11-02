@@ -41,13 +41,13 @@ export const WalletPage = () => {
       <Reveal className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline pb-6">
         <div>
           <p className="sh-eyebrow">Your money, in one place</p>
-          <h1 className="workspace-title mt-2">ServiceHub wallet</h1>
+          <h1 className="workspace-title mt-2">SmartServ wallet</h1>
           <p className="workspace-subtitle">
             Keep a balance ready for one-click checkout, and see every credit and payment.
           </p>
         </div>
         <span className="flex items-center gap-1.5 rounded-pill border border-hairline bg-surface-soft px-3 py-1.5 text-[10px] font-medium text-muted-foreground">
-          <ShieldCheck size={12} className="text-accent-teal" /> Secured by ServiceHub
+          <ShieldCheck size={12} className="text-accent-teal" /> Secured by SmartServ
         </span>
       </Reveal>
 

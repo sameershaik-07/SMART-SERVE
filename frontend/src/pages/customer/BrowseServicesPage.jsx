@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-  Home,
-  Wrench,
-  Sparkles,
-  Car,
-  GraduationCap,
-  HeartPulse,
-  Camera,
-  Dog,
-  SlidersHorizontal,
-  Search,
-  X,
-} from 'lucide-react';
+import { SlidersHorizontal, Search, X } from 'lucide-react';
 import { CategoryCard } from '../../components/service/CategoryCard';
 import { ServiceCard } from '../../components/service/ServiceCard';
 import { EmptyState } from '../../components/common/EmptyState';
@@ -34,11 +22,7 @@ export const BrowseServicesPage = () => {
   const [priceRange, setPriceRange] = useState(10000);
   const [minRating, setMinRating] = useState(0);
 
-  const categoryIcons = [Home, Wrench, Sparkles, Car, GraduationCap, HeartPulse, Camera, Dog];
-  const categories = marketplaceCategories.map((category, index) => ({
-    ...category,
-    icon: categoryIcons[index],
-  }));
+  const categories = marketplaceCategories;
 
   const categoryPills = ['All', 'Home Services', 'Repairs', 'Beauty', 'Automotive', 'Tutors'];
 
@@ -246,7 +230,7 @@ export const BrowseServicesPage = () => {
             key={cat.title}
             title={cat.title}
             count={cat.count}
-            icon={cat.icon}
+            image={cat.image}
             active={activeCategoryTab === cat.title}
             onClick={() => handleTabChange(cat.title)}
           />

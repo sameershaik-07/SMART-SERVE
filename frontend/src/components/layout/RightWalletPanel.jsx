@@ -23,11 +23,11 @@ export const RightWalletPanel = ({ balance = 2450.0, onAddMoneySuccess }) => {
 
   return (
     <aside className="sticky top-[76px] flex h-[calc(100vh-76px)] w-[320px] flex-col gap-4 overflow-y-auto border-l border-hairline bg-canvas/65 p-5">
-      <div className="sh-dark-panel relative overflow-hidden rounded-lg p-5">
+      <div className="relative overflow-hidden rounded-lg border border-hairline bg-surface-card p-5">
         <div className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-coral/20 blur-3xl" />
         <div className="relative">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-on-dark-soft">
+            <div className="flex items-center gap-2 text-muted-foreground">
               <Wallet size={15} strokeWidth={1.8} />
               <span className="text-[10px] font-medium uppercase tracking-[0.16em]">Wallet balance</span>
             </div>
@@ -36,10 +36,10 @@ export const RightWalletPanel = ({ balance = 2450.0, onAddMoneySuccess }) => {
               Active
             </span>
           </div>
-          <p className="mt-4 font-display text-[2.35rem] leading-none tracking-[-0.03em] text-on-dark">
+          <p className="mt-4 font-display text-[2.35rem] leading-none tracking-[-0.03em] text-ink">
             ₹{currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </p>
-          <p className="mt-2 text-xs text-on-dark-soft">Ready for your next booking</p>
+          <p className="mt-2 text-xs text-muted-foreground">Ready for your next booking</p>
           <Button
             onClick={() => setIsAddMoneyOpen(true)}
             className="mt-5 w-full gap-2"

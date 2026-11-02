@@ -293,7 +293,7 @@ export const ServiceDetailsPage = () => {
                     <div className="flex items-start gap-3">
                       <ShieldCheck size={18} className="mt-0.5 shrink-0 text-accent-teal" strokeWidth={1.7} />
                       <div>
-                        <p className="text-[13px] font-medium text-ink">The ServiceHub guarantee</p>
+                        <p className="text-[13px] font-medium text-ink">The SmartServ guarantee</p>
                         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                           Every booking is backed by our service guarantee. If the work isn’t right,
                           we’ll arrange for it to be put right.

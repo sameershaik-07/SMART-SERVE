@@ -92,16 +92,16 @@ export const Sidebar = ({ className, onItemClick }) => {
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
-        <div className="flex items-center justify-between rounded-md border border-white/5 bg-surface-dark p-2.5 text-on-dark">
+        <div className="flex items-center justify-between rounded-md border border-hairline bg-surface-card p-2.5 text-ink">
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-coral/20 text-sm font-semibold text-coral">
               {user?.name ? user.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-xs font-medium text-on-dark">
+              <p className="truncate text-xs font-medium text-ink">
                 {user?.name || user?.email?.split('@')[0] || 'Customer'}
               </p>
-              <p className="text-[10px] text-on-dark-soft">Customer account</p>
+              <p className="text-[10px] text-muted-foreground">Customer account</p>
             </div>
           </div>
           <Button
@@ -113,7 +113,7 @@ export const Sidebar = ({ className, onItemClick }) => {
             }}
             title="Sign out"
             aria-label="Sign out"
-            className="shrink-0 text-on-dark-soft hover:bg-white/10 hover:text-on-dark"
+            className="shrink-0 text-muted-foreground hover:bg-ink/5 hover:text-ink"
           >
             <LogOut size={15} />
           </Button>
