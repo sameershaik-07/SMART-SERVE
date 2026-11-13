@@ -212,6 +212,7 @@ export function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/admin/login" element={<AdminLoginPage />} />
           </Route>
 
           {/* Customer Workspace Routes */}
@@ -244,9 +245,6 @@ export function App() {
             <Route path="/provider/profile" element={<ProviderProfilePage />} />
             <Route path="/provider/messages" element={<ProviderMessagesPage />} />
           </Route>
-
-          {/* Dedicated Admin Sign-In */}
-          <Route path="/admin/login" element={<AdminLoginPage />} />
 
           {/* Admin Workspace Routes */}
           <Route element={<AdminLayout />}>

@@ -1,11 +1,14 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CalendarCheck2, Check, ShieldCheck, Star } from 'lucide-react';
 import { BrandLockup } from '@/components/brand/BrandMark';
 import { EASE } from '@/lib/motion';
 
 export const AuthLayout = () => {
+  const { pathname } = useLocation();
+  const isAdminPortal = pathname.startsWith('/admin/login');
+
   return (
     <div className="min-h-screen bg-canvas text-ink">
       <div className="grid min-h-screen lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
@@ -20,14 +23,17 @@ export const AuthLayout = () => {
 
           <div className="relative z-10 mx-auto w-full max-w-[460px] py-10">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-coral">
-              A calmer way to book
+              {isAdminPortal ? 'Operations console' : 'A calmer way to book'}
             </p>
             <h1 className="mt-4 font-display text-[3.35rem] leading-[1.02] tracking-[-0.035em] text-on-dark">
-              Good help makes home feel lighter.
+              {isAdminPortal
+                ? 'The whole platform, one clear view.'
+                : 'Good help makes home feel lighter.'}
             </h1>
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-on-dark-soft">
-              Verified local professionals, transparent pricing, and a booking experience that
-              respects your time.
+              {isAdminPortal
+                ? 'Bookings, providers, customers, and platform health — all in one place. Sign in with your administrator credentials to continue.'
+                : 'Verified local professionals, transparent pricing, and a booking experience that respects your time.'}
             </p>
 
             <motion.div
@@ -37,38 +43,77 @@ export const AuthLayout = () => {
               className="relative mt-10"
             >
               <div className="rounded-xl border border-white/12 bg-surface-dark-elevated p-5 shadow-[var(--shadow-dark)]">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-coral/20 text-coral">
-                      <CalendarCheck2 size={18} strokeWidth={1.8} />
+                {isAdminPortal ? (
+                  <>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-coral/20 text-coral">
+                          <ShieldCheck size={18} strokeWidth={1.8} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-on-dark">Operations console</p>
+                          <p className="mt-0.5 text-[11px] text-on-dark-soft">Restricted · Admin access</p>
+                        </div>
+                      </div>
+                      <span className="rounded-pill bg-accent-teal/12 px-2.5 py-1 text-[10px] font-medium text-accent-teal">
+                        Protected
+                      </span>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-on-dark">Deep home cleaning</p>
-                      <p className="mt-0.5 text-[11px] text-on-dark-soft">Sat, 24 Oct · 10:00 AM</p>
+                    <div className="mt-5 grid grid-cols-3 gap-2">
+                      {['Admin only', 'Audit trail', 'Encrypted'].map((item) => (
+                        <div
+                          key={item}
+                          className="flex items-center gap-1.5 rounded-sm border border-white/8 bg-white/[0.03] px-2.5 py-2 text-[10px] text-on-dark-soft"
+                        >
+                          <Check size={11} className="text-accent-teal" />
+                          {item}
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                  <span className="rounded-pill bg-accent-teal/12 px-2.5 py-1 text-[10px] font-medium text-accent-teal">
-                    Confirmed
-                  </span>
-                </div>
-                <div className="mt-5 grid grid-cols-3 gap-2">
-                  {['Verified pro', 'Upfront price', 'Guaranteed'].map((item) => (
-                    <div
-                      key={item}
-                      className="flex items-center gap-1.5 rounded-sm border border-white/8 bg-white/[0.03] px-2.5 py-2 text-[10px] text-on-dark-soft"
-                    >
-                      <Check size={11} className="text-accent-teal" />
-                      {item}
+                    <div className="mt-5 flex items-center justify-between border-t border-white/8 pt-4">
+                      <div className="flex items-center gap-2 text-[11px] text-on-dark-soft">
+                        <ShieldCheck size={13} className="text-accent-teal" />
+                        Role-based access control
+                      </div>
+                      <span className="font-display text-xl text-on-dark">ADMIN</span>
                     </div>
-                  ))}
-                </div>
-                <div className="mt-5 flex items-center justify-between border-t border-white/8 pt-4">
-                  <div className="flex items-center gap-2 text-[11px] text-on-dark-soft">
-                    <Star size={13} className="fill-accent-amber text-accent-amber" />
-                    4.9 · 1,284 reviews
-                  </div>
-                  <span className="font-display text-xl text-on-dark">₹1,499</span>
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-coral/20 text-coral">
+                          <CalendarCheck2 size={18} strokeWidth={1.8} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-on-dark">Deep home cleaning</p>
+                          <p className="mt-0.5 text-[11px] text-on-dark-soft">Sat, 24 Oct · 10:00 AM</p>
+                        </div>
+                      </div>
+                      <span className="rounded-pill bg-accent-teal/12 px-2.5 py-1 text-[10px] font-medium text-accent-teal">
+                        Confirmed
+                      </span>
+                    </div>
+                    <div className="mt-5 grid grid-cols-3 gap-2">
+                      {['Verified pro', 'Upfront price', 'Guaranteed'].map((item) => (
+                        <div
+                          key={item}
+                          className="flex items-center gap-1.5 rounded-sm border border-white/8 bg-white/[0.03] px-2.5 py-2 text-[10px] text-on-dark-soft"
+                        >
+                          <Check size={11} className="text-accent-teal" />
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-5 flex items-center justify-between border-t border-white/8 pt-4">
+                      <div className="flex items-center gap-2 text-[11px] text-on-dark-soft">
+                        <Star size={13} className="fill-accent-amber text-accent-amber" />
+                        4.9 · 1,284 reviews
+                      </div>
+                      <span className="font-display text-xl text-on-dark">₹1,499</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               <motion.div
@@ -79,8 +124,12 @@ export const AuthLayout = () => {
               >
                 <ShieldCheck size={16} />
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.12em]">Verified network</p>
-                  <p className="text-[10px] opacity-70">Every professional is checked</p>
+                  <p className="text-[10px] font-medium uppercase tracking-[0.12em]">
+                    {isAdminPortal ? 'Authorized personnel' : 'Verified network'}
+                  </p>
+                  <p className="text-[10px] opacity-70">
+                    {isAdminPortal ? 'Admin sessions are monitored' : 'Every professional is checked'}
+                  </p>
                 </div>
               </motion.div>
             </motion.div>
@@ -88,14 +137,16 @@ export const AuthLayout = () => {
 
           <div className="relative z-10 flex items-center justify-between border-t border-white/8 pt-5 text-[10px] uppercase tracking-[0.16em] text-on-dark-soft">
             <span>SmartServ · 2026</span>
-            <span>Trusted in 6 cities</span>
+            <span>{isAdminPortal ? 'Authorized access only' : 'Trusted in 6 cities'}</span>
           </div>
         </aside>
 
         <main className="relative flex min-h-screen flex-col bg-canvas">
           <div className="flex items-center justify-between border-b border-hairline px-5 py-4 lg:hidden">
             <BrandLockup size={30} />
-            <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Welcome</span>
+            <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+              {isAdminPortal ? 'Admin access' : 'Welcome'}
+            </span>
           </div>
 
           <div className="flex flex-1 items-center justify-center px-5 py-10 sm:px-8 lg:px-12">
@@ -105,7 +156,9 @@ export const AuthLayout = () => {
           </div>
 
           <footer className="px-6 pb-6 text-center text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-            Safe booking · Verified professionals · Secure payments
+            {isAdminPortal
+              ? 'Restricted area · Authorized personnel only'
+              : 'Safe booking · Verified professionals · Secure payments'}
           </footer>
         </main>
       </div>
