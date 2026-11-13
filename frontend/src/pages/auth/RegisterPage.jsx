@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { Mail, Lock, User, Phone, ArrowRight, AlertCircle, CheckCircle2, Wrench, Home } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Input } from '../../components/common/Input';
@@ -13,11 +13,14 @@ const roles = [
 
 export const RegisterPage = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const initialRole = searchParams.get('role') === 'provider' ? 'PROVIDER' : 'CUSTOMER';
+  const initialEmail = location.state?.email || searchParams.get('email') || '';
+  const notice = location.state?.notice || '';
 
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    email: initialEmail,
     phone: '',
     password: '',
     confirmPassword: '',
@@ -79,6 +82,13 @@ export const RegisterPage = () => {
             : 'Book verified local professionals and keep every visit in one calm place.'}
         </p>
       </div>
+
+      {notice && (
+        <div className="flex items-start gap-2.5 rounded-md border border-primary/20 bg-primary/6 p-3.5 text-xs leading-relaxed text-ink">
+          <AlertCircle size={15} className="mt-0.5 shrink-0 text-primary" />
+          <span>{notice}</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-2 rounded-md border border-hairline bg-surface-soft p-1">
         {roles.map(({ value, label, icon: Icon }) => (

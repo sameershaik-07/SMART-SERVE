@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
@@ -10,6 +10,7 @@ export const ForgotPasswordPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,6 +21,15 @@ export const ForgotPasswordPage = () => {
       await forgotPasswordApi(email);
       setSubmitted(true);
     } catch (err) {
+      if (err.status === 404 && err.data?.code === 'ACCOUNT_NOT_FOUND') {
+        navigate('/register', {
+          state: {
+            notice: err.message || 'No account found with this email. Please create an account first.',
+            email,
+          },
+        });
+        return;
+      }
       setError(err.message || 'Failed to send reset email. Please try again.');
     } finally {
       setLoading(false);

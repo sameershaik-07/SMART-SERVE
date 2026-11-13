@@ -6,8 +6,7 @@ const ApiError = require("../../utils/errors");
 const { sendOTPEmail, sendPasswordResetEmail } = require("../../utils/email");
 const { sendPasswordResetViaCognito, isCognitoConfigured } = require("../../utils/cognito");
 
-const FORGOT_PASSWORD_MESSAGE =
-    "If an account with this email exists, password reset instructions have been sent.";
+const PASSWORD_RESET_SENT_MESSAGE = "Password reset instructions have been sent to your email.";
 
 // Helper to generate access & refresh tokens
 const generateTokens = (user) => {
@@ -162,8 +161,14 @@ const verifyEmailOTP = async (email, otp) => {
 const requestForgotPassword = async (email) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-        // Return generic success to prevent email enumeration.
-        return { message: FORGOT_PASSWORD_MESSAGE };
+        // The product explicitly wants unknown emails sent to sign-up. This
+        // intentionally trades away email-enumeration protection for clearer
+        // account-recovery UX.
+        const error = ApiError.notFound(
+            "No account found with this email. Please create an account first."
+        );
+        error.code = "ACCOUNT_NOT_FOUND";
+        throw error;
     }
 
     // Opaque, single-use token. This is deliberately not a JWT: a JWT reset
@@ -214,7 +219,7 @@ const requestForgotPassword = async (email) => {
         }
     }
 
-    return { message: FORGOT_PASSWORD_MESSAGE };
+    return { message: PASSWORD_RESET_SENT_MESSAGE };
 };
 
 const resetPasswordWithToken = async (token, newPassword) => {
