@@ -56,7 +56,7 @@ export const AdminLoginPage = () => {
         <ArrowLeft size={13} /> Back to home
       </Link>
 
-      <div className="inline-flex items-center gap-2 rounded-pill border border-primary/20 bg-primary/6 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-primary">
+      <div className="flex w-fit items-center gap-2 rounded-pill border border-primary/20 bg-primary/6 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-primary">
         <ShieldCheck size={11} /> Admin portal
       </div>
 
