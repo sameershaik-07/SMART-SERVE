@@ -73,13 +73,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const clearSession = () => {
     disconnectSocket();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.clear();
     setToken(null);
     setUser(null);
+  };
+
+  const logout = () => {
+    clearSession();
     window.location.href = '/';
   };
 
@@ -92,7 +96,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, clearSession, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

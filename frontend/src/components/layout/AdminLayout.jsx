@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export const AdminLayout = () => {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, clearSession } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -30,8 +30,13 @@ export const AdminLayout = () => {
   }
 
   if (!user || user.role !== 'ADMIN') {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/admin/login" replace />;
   }
+
+  const handleAdminLogout = () => {
+    clearSession();
+    navigate('/admin/login', { replace: true });
+  };
 
   return (
     <div className="flex min-h-screen bg-canvas text-foreground">
@@ -101,7 +106,7 @@ export const AdminLayout = () => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={logout}
+                  onClick={handleAdminLogout}
                   className="cursor-pointer gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
                 >
                   <LogOut size={15} />

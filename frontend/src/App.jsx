@@ -26,6 +26,9 @@ const ResetPasswordPage = lazy(() =>
 const VerifyEmailPage = lazy(() =>
   import('./pages/auth/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
 );
+const AdminLoginPage = lazy(() =>
+  import('./pages/auth/AdminLoginPage').then((m) => ({ default: m.AdminLoginPage }))
+);
 
 // Customer Pages
 const LandingPage = lazy(() =>
@@ -241,6 +244,9 @@ export function App() {
             <Route path="/provider/profile" element={<ProviderProfilePage />} />
             <Route path="/provider/messages" element={<ProviderMessagesPage />} />
           </Route>
+
+          {/* Dedicated Admin Sign-In */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
 
           {/* Admin Workspace Routes */}
           <Route element={<AdminLayout />}>
