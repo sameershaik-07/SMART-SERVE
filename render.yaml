@@ -22,6 +22,18 @@ services:
         value: "https://main.d36sahe4s27718.amplifyapp.com,https://d36sahe4s27718.amplifyapp.com,http://localhost:5173"
       - key: FRONTEND_URL
         value: "https://main.d36sahe4s27718.amplifyapp.com"
+      - key: AWS_REGION
+        value: "ap-south-1"
+      - key: COGNITO_USER_POOL_ID
+        value: "ap-south-1_oOR4o9c8Q"
+      - key: COGNITO_CLIENT_ID
+        value: "6bac6qkhu0opj6drp3fa26sv5a"
+      - key: COGNITO_RESET_ENABLED
+        value: "true"
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
 
 databases:
   - name: smartserve-postgres

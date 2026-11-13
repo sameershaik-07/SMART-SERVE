@@ -1,8 +1,13 @@
+const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const prisma = require("../../config/prisma");
 const { signAccessToken, signRefreshToken, verifyToken } = require("../../config/jwt");
 const ApiError = require("../../utils/errors");
-const { sendOTPEmail } = require("../../utils/email");
+const { sendOTPEmail, sendPasswordResetEmail } = require("../../utils/email");
+const { sendPasswordResetViaCognito, isCognitoConfigured } = require("../../utils/cognito");
+
+const FORGOT_PASSWORD_MESSAGE =
+    "If an account with this email exists, password reset instructions have been sent.";
 
 // Helper to generate access & refresh tokens
 const generateTokens = (user) => {
@@ -157,25 +162,59 @@ const verifyEmailOTP = async (email, otp) => {
 const requestForgotPassword = async (email) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-        // Return generic success to prevent email enumeration
-        return { message: "If an account with this email exists, password reset instructions have been sent." };
+        // Return generic success to prevent email enumeration.
+        return { message: FORGOT_PASSWORD_MESSAGE };
     }
 
-    const resetToken = signAccessToken({ userId: user.id, email: user.email });
+    // Opaque, single-use token. This is deliberately not a JWT: a JWT reset
+    // token could also be accepted as an access token by the auth middleware.
+    const resetToken = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    await prisma.passwordResetToken.create({
-        data: {
-            email,
-            token: resetToken,
-            expiresAt
-        }
-    });
+    await prisma.$transaction([
+        prisma.passwordResetToken.deleteMany({ where: { email } }),
+        prisma.passwordResetToken.create({
+            data: {
+                email,
+                token: resetToken,
+                expiresAt
+            }
+        })
+    ]);
 
-    return {
-        message: "Password reset instructions sent",
-        resetToken // returned for API testing convenience
-    };
+    let sent = false;
+
+    if (isCognitoConfigured) {
+        try {
+            await sendPasswordResetViaCognito(email, resetToken);
+            sent = true;
+        } catch (error) {
+            console.error(
+                "[auth] Cognito password reset email failed:",
+                error.name || "Error",
+                error.message
+            );
+        }
+    }
+
+    // Resend remains a fallback only; Cognito is the primary delivery path.
+    // This also keeps local development working when Cognito is not configured.
+    if (!sent && process.env.RESEND_API_KEY) {
+        try {
+            sent = await sendPasswordResetEmail(email, resetToken);
+        } catch (error) {
+            console.error("[auth] Resend password reset email failed:", error.message);
+        }
+    }
+
+    if (!sent) {
+        console.warn(`[auth] Password reset email was not sent for ${email}`);
+        if (!process.env.RESEND_API_KEY && !isCognitoConfigured) {
+            console.log(`[DEV MODE] Password Reset Token for ${email}: ${resetToken}`);
+        }
+    }
+
+    return { message: FORGOT_PASSWORD_MESSAGE };
 };
 
 const resetPasswordWithToken = async (token, newPassword) => {
